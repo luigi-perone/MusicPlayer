@@ -92,21 +92,21 @@
                 <dependency>
                     <groupId>org.junit.jupiter</groupId>
                     <artifactId>junit-jupiter-api</artifactId>
-                    <version>${junit.jupiter.version}</version>
+                    <version>5.11.0</version>
                     <scope>test</scope>
                 </dependency>
                 <!-- JUnit 5 Engine (per eseguire i test) -->
                 <dependency>
                     <groupId>org.junit.jupiter</groupId>
                     <artifactId>junit-jupiter-engine</artifactId>
-                    <version>${junit.jupiter.version}</version>
+                    <version>5.11.0</version>
                     <scope>test</scope>
                 </dependency>
                 <!-- JUnit 5 Params (per test parametrizzati) -->
                 <dependency>
                     <groupId>org.junit.jupiter</groupId>
                     <artifactId>junit-jupiter-params</artifactId>
-                    <version>${junit.jupiter.version}</version>
+                    <version>5.11.0</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
