@@ -884,3 +884,29 @@ V -.->|6. Legge i dati di stato| M
 * US-011
 * US-014
 
+## [US-029] Skip alla playlist successiva/precedente
+
+**Story points**: 5
+
+**Come** utente,
+**voglio** saltare alla playlist successiva o precedente,
+**in modo da** navigare rapidamente tra le playlist.
+
+**Criteri di Accettazione:**
+
+* **Dato** che l'utente ha aggiunto nella coda una o più playlist e non ha avviato la riproduzione,
+**Quando** clicca sul pulsante "skip successivo",
+**Allora** il sistema naviga in avanti saltando da una playlist a un'altra.
+* **Dato** che l'utente ha aggiunto nella coda una o più playlist e non ha avviato la riproduzione,
+**Quando** clicca sul pulsante "skip precedente",
+**Allora** il sistema naviga indietro saltando da una playlist (o brano) a un'altra.
+* **Dato** che l'utente si trova sull'ultima playlist disponibile nell'elenco o nella cartella di navigazione,
+**Quando** clicca sul pulsante "Playlist Successiva",
+**Allora** il sistema ignora il comando (o disabilita visivamente il pulsante), mantenendo attiva la riproduzione corrente della playlist attuale.
+* **Dato** che il sistema esegue con successo il passaggio alla playlist successiva o precedente,
+**Quando** la nuova raccolta viene caricata nel player,
+**Allora** l'interfaccia grafica aggiorna istantaneamente tutti i dati del display principale.
+
+**Dipendenze:**
+
+* US-014
