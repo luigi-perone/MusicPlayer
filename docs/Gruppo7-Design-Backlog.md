@@ -101,7 +101,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-001] Creazione di una traccia
 
-**story points**: 1
+**story points**: 2
 
 **Come** utente,
 **voglio** creare una nuova traccia inserendo titolo, autore, durata, genere e anno di pubblicazione,
@@ -370,7 +370,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-011] Riproduzione di una traccia singola
 
-**story points**: 4
+**story points**: 5
 
 **Come** utente,
 **voglio** avviare la riproduzione di una traccia,
@@ -396,7 +396,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-012] Pausa e ripresa della riproduzione
 
-**story points**: 4
+**story points**: 5
 
 **Come** utente,
 **voglio** mettere in pausa e riprendere una traccia in riproduzione,
@@ -422,7 +422,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-013] Skip alla traccia successiva/precedente
 
-**story points**: 4
+**story points**: 5
 
 **Come** utente,
 **voglio** saltare alla traccia successiva o precedente in una playlist,
@@ -448,7 +448,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-014] Riproduzione di una playlist
 
-**story points**: 4
+**story points**: 3
 
 **Come** utente,
 **voglio** avviare la riproduzione di una specifica playlist,
@@ -482,7 +482,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-015] Modalità di riproduzione: Sequential
 
-**story points**: 4
+**story points**: 3
 
 **Come** utente,
 **voglio** scegliere la modalità di riproduzione sequenziale,
@@ -600,7 +600,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-019] Aggiornamento UI in tempo reale durante il playback
 
-**story points**: 6
+**story points**: 5
 
 **Come** utente,
 **voglio** visualizzare l’aggiornamento progressivo della UI del Media Player durante la riproduzione del brano
@@ -629,7 +629,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-020] Undo di operazioni di aggiunta/rimozione
 
-**story points**: 9
+**story points**: 13
 
 **Come** utente,
 **voglio** annullare le ultime operazioni di aggiunta o rimozione,
@@ -689,7 +689,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-022] Home page con tracce e playlist più ascoltate
 
-**story points**: 7
+**story points**: 5
 
 **Come** utente,
 **voglio** vedere nella home le tracce e playlist più frequentemente ascoltate,
@@ -772,7 +772,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-025] Aggiunta di tag visivi alle tracce
 
-**story points**: 4
+**story points**: 5
 
 **Come** utente,
 **voglio** assegnare tag visivi (favourite, explicit, new release) alle mie tracce,
@@ -801,7 +801,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-026] Creazione automatica di playlist basata sui tag
 
-**story points**: 6
+**story points**: 5
 
 **Come** utente,
 **voglio** creare playlist automatiche basate su uno o più tag,
@@ -831,7 +831,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-027] Riordino delle tracce in una playlist
 
-**story points**: 10
+**story points**: 13
 
 **Come** utente,
 **voglio** riordinare le tracce all'interno di una playlist (anche durante la riproduzione),
@@ -861,7 +861,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-028] Aggiunta in coda di una traccia o una playlist
 
-**story points**: 9
+**story points**: 13
 
 **Come** utente,
 **voglio** aggiungere tracce o playlist all’interno della coda di riproduzione,
