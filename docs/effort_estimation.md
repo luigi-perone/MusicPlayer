@@ -43,3 +43,13 @@ Per garantire stime coerenti durante il Planning Poker, il team utilizza la segu
 * **5 Story Points (Medio)**: Funzionalità che coinvolge più entità o viste, ognuna con un proprio ruolo. La comunicazione tra le parti va progettata da zero, ma resta lineare e priva di incognite rilevanti.
 * **8 Story Points (Complesso)**: Funzionalità che fa interagire parti del sistema già esistenti in scenari nuovi. Il lavoro non sta nel definire pezzi inediti, ma nel mantenerli coerenti tra loro mentre comunicano in tempo reale, evitando possibili problemi di sincronizzazione.
 * **13 Story Points (Molto Complesso)**: Funzionalità in cui il coordinamento tra le parti è così denso da richiedere una struttura dedicata che lo regga (uno stack, una coda composita, un pattern architetturale). Impegnativa, ma completabile in un singolo Sprint.
+
+---
+
+### 5. Stima della Velocity
+
+La velocity è un valore che indica quanti Story Points il team è in grado di completare nell'arco di uno Sprint. Trovandoci nella fase di pre-game, non conosciamo a priori questo valore. Si adotta perciò una stima iniziale basata sulla capacità teorica del team, da utilizzare come riferimento per la pianificazione del primo Sprint.
+
+Per definire tale stima, il team ha preso come riferimento la scala dei punteggi e ha concordato un fattore di conversione indicativo pari a 1 SP(Story Points) = 1,5 ore. È importante sottolineare che questa conversione non interviene nel processo di stima delle User Story, ma serve unicamente a tradurre la disponibilità oraria del gruppo in una capacità espressa in Story Points. Essa è inoltre stata effettuata dopo l'assegnazione dei Story Points a ciascuna User Story, e non ha quindi influenzato in alcun modo il Planning Poker. Considerando un impegno settimanale di circa 8 ore per ciascuno dei 4 membri del team, si ottiene un budget iniziale di 22 SP (32/1,5 arrotondato per eccesso) per il primo Sprint.
+
+Questo valore rappresenta una capacità teorica, da intendersi come riferimento provvisorio. Al termine di ciascuno Sprint verrà registrato il numero di Story Points effettivamente completati, e la velocity media sarà calcolata come media dei valori osservati negli Sprint conclusi. Tale media sostituirà progressivamente la stima teorica iniziale, fornendo previsioni sempre più accurate per la pianificazione degli Sprint successivi.
