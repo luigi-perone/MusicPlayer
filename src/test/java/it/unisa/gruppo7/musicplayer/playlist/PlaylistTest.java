@@ -37,7 +37,7 @@ class PlaylistTest {
 
         @Test
         void isEmpty() {
-            assertEquals(0, playlist.getCntTrack());
+            assertEquals(0, playlist.getTrackCount());
         }
 
         @Test
@@ -52,7 +52,7 @@ class PlaylistTest {
         @Test
         void countIncreasesAfterAdd() {
             playlist.addTrack(trk1);
-            assertEquals(1, playlist.getCntTrack());
+            assertEquals(1, playlist.getTrackCount());
         }
 
         @Test
@@ -60,7 +60,7 @@ class PlaylistTest {
             playlist.addTrack(trk1);
             playlist.addTrack(trk2);
             playlist.addTrack(trk3);
-            assertEquals(3, playlist.getCntTrack());
+            assertEquals(3, playlist.getTrackCount());
         }
 
         @Test
@@ -80,24 +80,12 @@ class PlaylistTest {
 
     @Nested
     class WhenRemovingTracks {
-
-        @Test
-        void returnsTrueIfTrackWasPresent() {
-            playlist.addTrack(trk1);
-            assertTrue(playlist.removeTrack(trk1));
-        }
-
-        @Test
-        void returnsFalseIfTrackWasAbsent() {
-            assertFalse(playlist.removeTrack(trk1));
-        }
-
         @Test
         void countDecreasesAfterRemove() {
             playlist.addTrack(trk1);
             playlist.addTrack(trk2);
             playlist.removeTrack(trk1);
-            assertEquals(1, playlist.getCntTrack());
+            assertEquals(1, playlist.getTrackCount());
         }
 
         @Test
@@ -122,7 +110,7 @@ class PlaylistTest {
             playlist.addTrack(trk2);
             playlist.removeTrack(trk1);
             playlist.removeTrack(trk2);
-            assertEquals(0, playlist.getCntTrack());
+            assertEquals(0, playlist.getTrackCount());
             assertEquals(0, playlist.getTotalDuration());
         }
     }

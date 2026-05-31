@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.core.TrackCollection;
+import java.util.Collections;
 
 /**
  * 
@@ -13,8 +15,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
  * @author Maxim Makhovskyy
  */
 
-public class Playlist{
-    private List<Track> playlist;
+public class Playlist extends TrackCollection{
     private String playlistName;
 
     /**
@@ -23,30 +24,18 @@ public class Playlist{
      * @param playlistName the name of the playlist
      */
     public Playlist(String playlistName){
-        playlist = new ArrayList<>();
+        this.tracks = new ArrayList<>();
         this.playlistName = playlistName;
     }
 
-    public void addTrack(Track t){
-        playlist.add(t);
-    }
-
-    public boolean removeTrack(Track t){
-        return playlist.remove(t);
-    }
-
     public List<Track> getPlaylist() {
-        return playlist;
+        return (List<Track>) this.tracks;
     }
 
     public int getTotalDuration(){
-        return playlist.stream()
+        return this.tracks.stream()
                         .mapToInt(Track::getDuration)
                         .sum();
-    }
-
-    public int getCntTrack(){
-        return playlist.size();
     }
 
     public String getName(){
