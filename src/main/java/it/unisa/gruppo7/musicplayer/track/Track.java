@@ -1,5 +1,8 @@
 package it.unisa.gruppo7.musicplayer.track;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 import java.lang.IllegalArgumentException;
 import java.time.Year;
@@ -32,18 +35,26 @@ public class Track {
      *                                      if the duration is negative or the publication year is in the future.
      */
 
-    public Track(String title, String author, int duration, String genre, Year publicationYear) {
-        if (title.isEmpty()) {
+    @JsonCreator
+    public Track(
+            @JsonProperty("title") String title,
+            @JsonProperty("author") String author,
+            @JsonProperty("duration") int duration,
+            @JsonProperty("genre") String genre,
+            @JsonProperty("publicationYear") Year publicationYear) {
+        if (title == null || title.isEmpty()) {
             throw new IllegalArgumentException("Track title must be included");
         }
-        if (author.isEmpty()) {
+        if (author == null || author.isEmpty()) {
             throw new IllegalArgumentException("Track author must be included");
         }
         if (duration <= 0) {
             throw new IllegalArgumentException("Track duration must be positive and non-zero");
         }
-        if ((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
-            throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+        if (publicationYear != null) {
+            if (((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0))) {
+                throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+            }
         }
 
         this.title = title;
@@ -66,7 +77,6 @@ public class Track {
     public Track(String title, String author, int duration, Year publicationYear) {
         this(title, author, duration, "not-specified", publicationYear);
     }
-
 
 
     // --- Methods ---

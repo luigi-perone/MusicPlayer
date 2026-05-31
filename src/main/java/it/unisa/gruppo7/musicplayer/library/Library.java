@@ -13,11 +13,12 @@ public class Library extends TrackCollection {
 
     // pattern singleton
     private static Library instance;
+    private static final String DEFAULT_PATH = "src/main/java/it/unisa/gruppo7/musicplayer/library/track-library.json";
 
-    // should be private WIP
-    public Library() {
-        this.tracks = new HashSet<>();
-        this.path = "src/main/java/it/unisa/gruppo7/musicplayer/library/track-library.json";
+
+    private Library() {
+        super(DEFAULT_PATH, new HashSet<>());
+        this.load();
     }
 
     // --- Methods ---
