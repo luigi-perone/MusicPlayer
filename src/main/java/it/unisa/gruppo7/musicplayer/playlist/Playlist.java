@@ -9,8 +9,8 @@ import java.util.Collections;
 
 /**
  * 
- * This class represents the model of the playlist of the music player. 
- * A playlist contains a list of tracks. 
+ * Models a playlist in the music player, identified by a name 
+ * and holding a collection of tracks.
  * 
  * @author Maxim Makhovskyy
  */
