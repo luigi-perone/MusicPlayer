@@ -1,4 +1,4 @@
-package com.example.sad_project_7;
+package it.unisa.gruppo7.musicplayer;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
