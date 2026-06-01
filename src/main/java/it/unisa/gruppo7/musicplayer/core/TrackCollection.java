@@ -40,9 +40,7 @@ public abstract class TrackCollection {
         return this.tracks.size();
     }
 
-    // Creates a serialized file (JSON) of the collection in the specified path
-    public abstract void save();
-
-    // Loads the collection from a specified serialized file (JSON)
-    public abstract void load();
+    public Collection<Track> getTracks() {
+        return tracks;
+    }
 }

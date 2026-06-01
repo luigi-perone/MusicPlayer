@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import java.time.Year;
+import java.util.ArrayList;
 
 /**
  * This is a Test Class for the Playlist model class.
@@ -21,7 +22,7 @@ class PlaylistTest {
 
     @BeforeEach
     void setUp() {
-        playlist = new Playlist("My Playlist");
+        playlist = new Playlist("My Playlist", new ArrayList<>());
         trk1 = new Track("Bohemian Rhapsody", "Queen", 354, "Rock", Year.of(1975));
         trk2 = new Track("Billie Jean", "Michael Jackson", 294, "Pop", Year.of(1982));
         trk3 = new Track("Lose Yourself", "Eminem", 326, "Hip-Hop", Year.of(2002));

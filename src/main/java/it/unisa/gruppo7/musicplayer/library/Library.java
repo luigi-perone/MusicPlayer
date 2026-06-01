@@ -5,19 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
+import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
 /**
  * @author francescoLemmo
  */
-public class Library extends TrackCollection {
+public class Library extends TrackCollection implements PersistenceService{
 
     // pattern singleton
     private static Library instance;
@@ -59,6 +61,12 @@ public class Library extends TrackCollection {
         return super.removeTrack(track);
     }
 
+    public Track getTrackById(UUID id) {
+        return tracks.stream()
+                    .filter(t -> t.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+    }
 
     @Override
     public void save() {
