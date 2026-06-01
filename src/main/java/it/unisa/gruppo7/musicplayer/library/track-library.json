@@ -1,0 +1,22 @@
+[ {
+  "id" : "daae23ea-85b9-4151-ab57-e4a0eea9196a",
+  "title" : "Faithfully",
+  "author" : "Journey",
+  "duration" : 266,
+  "genre" : "Rock",
+  "publicationYear" : "1983"
+}, {
+  "id" : "4dd6ee34-392e-40b0-a350-ca9cd4061cfe",
+  "title" : "Open Arms",
+  "author" : "Journey",
+  "duration" : 566,
+  "genre" : "Rock",
+  "publicationYear" : "1983"
+}, {
+  "id" : "2458d433-adcc-4478-8349-f5660e8ef847",
+  "title" : "Beat It",
+  "author" : "Michael Jackson",
+  "duration" : 456,
+  "genre" : null,
+  "publicationYear" : "1983"
+} ]
