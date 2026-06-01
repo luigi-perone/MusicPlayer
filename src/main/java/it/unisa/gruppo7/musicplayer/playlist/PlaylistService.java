@@ -5,10 +5,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 
@@ -50,13 +47,65 @@ public class PlaylistService implements PersistenceService{
         return Optional.empty();
     }
 
+    /**
+     * Deletes the playlist with the given name, removing it permanently from the list
+     * and persisting the change. Tracks contained in the playlist are left untouched
+     * in the library.
+     *
+     * @param name the name of the playlist to delete
+     * @return an empty Optional if the deletion is successful, or an Optional
+     *         containing an error message if no playlist with that name exists.
+     */
+    public Optional<String> deletePlaylist(String name) {
+        if (name == null || name.trim().isEmpty())
+            return Optional.of("A name for the playlist must be provided");
+
+        boolean removed = playlists.removeIf(p -> p.getName().equals(name));
+
+        if (!removed)
+            return Optional.of("No playlist found with name: " + name);
+
+        save();
+        return Optional.empty();
+    }
+
     public List<Playlist> getPlaylists() {
         return playlists;
+    }
+
+    public Playlist getPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<String> getPlaylistNames() {
+        return playlists.stream()
+                .map(Playlist::getName)
+                .collect(Collectors.toList());
     }
 
     private boolean existsByName(String name) {
         return playlists.stream()
                         .anyMatch(p -> p.getName().equals(name));
+    }
+
+    public Playlist getTrackFromPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<String> getTrackNamesFromPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .map(p -> p.getTracks().stream()
+                        .map(Track::getTitle)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     @Override

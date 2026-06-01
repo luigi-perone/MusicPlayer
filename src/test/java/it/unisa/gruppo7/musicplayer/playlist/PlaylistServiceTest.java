@@ -1,12 +1,19 @@
 package it.unisa.gruppo7.musicplayer.playlist;
+import it.unisa.gruppo7.musicplayer.core.PersistenceService;
+import it.unisa.gruppo7.musicplayer.library.Library;
+import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Year;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
+import java.time.Year;
 
 class PlaylistServiceTest {
 
@@ -86,6 +93,169 @@ class PlaylistServiceTest {
         void duplicateIsNotAdded() {
             service.createPlaylist("My Playlist");
             assertEquals(1, service.getPlaylists().size());
+        }
+    }
+
+    @Nested
+    class DeletePlaylist {
+
+        @BeforeEach
+        void existingPlaylist() {
+            service.createPlaylist("My Playlist");
+            service.createPlaylist("Another Playlist");
+        }
+
+        @Nested
+        class WithValidName {
+
+           /* @Test
+            void returnsEmptyOptional() {
+                Optional<String> error = service.deletePlaylist("My Playlist");
+                assertTrue(error.isEmpty());
+            }*/
+
+            @Test
+            void playlistIsRemovedFromCollection() {
+                service.deletePlaylist("My Playlist");
+                assertEquals(1, service.getPlaylists().size());
+            }
+
+            @Test
+            void correctPlaylistIsRemoved() {
+                service.deletePlaylist("My Playlist");
+                assertEquals("Another Playlist", service.getPlaylists().get(0).getName());
+            }
+
+            @Test
+            void deletingLastPlaylistLeavesEmptyCollection() {
+                service.deletePlaylist("My Playlist");
+                service.deletePlaylist("Another Playlist");
+                assertEquals(0, service.getPlaylists().size());
+            }
+        }
+
+        @Nested
+        class TracksIntegrity {
+
+            @Test
+            void deletingPlaylistDoesNotRemoveTracksSharedWithOtherPlaylists() {
+                service.createPlaylist("Playlist A");
+                service.createPlaylist("Playlist B");
+                Track track=new Track("Track1", "pippo", 180, "rock");
+                service.getPlaylist("Playlist A").addTrack(track);
+                service.getPlaylist("Playlist B").addTrack(track);
+
+                service.deletePlaylist("Playlist A");
+
+
+                Collection<Track> libraryTracks = service.getPlaylist("Playlist B").getTracks();
+                assertTrue(libraryTracks.contains(track));
+            }
+
+            @Test
+            void deletingPopulatedPlaylistKeepsTracksInLibrary() {
+                service.createPlaylist("Playlist");
+                Track track = new Track("Track1", "pippo", 180, "rock");
+
+
+                Library.getInstance().addTrack(track);
+                service.getPlaylist("Playlist").addTrack(track);
+
+                service.deletePlaylist("Playlist");
+
+
+                assertTrue(Library.getInstance().getTracks().contains(track));
+            }
+        }
+
+        @Nested
+        class WithInvalidName {
+
+            @Test
+            void returnsErrorForNullName() {
+                Optional<String> error = service.deletePlaylist(null);
+                assertTrue(error.isPresent());
+            }
+
+            @Test
+            void returnsErrorForEmptyName() {
+                Optional<String> error = service.deletePlaylist("");
+                assertTrue(error.isPresent());
+            }
+
+            @Test
+            void returnsErrorForWhitespaceName() {
+                Optional<String> error = service.deletePlaylist("   ");
+                assertTrue(error.isPresent());
+            }
+
+            @Test
+            void collectionIsUnchangedForNullName() {
+                service.deletePlaylist(null);
+                assertEquals(2, service.getPlaylists().size());
+            }
+
+            @Test
+            void collectionIsUnchangedForEmptyName() {
+                service.deletePlaylist("");
+                assertEquals(2, service.getPlaylists().size());
+            }
+        }
+
+        @Nested
+        class WithNonExistentName {
+
+            @Test
+            void returnsError() {
+                Optional<String> error = service.deletePlaylist("Ghost Playlist");
+                assertTrue(error.isPresent());
+            }
+
+            @Test
+            void collectionIsUnchanged() {
+                service.deletePlaylist("Ghost Playlist");
+                assertEquals(2, service.getPlaylists().size());
+            }
+        }
+
+        @Nested
+        class Persistence {
+
+            @TempDir
+            Path tempDir;
+
+            private PlaylistService persistenceService;
+            private Path tempFile;
+
+            @BeforeEach
+            void setUpTempFile() {
+                tempFile = tempDir.resolve("test-playlists.json");
+                persistenceService = new PlaylistService(tempFile.toString());
+                persistenceService.createPlaylist("To Keep");
+                persistenceService.createPlaylist("To Delete");
+                persistenceService.save();
+            }
+
+            @Test
+            void deletedPlaylistIsNotRestoredAfterReload() {
+                persistenceService.deletePlaylist("To Delete");
+
+                PlaylistService reloaded = new PlaylistService(tempFile.toString());
+                reloaded.load();
+
+                assertEquals(1, reloaded.getPlaylists().size());
+                assertEquals("To Keep", reloaded.getPlaylists().get(0).getName());
+            }
+
+            @Test
+            void survivingPlaylistIsStillPresentAfterReload() {
+                persistenceService.deletePlaylist("To Delete");
+
+                PlaylistService reloaded = new PlaylistService(tempFile.toString());
+                reloaded.load();
+
+                assertEquals("To Keep", reloaded.getPlaylists().get(0).getName());
+            }
         }
     }
 
