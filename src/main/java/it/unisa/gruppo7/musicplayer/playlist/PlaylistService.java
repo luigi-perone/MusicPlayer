@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 
-import it.unisa.gruppo7.musicplayer.library.Library;
 
 /**
  * Manages the collection of playlists in the music player,

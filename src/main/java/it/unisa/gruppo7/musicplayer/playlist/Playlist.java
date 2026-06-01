@@ -1,13 +1,11 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
-import java.util.Collections;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
