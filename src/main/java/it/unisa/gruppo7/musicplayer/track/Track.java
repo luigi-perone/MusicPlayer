@@ -1,8 +1,12 @@
 package it.unisa.gruppo7.musicplayer.track;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 import java.lang.IllegalArgumentException;
 import java.time.Year;
+import java.util.UUID;
 
 /**
  * This class represents the model of the music track.
@@ -12,6 +16,7 @@ import java.time.Year;
 
 public class Track {
 
+    private final UUID id;
     private String title;
     private String author;
     private int duration;   // track duration in seconds
@@ -22,6 +27,7 @@ public class Track {
     /**
      * Complete Track constructor
      *
+     * @param id                The unique track identifier
      * @param title             The title of the track
      * @param author            The creator of the track
      * @param duration          The length (in seconds) of the track
@@ -32,25 +38,27 @@ public class Track {
      *                                      if the duration is negative or the publication year is in the future.
      */
 
-    public Track(String title, String author, int duration, String genre, Year publicationYear) {
-        if (title.isEmpty()) {
-            throw new IllegalArgumentException("Track title must be included");
-        }
-        if (author.isEmpty()) {
-            throw new IllegalArgumentException("Track author must be included");
-        }
-        if (duration <= 0) {
-            throw new IllegalArgumentException("Track duration must be positive and non-zero");
-        }
-        if ((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
-            throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
-        }
+    @JsonCreator
+    public Track(
+            @JsonProperty("id") UUID id,
+            @JsonProperty("title") String title,
+            @JsonProperty("author") String author,
+            @JsonProperty("duration") int duration,
+            @JsonProperty("genre") String genre,
+            @JsonProperty("publicationYear") Year publicationYear) {
 
+        this.validateArguments(title, author, duration, genre, publicationYear);
+
+        this.id = (id == null) ? UUID.randomUUID() : id;
         this.title = title;
         this.author = author;
         this.duration = duration;
         this.genre = genre;
         this.publicationYear = publicationYear;
+    }
+
+    public Track(String title, String author, int duration, String genre, Year publicationYear) {
+        this(null, title, author, duration, genre, publicationYear);
     }
 
 
@@ -68,10 +76,30 @@ public class Track {
     }
 
 
-
     // --- Methods ---
 
+    public void validateArguments(String title, String author, int duration, String genre, Year publicationYear) {
+        if (title == null || title.isEmpty()) {
+            throw new IllegalArgumentException("Track title must be included");
+        }
+        if (author == null || author.isEmpty()) {
+            throw new IllegalArgumentException("Track author must be included");
+        }
+        if (duration <= 0) {
+            throw new IllegalArgumentException("Track duration must be positive and non-zero");
+        }
+        if (publicationYear != null) {
+            if (((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0))) {
+                throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+            }
+        }
+    }
+
     // -- getter and setter --
+
+    public UUID getId() {
+        return id;
+    }
 
     public String getTitle() {
         return title;
@@ -113,8 +141,10 @@ public class Track {
     }
 
     public void setPublicationYear(Year publicationYear) {
-        if ((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
-            throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+        if (publicationYear != null) {
+            if ((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
+                throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+            }
         }
         this.publicationYear = publicationYear;
     }
@@ -124,7 +154,8 @@ public class Track {
     @Override
     public String toString() {
         return "Track{" +
-                "title='" + title + '\'' +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
                 ", author='" + author + '\'' +
                 ", duration=" + duration +
                 ", genre='" + genre + '\'' +
@@ -134,16 +165,15 @@ public class Track {
 
     // -- hashCode & equals --
 
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Track track = (Track) o;
-        return getDuration() == track.getDuration() && Objects.equals(getTitle(), track.getTitle()) && Objects.equals(getAuthor(), track.getAuthor());
+        return Objects.equals(id, track.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getTitle(), getAuthor(), getDuration());
+        return Objects.hashCode(id);
     }
 }
