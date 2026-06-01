@@ -1,5 +1,5 @@
-package test.java.it.unisa.gruppo7.musicplayer.playlist;
-import main.java.it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+package it.unisa.gruppo7.musicplayer.playlist;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

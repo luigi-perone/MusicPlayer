@@ -1,6 +1,6 @@
-package test.java.it.unisa.gruppo7.musicplayer.playlist;
+package it.unisa.gruppo7.musicplayer.playlist;
 import java.beans.Transient;
-import main.java.it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

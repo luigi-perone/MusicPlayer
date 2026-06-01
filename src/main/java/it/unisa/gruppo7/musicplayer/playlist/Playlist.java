@@ -1,4 +1,4 @@
-package main.java.it.unisa.gruppo7.musicplayer.playlist;
+package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.HashMap;
 import java.util.List;

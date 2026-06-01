@@ -1,4 +1,4 @@
-package main.java.it.unisa.gruppo7.musicplayer.playlist;
+package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisa.gruppo7.musicplayer.track.Track;
