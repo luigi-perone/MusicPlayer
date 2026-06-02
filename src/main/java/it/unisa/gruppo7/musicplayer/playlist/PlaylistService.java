@@ -17,7 +17,7 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  * @author Maxim Makhovskyy
  */
 public class PlaylistService implements PersistenceService{
-    private static final String DEFAULT_PATH = "src/main/java/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
+    private static final String DEFAULT_PATH = "src/main/resources/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;
@@ -44,6 +44,7 @@ public class PlaylistService implements PersistenceService{
         if (existsByName(name))
             return Optional.of("This playlist name already exists");
         playlists.add(new Playlist(name, new ArrayList<>()));
+        save();
         return Optional.empty();
     }
 

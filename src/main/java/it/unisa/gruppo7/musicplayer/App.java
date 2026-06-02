@@ -8,6 +8,9 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistSidebarController;
+
 /**
  * JavaFX App
  */
@@ -17,7 +20,17 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        java.net.URL url = App.class.getResource("/it/unisa/gruppo7/musicplayer/playlist/PlaylistSidebar.fxml");
+        System.out.println("FXML URL: " + url);
+        FXMLLoader loader = new FXMLLoader(url);
+        Parent root = loader.load();
+
+        PlaylistSidebarController controller = loader.getController();
+        controller.setPlaylistService(new PlaylistService());
+
+        scene = new Scene(root, 234, 600);
+        scene.getStylesheets().add(
+            App.class.getResource("/it/unisa/gruppo7/musicplayer/playlist/Playlist.css").toExternalForm());
         stage.setScene(scene);
         stage.show();
     }
