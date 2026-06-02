@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.library;
 
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.track.TrackFormController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,6 +14,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.Year;
 import java.util.Optional;
+
+/**
+ * Manages the communication between the model and the view of form to add, edit and eliminated the tracks.
+ * 
+ * @author Matteo Postiglione
+ */
 
 public class LibraryController {
 
@@ -51,12 +58,12 @@ public class LibraryController {
 
     @FXML
     private void onAddTrackClick() {
-try {
-            javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/trackform.fxml"));
+        try {
+            javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setTitle("Aggiungi Nuova Traccia");
+            stage.setTitle("Add new track");
             stage.setScene(new javafx.scene.Scene(root));
             
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
@@ -67,7 +74,7 @@ try {
             
         } catch (Exception e) {
             e.printStackTrace();
-            mostraAvviso("Errore", "Impossibile caricare il form.");
+            mostraAvviso("Error", "Unable to load the form.");
         }
     }
 
@@ -75,32 +82,56 @@ try {
     private void onEditTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            mostraAvviso("Nessuna selezione", "Seleziona una traccia dalla tabella per modificarla.");
+            mostraAvviso("No selection", "Select a table track to edit it.");
             return;
         }
-        System.out.println("Apro il form per MODIFICARE la traccia: " + selectedTrack.getTitle());
+
+        try {
+            javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
+            javafx.scene.Parent root = fxmlLoader.load();
+
+            TrackFormController controller = fxmlLoader.getController();
+            controller.setTrack(selectedTrack);
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Edit track");
+            stage.setScene(new javafx.scene.Scene(root));
+            
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            
+            stage.showAndWait();
+
+            observableTracks.setAll(musicPlayer.getTracksFromLibrary());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostraAvviso("Error", "Unable to load the form.");
+        }    
+
+        System.out.println("Open form to modify the track: " + selectedTrack.getTitle());
     }
 
     @FXML
     private void onDeleteTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            mostraAvviso("Nessuna selezione", "Seleziona una traccia dalla tabella per eliminarla.");
+            mostraAvviso("No selection", "Select a table track to delete it..");
             return;
         }
 
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Conferma Eliminazione");
-        alert.setHeaderText("Eliminazione traccia");
-        alert.setContentText("Sei sicuro di voler eliminare definitivamente '" + selectedTrack.getTitle() + "'?");
+        alert.setTitle("Confirm elimination");
+        alert.setHeaderText("Elimination track");
+        alert.setContentText("Are you sure you want to eliminate permanently '" + selectedTrack.getTitle() + "'?");
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
 
             musicPlayer.removeTrackFromLibrary(selectedTrack);
 
-            observableTracks.remove(selectedTrack); // Aggiorna l'interfaccia
-            System.out.println("Traccia eliminata!");
+            observableTracks.setAll(musicPlayer.getTracksFromLibrary());
+
+            System.out.println("Track eliminated!");
         }
     }
 

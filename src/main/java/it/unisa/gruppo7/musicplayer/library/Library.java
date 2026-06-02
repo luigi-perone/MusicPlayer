@@ -51,7 +51,7 @@ public class Library extends TrackCollection implements PersistenceService{
     public boolean addTrack(Track t) {
         String signature = this.generateSignature(t);
         if (!this.signatures.add(signature)){
-            return false;
+            throw new IllegalArgumentException("Track already in library");
         }
         return super.addTrack(t);
     }
@@ -93,7 +93,7 @@ public class Library extends TrackCollection implements PersistenceService{
             this.signatures.add(generateSignature(t));
 
             System.err.println("Validation Error: " + e.getMessage());
-            return false;
+            throw new IllegalArgumentException(e.getMessage());            
         }
     }
 

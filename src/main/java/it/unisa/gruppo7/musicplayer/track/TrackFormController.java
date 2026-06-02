@@ -8,6 +8,11 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.time.Year;
+/**
+ * Manages the communication between the model and the view of the library.
+ * 
+ * @author Matteo Postiglione
+ */
 
 public class TrackFormController {
 
@@ -19,8 +24,21 @@ public class TrackFormController {
     @FXML private TextField genreField;
     @FXML private Label errorLabel;
 
+    private Track trackToModify;
 
+    public void setTrack(Track track){
+        this.trackToModify=track;
+        if(track != null){
 
+            titleField.setText(track.getTitle());
+            authorField.setText(track.getAuthor());
+            durationField.setText(Integer.toString(track.getDuration()));
+            yearField.setText(track.getPublicationYear().toString());
+            genreField.setText(track.getGenre());
+        
+        }
+
+    }
 
     @FXML
     private void onCancel() {
@@ -32,7 +50,8 @@ public class TrackFormController {
     private void onSave() {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
-        
+        Stage stage = (Stage) titleField.getScene().getWindow();
+
         MusicPlayerFacade musicplayer = MusicPlayerFacade.getInstance();
 
         try {
@@ -43,30 +62,45 @@ public class TrackFormController {
             String genre = genreField.getText();
 
             int duration = 0;
-            if (durationStr != null && !durationStr.isEmpty()) {
+            if (!durationStr.isEmpty()) {
                 duration = Integer.parseInt(durationStr);
-            } else {
-                throw new IllegalArgumentException("La durata è obbligatoria.");
             }
 
             Year pubYear = null;
             if (yearStr != null && !yearStr.isEmpty()) {
                 pubYear = Year.parse(yearStr);
             }
+            
+            boolean success;
 
-            musicplayer.addNewTrackToLibrary(title, author, duration, genre, pubYear);
+            if(trackToModify != null){
                 
-        } catch (NumberFormatException e) {
-            mostraErrore("Durata e Anno devono essere numeri validi.");
-        } catch (java.time.format.DateTimeParseException e) {
-            mostraErrore("Formato anno non valido (Es. 1980).");
+                success = musicplayer.modifyTrack(trackToModify, title, author, duration, genre, pubYear);
+
+            }else{
+                
+                success = musicplayer.addNewTrackToLibrary(title, author, duration, genre, pubYear);
+
+            }
+
+            
+            if(success){
+
+                stage.close();
+
+            }else{
+
+                mostraErrore("Failed to add new track");
+            }
+   
+        
         } catch (IllegalArgumentException e) {
-            // Qui catturiamo ESATTAMENTE i messaggi di errore che avevi scritto tu nella classe Track!
             mostraErrore(e.getMessage());
         } catch (Exception e) {
-            mostraErrore("Errore imprevisto durante il salvataggio.");
+            mostraErrore("Unexpected error occured." );
             e.printStackTrace();
         }
+        
     }
 
     private void mostraErrore(String messaggio) {

@@ -57,7 +57,7 @@ public class MusicPlayerFacade {
 
         } catch (IllegalArgumentException e) {
             System.err.println("Validation Error: " + e.getMessage());
-            return false;
+            throw new IllegalArgumentException(e.getMessage());            
         }
     }
 

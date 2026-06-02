@@ -79,10 +79,10 @@ public class Track {
     // --- Methods ---
 
     public void validateArguments(String title, String author, int duration, String genre, Year publicationYear) {
-        if (title == null || title.isEmpty()) {
+        if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Track title must be included");
         }
-        if (author == null || author.isEmpty()) {
+        if (author == null || author.trim().isEmpty()) {
             throw new IllegalArgumentException("Track author must be included");
         }
         if (duration <= 0) {
@@ -90,7 +90,7 @@ public class Track {
         }
         if (publicationYear != null) {
             if (((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0))) {
-                throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
+                throw new IllegalArgumentException("Track Publication Year must be a valid year and prior to the current one");
             }
         }
     }
