@@ -52,6 +52,13 @@ public class Playlist extends TrackCollection{
     }
 
     @JsonIgnore
+    public List<String> getTrackNames() {
+        return getTracks().stream()
+                .map(Track::getTitle)
+                .collect(Collectors.toList());
+    }
+
+    @JsonIgnore
     public int getTotalDuration(){
         return this.tracks.stream()
                         .mapToInt(Track::getDuration)
@@ -60,6 +67,10 @@ public class Playlist extends TrackCollection{
 
     public String getName(){
         return this.playlistName;
+    }
+
+    public void setName(String name) {
+        this.playlistName = name;
     }
 
     @Override

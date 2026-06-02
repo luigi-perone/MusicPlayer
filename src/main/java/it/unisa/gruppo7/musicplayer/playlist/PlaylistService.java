@@ -5,10 +5,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 
@@ -20,7 +17,7 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  * @author Maxim Makhovskyy
  */
 public class PlaylistService implements PersistenceService{
-    private static final String DEFAULT_PATH = "src/main/java/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
+    private static final String DEFAULT_PATH = "src/main/resources/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;
@@ -47,16 +44,100 @@ public class PlaylistService implements PersistenceService{
         if (existsByName(name))
             return Optional.of("This playlist name already exists");
         playlists.add(new Playlist(name, new ArrayList<>()));
+        save();
         return Optional.empty();
+    }
+
+    /**
+     * Deletes the playlist with the given name, removing it permanently from the list
+     * and persisting the change. Tracks contained in the playlist are left untouched
+     * in the library.
+     *
+     * @param name the name of the playlist to delete
+     * @return an empty Optional if the deletion is successful, or an Optional
+     *         containing an error message if no playlist with that name exists.
+     */
+    public Optional<String> deletePlaylist(String name) {
+        if (name == null || name.trim().isEmpty())
+            return Optional.of("A name for the playlist must be provided");
+
+        boolean removed = playlists.removeIf(p -> p.getName().equals(name));
+
+        if (!removed)
+            return Optional.of("No playlist found with name: " + name);
+
+        save();
+        return Optional.empty();
+    }
+
+    /**
+     * Renames an existing playlist with a valid and unique new name.
+     *
+     * @param oldName the current name of the playlist
+     * @param newName the new name for the playlist
+     * @return an empty Optional if the rename is successful, or an Optional
+     * containing an error message otherwise.
+     */
+    public Optional<String> renamePlaylist(String oldName, String newName) {
+        if (newName == null || newName.trim().isEmpty())
+            return Optional.of("The new playlist name cannot be empty");
+
+        if (oldName == null || oldName.trim().isEmpty() || !existsByName(oldName))
+            return Optional.of("Playlist to rename not found");
+
+        if (oldName.equals(newName))
+            return Optional.empty(); // No changes needed
+
+        if (existsByName(newName))
+            return Optional.of("A playlist with this name already exists");
+
+        Playlist playlist = getPlaylist(oldName);
+        if (playlist != null) {
+                playlist.setName(newName);
+            save();
+            return Optional.empty();
+        }
+
+        return Optional.of("Unexpected error during renaming");
     }
 
     public List<Playlist> getPlaylists() {
         return playlists;
     }
 
+    public Playlist getPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<String> getPlaylistNames() {
+        return playlists.stream()
+                .map(Playlist::getName)
+                .collect(Collectors.toList());
+    }
+
     private boolean existsByName(String name) {
         return playlists.stream()
                         .anyMatch(p -> p.getName().equals(name));
+    }
+
+    public Playlist getTrackFromPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<String> getTrackNamesFromPlaylist(String name) {
+        return playlists.stream()
+                .filter(p -> p.getName().equals(name))
+                .findFirst()
+                .map(p -> p.getTracks().stream()
+                        .map(Track::getTitle)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
     @Override
