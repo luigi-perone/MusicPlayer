@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -15,8 +16,7 @@ import javafx.scene.layout.*;
 
 /**
  * Manages the communication between the model and the view of the playlist's sidebar.
- * 
- * @author Maxim Makhovskyy
+ * * @author Maxim Makhovskyy
  */
 public class PlaylistSidebarController {
     @FXML private VBox listBox;
@@ -24,12 +24,13 @@ public class PlaylistSidebarController {
 
     private PlaylistService service;
     private HBox editRow;
+    private Consumer<String> onPlaylistSelected;
+
     /**
      * Flag used to avoid the premature close of the edit module. It is set true when the user
      * clicks a UI button so that the TextField's focus-lost listener ignores the focuse change.
      */
     private boolean committing;
-
 
     @FXML
     private void initialize() {
@@ -39,6 +40,10 @@ public class PlaylistSidebarController {
     public void setPlaylistService(PlaylistService service){
         this.service = service;
         refreshList();
+    }
+
+    public void setOnPlaylistSelected(Consumer<String> listener) {
+        this.onPlaylistSelected = listener;
     }
 
     private void refreshList(){
@@ -54,14 +59,18 @@ public class PlaylistSidebarController {
         HBox row = new HBox(label);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("row");
+
+        row.setOnMouseClicked(e -> {
+            if (onPlaylistSelected != null) {
+                onPlaylistSelected.accept(name);
+            }
+        });
+
         return row;
     }
 
     @FXML
     private void onAddToggle(){
-        // If and edit row is already open, the button canghes its state into a cancel button.
-        // We close the edit module and reset the commitment flag to restore the normal focus behavior,
-        // and exit the method to prevent opening a new input field.
         if(editRow != null){
             closeEdit();
             committing = false;
@@ -95,7 +104,6 @@ public class PlaylistSidebarController {
             if (e.getCode() == KeyCode.ESCAPE) closeEdit();
         });
 
-        // Hides the error message dynamically as the user starts typing a valid name
         field.textProperty().addListener((obs, ov, nv) -> {
             if(tip.isVisible()){
                 if(nv != null && !nv.trim().isEmpty()){
@@ -104,8 +112,6 @@ public class PlaylistSidebarController {
             }
         });
 
-        // Close the edit module if the user clicks away(not necessary on cancel button)
-        // without typing anything.
         field.focusedProperty().addListener((obs, was, is) -> {
             if (!is && editRow != null && !committing && field.getText().trim().isEmpty()) {
                 closeEdit();
@@ -133,6 +139,11 @@ public class PlaylistSidebarController {
         closeEdit();
         HBox row = playlistRow(created);
         listBox.getChildren().add(row);
+
+        if (onPlaylistSelected != null) {
+            onPlaylistSelected.accept(created);
+        }
+
         committing = false;
     }
 

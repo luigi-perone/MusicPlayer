@@ -4,26 +4,26 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.BorderPane?>
 <Pane stylesheets="@playlist/Playlist.css" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
     <children>
         <HBox prefHeight="600.0" prefWidth="950.0">
             <children>
                 
                 <fx:include  source="playlist/PlaylistSidebar.fxml" fx:id="playlistSidebar" />
-                
-                <VBox prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
-                    <children>
-                        
-                        <fx:include source="library.fxml" fx:id="library" VBox.vgrow="ALWAYS"/>
-                        
-                        <HBox prefHeight="100.0" prefWidth="200.0">  
+
+                <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
+                    <center>
+                        <fx:include source="library.fxml" fx:id="library"/>
+                    </center>
+                    <bottom>
+                        <HBox prefHeight="100.0" prefWidth="200.0">
                             <children>
                                 <Pane prefHeight="200.0" prefWidth="800.0" />
                             </children>
-                        </HBox>                        
-                    </children>
-
-                </VBox>
+                        </HBox>
+                    </bottom>
+                </BorderPane>
 
             </children>
         </HBox>

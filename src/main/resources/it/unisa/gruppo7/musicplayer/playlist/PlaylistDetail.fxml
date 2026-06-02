@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController">
+    <top>
+        <VBox spacing="15.0" style="-fx-padding: 20; -fx-background-color: white; -fx-border-color: #ececeb; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
+            <children>
+                <Label fx:id="playlistNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1c1c1e;" text="Nome Playlist" />
+                <HBox spacing="10.0">
+                    <children>
+                        <Button mnemonicParsing="false" onAction="#onBackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="← Torna alla Libreria" />
+
+                        <Button mnemonicParsing="false" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="▶ Riproduci" />
+                        <Button mnemonicParsing="false" styleClass="icon-btn" text="🗑 Rimuovi Traccia" textFill="#d92d20" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="playlistTrackTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <placeholder>
+                <Label style="-fx-font-size: 16px; -fx-text-fill: #6e6e73;" text="Questa playlist è vuota. Aggiungi brani dalla libreria!" />
+            </placeholder>
+            <columns>
+                <TableColumn fx:id="titleColumn" prefWidth="280.0" text="Titolo" />
+                <TableColumn fx:id="authorColumn" prefWidth="180.0" text="Autore" />
+                <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata" />
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>
