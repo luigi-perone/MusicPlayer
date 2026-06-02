@@ -69,6 +69,10 @@ public class Playlist extends TrackCollection{
         return this.playlistName;
     }
 
+    public void setName(String name) {
+        this.playlistName = name;
+    }
+
     @Override
     public String toString() {
         int trackCount = (this.tracks != null && !this.tracks.isEmpty()) 

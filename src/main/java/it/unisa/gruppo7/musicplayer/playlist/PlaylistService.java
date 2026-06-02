@@ -69,6 +69,37 @@ public class PlaylistService implements PersistenceService{
         return Optional.empty();
     }
 
+    /**
+     * Renames an existing playlist with a valid and unique new name.
+     *
+     * @param oldName the current name of the playlist
+     * @param newName the new name for the playlist
+     * @return an empty Optional if the rename is successful, or an Optional
+     * containing an error message otherwise.
+     */
+    public Optional<String> renamePlaylist(String oldName, String newName) {
+        if (newName == null || newName.trim().isEmpty())
+            return Optional.of("The new playlist name cannot be empty");
+
+        if (oldName == null || oldName.trim().isEmpty() || !existsByName(oldName))
+            return Optional.of("Playlist to rename not found");
+
+        if (oldName.equals(newName))
+            return Optional.empty(); // No changes needed
+
+        if (existsByName(newName))
+            return Optional.of("A playlist with this name already exists");
+
+        Playlist playlist = getPlaylist(oldName);
+        if (playlist != null) {
+                playlist.setName(newName);
+            save();
+            return Optional.empty();
+        }
+
+        return Optional.of("Unexpected error during renaming");
+    }
+
     public List<Playlist> getPlaylists() {
         return playlists;
     }
