@@ -108,11 +108,11 @@ class PlaylistServiceTest {
         @Nested
         class WithValidName {
 
-           /* @Test
+            @Test
             void returnsEmptyOptional() {
                 Optional<String> error = service.deletePlaylist("My Playlist");
-                assertTrue(error.isEmpty());
-            }*/
+                assertFalse(error.isPresent());
+            }
 
             @Test
             void playlistIsRemovedFromCollection() {
@@ -255,6 +255,87 @@ class PlaylistServiceTest {
                 reloaded.load();
 
                 assertEquals("To Keep", reloaded.getPlaylists().get(0).getName());
+            }
+        }
+    }
+
+    @Nested
+    class RenamePlaylist {
+
+        @BeforeEach
+        void existingPlaylists() {
+            service.createPlaylist("Old Name");
+            service.createPlaylist("Another Playlist");
+        }
+
+        @Test
+        void successfulRename() {
+            Optional<String> error = service.renamePlaylist("Old Name", "New Name");
+            assertFalse(error.isPresent());
+            assertNull(service.getPlaylist("Old Name"));
+            assertNotNull(service.getPlaylist("New Name"));
+        }
+
+        @Test
+        void returnsErrorForNullNewName() {
+            Optional<String> error = service.renamePlaylist("Old Name", null);
+            assertTrue(error.isPresent());
+            assertNotNull(service.getPlaylist("Old Name"));
+        }
+
+        @Test
+        void returnsErrorForEmptyNewName() {
+            Optional<String> error = service.renamePlaylist("Old Name", "   ");
+            assertTrue(error.isPresent());
+            assertNotNull(service.getPlaylist("Old Name"));
+        }
+
+        @Test
+        void returnsErrorIfOldPlaylistNotFound() {
+            Optional<String> error = service.renamePlaylist("Non Existent", "New Name");
+            assertTrue(error.isPresent());
+        }
+
+        @Test
+        void returnsEmptyOptionalIfNamesAreIdentical() {
+            Optional<String> error = service.renamePlaylist("Old Name", "Old Name");
+            assertFalse(error.isPresent());
+        }
+
+        @Test
+        void returnsErrorIfNewNameAlreadyExists() {
+            Optional<String> error = service.renamePlaylist("Old Name", "Another Playlist");
+            assertTrue(error.isPresent());
+            assertNotNull(service.getPlaylist("Old Name"));
+        }
+
+        @Nested
+        class Persistence {
+
+            @TempDir
+            Path tempDir;
+
+            private PlaylistService persistenceService;
+            private Path tempFile;
+
+            @BeforeEach
+            void setUpTempFile() {
+                tempFile = tempDir.resolve("test-rename-playlists.json");
+                persistenceService = new PlaylistService(tempFile.toString());
+                persistenceService.createPlaylist("Old Name");
+                persistenceService.save();
+            }
+
+            @Test
+            void renamedPlaylistIsRestoredAfterReload() {
+                persistenceService.renamePlaylist("Old Name", "New Name");
+
+                PlaylistService reloaded = new PlaylistService(tempFile.toString());
+                reloaded.load();
+
+                assertEquals(1, reloaded.getPlaylists().size());
+                assertEquals("New Name", reloaded.getPlaylists().get(0).getName());
+                assertNull(reloaded.getPlaylist("Old Name"));
             }
         }
     }
