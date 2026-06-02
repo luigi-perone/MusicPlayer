@@ -13,13 +13,22 @@ import java.util.UUID;
  * @author francescoLemmo
  */
 public class MusicPlayerFacade {
+    // pattern singleton
+    private static MusicPlayerFacade instance;
 
     private final Library library;
 
-    public MusicPlayerFacade() {
+    private MusicPlayerFacade() {
         this.library = Library.getInstance();
     }
 
+    public static MusicPlayerFacade getInstance() {
+        if (instance == null) {
+            instance = new MusicPlayerFacade();
+        }
+
+        return instance;
+    }
 
     private Track createTrack(String title, String author, int duration, String genre, Year publicationYear) {
         boolean isGenreEmpty = (genre == null || genre.trim().isEmpty());
