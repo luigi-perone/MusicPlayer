@@ -95,6 +95,16 @@ public class Track {
         }
     }
 
+    public void modifyTrack(String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
+        this.validateArguments(newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
+
+        this.title = newTitle;
+        this.author = newAuthor;
+        this.duration = newDuration;
+        this.genre = newGenre;
+        this.publicationYear = newPublicationYear;
+    }
+
     // -- getter and setter --
 
     public UUID getId() {
