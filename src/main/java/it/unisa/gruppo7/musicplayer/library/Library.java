@@ -24,7 +24,7 @@ public class Library extends TrackCollection implements PersistenceService{
 
     // pattern singleton
     private static Library instance;
-    private static final String DEFAULT_PATH = "src/main/java/it/unisa/gruppo7/musicplayer/library/track-library.json";
+    private static final String DEFAULT_PATH = "data/track-library.json";
 
     private transient HashSet<String> signatures = new HashSet<>();
 

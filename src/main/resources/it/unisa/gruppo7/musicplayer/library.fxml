@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.library.LibraryController">
+   <top>
+      <VBox spacing="15.0" style="-fx-padding: 20; -fx-background-color: white; -fx-border-color: #ececeb; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
+         <children>
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1c1c1e;" text="Libreria Musicale" />
+            <HBox spacing="10.0">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="+ Aggiungi Traccia" />
+                  <Button mnemonicParsing="false" onAction="#onEditTrackClick" styleClass="icon-btn" text="✎ Modifica" />
+                  <Button mnemonicParsing="false" onAction="#onDeleteTrackClick" styleClass="icon-btn" text="🗑 Elimina" textFill="#d92d20" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <TableView fx:id="trackTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <placeholder>
+            <Label style="-fx-font-size: 16px; -fx-text-fill: #6e6e73;" text="La tua libreria è vuota. Aggiungi il tuo primo brano!" />
+        </placeholder>
+        <columns>
+          <TableColumn fx:id="titleColumn" prefWidth="280.0" text="Titolo" />
+          <TableColumn fx:id="authorColumn" prefWidth="180.0" text="Autore" />
+          <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata " />
+          <TableColumn fx:id="genreColumn" prefWidth="120.0" text="Genere" />
+          <TableColumn fx:id="yearColumn" prefWidth="100.0" text="Anno" />
+        </columns>
+      </TableView>
+   </center>
+</BorderPane>
