@@ -14,7 +14,7 @@
 
                 <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
                     <center>
-                        <fx:include source="library.fxml" fx:id="library"/>
+                        <fx:include source="LibraryView.fxml" fx:id="library"/>
                     </center>
                     <bottom>
                         <HBox prefHeight="100.0" prefWidth="200.0">

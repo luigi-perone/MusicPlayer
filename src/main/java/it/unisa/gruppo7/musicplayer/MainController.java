@@ -28,7 +28,6 @@ public class MainController {
         }
 
         if (playlistSidebarController != null) {
-            // CORRETTO: Inverti anche l'ordine per far funzionare i click all'avvio
             playlistSidebarController.setOnPlaylistSelected(this::showPlaylistDetail);
             playlistSidebarController.setPlaylistService(playlistService);
         }
