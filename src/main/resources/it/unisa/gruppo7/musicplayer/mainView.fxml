@@ -4,12 +4,12 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
+<Pane stylesheets="@playlist/Playlist.css" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
     <children>
         <HBox prefHeight="600.0" prefWidth="950.0">
             <children>
                 
-                <fx:include source="playlist/playlistSidebar.fxml" fx:id="playlistSidebar" />
+                <fx:include  source="playlist/PlaylistSidebar.fxml" fx:id="playlistSidebar" />
                 
                 <VBox prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
                     <children>
