@@ -107,7 +107,7 @@ public class PlaylistSidebarController {
         // Close the edit module if the user clicks away(not necessary on cancel button)
         // without typing anything.
         field.focusedProperty().addListener((obs, was, is) -> {
-            if (!is && editRow != null && !committing && field.getText().isBlank()) {
+            if (!is && editRow != null && !committing && field.getText().trim().isEmpty()) {
                 closeEdit();
             }
         });
