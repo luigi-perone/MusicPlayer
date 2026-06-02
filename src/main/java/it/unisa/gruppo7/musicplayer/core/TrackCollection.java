@@ -45,4 +45,8 @@ public abstract class TrackCollection {
 
     // Loads the collection from a specified serialized file (JSON)
     public abstract void load();
+
+    public Collection<Track> getTracks() {
+        return tracks;
+    }
 }
