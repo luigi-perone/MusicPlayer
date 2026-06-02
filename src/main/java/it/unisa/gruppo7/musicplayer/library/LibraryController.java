@@ -1,6 +1,6 @@
-package it.unisa.gruppo7.musicplayer;
+package it.unisa.gruppo7.musicplayer.library;
 
-import it.unisa.gruppo7.musicplayer.library.Library;
+import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,7 +14,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import java.time.Year;
 import java.util.Optional;
 
-public class PrimaryController {
+public class LibraryController {
 
     @FXML
     private TableView<Track> trackTable;
@@ -29,7 +29,8 @@ public class PrimaryController {
     @FXML
     private TableColumn<Track, Year> yearColumn;
 
-    private Library myLibrary;
+    private MusicPlayerFacade musicPlayer;
+
     private ObservableList<Track> observableTracks;
 
     @FXML
@@ -42,15 +43,16 @@ public class PrimaryController {
 
         trackTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        myLibrary = Library.getInstance();
-        observableTracks = FXCollections.observableArrayList(myLibrary.getTracks());
+        musicPlayer = MusicPlayerFacade.getInstance();
+
+        observableTracks = FXCollections.observableArrayList(musicPlayer.getTracksFromLibrary());
         trackTable.setItems(observableTracks);
     }
 
     @FXML
     private void onAddTrackClick() {
 try {
-            javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("trackform.fxml"));
+            javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/trackform.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
@@ -61,7 +63,7 @@ try {
             
             stage.showAndWait();
 
-            observableTracks.setAll(myLibrary.getTracks());
+            observableTracks.setAll(musicPlayer.getTracksFromLibrary());
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,8 +96,9 @@ try {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            myLibrary.removeTrack(selectedTrack);
-            myLibrary.save(); // Salva nel JSON
+
+            musicPlayer.removeTrackFromLibrary(selectedTrack);
+
             observableTracks.remove(selectedTrack); // Aggiorna l'interfaccia
             System.out.println("Traccia eliminata!");
         }

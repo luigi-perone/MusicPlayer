@@ -1,7 +1,7 @@
-package it.unisa.gruppo7.musicplayer;
+package it.unisa.gruppo7.musicplayer.track;
 
 import it.unisa.gruppo7.musicplayer.library.Library;
-import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -19,6 +19,9 @@ public class TrackFormController {
     @FXML private TextField genreField;
     @FXML private Label errorLabel;
 
+
+
+
     @FXML
     private void onCancel() {
         Stage stage = (Stage) titleField.getScene().getWindow();
@@ -29,6 +32,8 @@ public class TrackFormController {
     private void onSave() {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
+        
+        MusicPlayerFacade musicplayer = MusicPlayerFacade.getInstance();
 
         try {
             String title = titleField.getText();
@@ -49,19 +54,8 @@ public class TrackFormController {
                 pubYear = Year.parse(yearStr);
             }
 
-            
-            Track newTrack = new Track(title, author, duration, genre, pubYear);
-
-            boolean added = Library.getInstance().addTrack(newTrack);
-            if (!added) {
-                throw new IllegalArgumentException("Questa traccia esiste già!");
-            }
-
-            Library.getInstance().save();
-
-            Stage stage = (Stage) titleField.getScene().getWindow();
-            stage.close();
-
+            musicplayer.addNewTrackToLibrary(title, author, duration, genre, pubYear);
+                
         } catch (NumberFormatException e) {
             mostraErrore("Durata e Anno devono essere numeri validi.");
         } catch (java.time.format.DateTimeParseException e) {
