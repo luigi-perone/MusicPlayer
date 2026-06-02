@@ -62,8 +62,9 @@ public class TrackFormController {
             String genre = genreField.getText();
 
             int duration = 0;
-            duration = Integer.parseInt(durationStr);
-            
+            if (!durationStr.isEmpty()) {
+                duration = Integer.parseInt(durationStr);
+            }
 
             Year pubYear = null;
             if (yearStr != null && !yearStr.isEmpty()) {
