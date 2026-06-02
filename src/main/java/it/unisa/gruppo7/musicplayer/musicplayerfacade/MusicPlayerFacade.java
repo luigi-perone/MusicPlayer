@@ -4,6 +4,7 @@ import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.time.Year;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -71,6 +72,9 @@ public class MusicPlayerFacade {
         return library.getTrackById(id);
     }
 
+    public Collection<Track> getTracksFromLibrary() {
+        return library.getTracks();
+    }
 
     // --print library--
 
