@@ -1,4 +1,11 @@
 [ {
+  "id" : "ba8e8733-27d1-4467-9887-8cbd7fe62113",
+  "title" : "Get Lucky",
+  "author" : "Daft Punk",
+  "duration" : 247,
+  "genre" : "Funk",
+  "publicationYear" : "2013"
+}, {
   "id" : "daae23ea-85b9-4151-ab57-e4a0eea9196a",
   "title" : "Faithfully",
   "author" : "Journey",

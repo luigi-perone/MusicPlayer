@@ -5,19 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
+import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Year;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
 /**
  * @author francescoLemmo
  */
-public class Library extends TrackCollection {
+public class Library extends TrackCollection implements PersistenceService{
 
     // pattern singleton
     private static Library instance;
@@ -59,6 +62,40 @@ public class Library extends TrackCollection {
         return super.removeTrack(track);
     }
 
+    public Track getTrackById(UUID id) {
+        return tracks.stream()
+                    .filter(t -> t.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+    }
+
+    public boolean modifyTrackInLibrary(Track t, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
+        String oldTitle = t.getTitle();
+        String oldAuthor = t.getAuthor();
+        int oldDuration = t.getDuration();
+        String oldGenre = t.getGenre();
+        Year oldPublicationYear = t.getPublicationYear();
+
+        this.signatures.remove(generateSignature(t));
+        try {
+            t.modifyTrack(newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
+
+            boolean success = this.signatures.add(generateSignature(t));
+            //if the modified signature is already in the library, do a rollback of the modification
+            if (!success) {
+                t.modifyTrack(oldTitle, oldAuthor, oldDuration, oldGenre, oldPublicationYear);
+                this.signatures.add(generateSignature(t));
+            }
+
+            return success;
+
+        } catch (IllegalArgumentException e) {
+            this.signatures.add(generateSignature(t));
+
+            System.err.println("Validation Error: " + e.getMessage());
+            return false;
+        }
+    }
 
     @Override
     public void save() {
@@ -79,8 +116,18 @@ public class Library extends TrackCollection {
     public void load() {
         File file = new File(path);
 
-        // If the file does not exist, the loading process is interrupted
+        // If the file does not exist, it is created and the loading process is interrupted
         if (!file.exists()) {
+            try {
+                if (file.createNewFile()) {
+                    System.out.println("File created: " + file.getName());
+                } else {
+                    System.out.println("File already exists.");
+                }
+            } catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
             return;
         }
 
