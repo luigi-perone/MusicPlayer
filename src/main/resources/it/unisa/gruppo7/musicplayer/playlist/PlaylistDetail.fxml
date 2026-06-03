@@ -35,7 +35,7 @@
                         <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #34c759; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="+ Aggiungi Traccia" />
                         <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Rimuovi Traccia" />
                         <Button mnemonicParsing="false" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="▶ Riproduci" />
-                        <Button mnemonicParsing="false" styleClass="icon-btn" text="🗑 Rimuovi Traccia" textFill="#d92d20" />
+                        <Button mnemonicParsing="false" style="-fx-background-color: #a70707; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Elimina Playlist" minWidth="-Infinity" textFill="#d92d20" />
                     </children>
                 </HBox>
             </children>
