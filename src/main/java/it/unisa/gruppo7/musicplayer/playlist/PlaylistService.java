@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 
-
 /**
  * Manages the collection of playlists in the music player,
  * handling creation with name validation and access to the playlists.
@@ -109,38 +108,42 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     }
 
     /**
-     * Adds a list of tracks to the named playlist in a single batch,
-     * skipping duplicates and persisting once at the end.
+     * Adds a list of tracks to the named playlist in a single batch.
+     * Duplicates are skipped and reported in the returned {@link AdditionResult}.
+     * Persists once at the end, only if at least one track was actually added.
      *
      * @param playlistName the destination playlist
      * @param tracks       the tracks to add
-     * @return an empty Optional on success, or one containing an error message
+     * @return an {@link AdditionResult} describing what was added and what was skipped
+     * @throws IllegalArgumentException if playlistName is blank or the playlist does not exist
      */
-    public Optional<String> addTracksToPlaylist(String playlistName, List<Track> tracks) {
+    public AdditionResult addTracksToPlaylist(String playlistName, List<Track> tracks) {
         if (playlistName == null || playlistName.trim().isEmpty())
-            return Optional.of("Playlist name must be provided");
+            throw new IllegalArgumentException("Playlist name must be provided");
 
         if (tracks == null || tracks.isEmpty())
-            return Optional.of("No tracks selected");
+            throw new IllegalArgumentException("No tracks selected");
 
         Playlist target = getPlaylist(playlistName);
         if (target == null)
-            return Optional.of("Playlist not found: " + playlistName);
+            throw new IllegalArgumentException("Playlist not found: " + playlistName);
 
-        List<Track> alreadyIn = (List<Track>) target.getTracks();
-        int added = 0;
+        List<Track>  alreadyIn     = (List<Track>) target.getTracks();
+        List<String> skippedTitles = new ArrayList<>();
+        int          added         = 0;
+
         for (Track t : tracks) {
-            if (!alreadyIn.contains(t)) {
+            if (alreadyIn.contains(t)) {
+                skippedTitles.add(t.getTitle());
+            } else {
                 target.addTrack(t);
                 added++;
             }
         }
 
-        if (added == 0)
-            return Optional.of("All selected tracks are already in the playlist");
+        if (added > 0) save(); // single save only if something actually changed
 
-        save(); // single save after the whole batch
-        return Optional.empty();
+        return new AdditionResult(added, skippedTitles);
     }
 
     public List<Playlist> getPlaylists() {
