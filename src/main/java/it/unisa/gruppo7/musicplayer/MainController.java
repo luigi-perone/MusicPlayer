@@ -53,7 +53,7 @@ public class MainController {
                 controller.setPlaylist(playlist);
                 controller.setMusicPlayer(MusicPlayerFacade.getInstance());
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
-
+                controller.setOnRenameAction(() -> playlistSidebarController.refreshList());
                 controller.setOnDeleteAction(() -> {
                     playlistSidebarController.refreshList();
                     showLibrary();
