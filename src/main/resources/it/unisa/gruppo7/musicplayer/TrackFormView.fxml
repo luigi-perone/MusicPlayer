@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="400.0" spacing="15.0" style="-fx-padding: 25; -fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.track.TrackFormController">
+   <children>
+      <Label fx:id="formTitle" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Track Editor" />
+
+      <VBox spacing="5.0">
+         <Label text="Titolo *" textFill="#6e6e73" />
+         <TextField fx:id="titleField" promptText="Es. Bohemian Rhapsody" styleClass="playlist-input" />
+      </VBox>
+
+      <VBox spacing="5.0">
+         <Label text="Autore *" textFill="#6e6e73" />
+         <TextField fx:id="authorField" promptText="Es. Queen" styleClass="playlist-input" />
+      </VBox>
+
+      <HBox spacing="15.0">
+         <VBox HBox.hgrow="ALWAYS" spacing="5.0">
+            <Label text="Durata (secondi) *" textFill="#6e6e73" />
+            <TextField fx:id="durationField" promptText="Es. 354" styleClass="playlist-input" />
+         </VBox>
+         <VBox HBox.hgrow="ALWAYS" spacing="5.0">
+            <Label text="Anno di pubblicazione" textFill="#6e6e73" />
+            <TextField fx:id="yearField" promptText="Es. 1975" styleClass="playlist-input" />
+         </VBox>
+      </HBox>
+
+      <VBox spacing="5.0">
+         <Label text="Genere" textFill="#6e6e73" />
+         <TextField fx:id="genreField" promptText="Es. Rock" styleClass="playlist-input" />
+      </VBox>
+
+      <Label fx:id="errorLabel" managed="false" styleClass="field-error" text="Errore: Dati non validi." visible="false" />
+
+      <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding: 10 0 0 0;">
+         <Button mnemonicParsing="false" onAction="#onCancel" styleClass="icon-btn" text="Annulla" />
+         <Button mnemonicParsing="false" onAction="#onSave" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 15;" text="Salva" />
+      </HBox>
+   </children>
+</VBox>

@@ -1,0 +1,134 @@
+.root {
+    -fx-font-family: "Hanken Grotesk", "Segoe UI", sans-serif;
+}
+
+.sidebar {
+    -fx-background-color: white;
+    -fx-border-color: #ececeb;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 18 12 18 12;
+}
+
+.section-head {
+    -fx-padding: 0 4 0 10;
+}
+
+.section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1c1c1e;
+}
+
+.icon-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-text-fill: #6e6e73;
+    -fx-font-size: 17px;
+    -fx-min-width: 28; -fx-min-height: 28;
+    -fx-pref-width: 28; -fx-pref-height: 28;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.icon-btn:hover {
+    -fx-background-color: #f6f5f3;
+    -fx-text-fill: #1c1c1e;
+}
+
+.icon-btn.cancel-btn {
+    -fx-text-fill: #d92d20;
+    -fx-background-color: #fde8e8;
+}
+
+.icon-btn.cancel-btn:hover {
+    -fx-background-color: #fbd0d0;
+    -fx-text-fill: #b91c1c;
+}
+
+.list {
+    -fx-padding: 4 0 0 0;
+}
+
+.row {
+    -fx-padding: 8 10 8 14;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.row:hover {
+    -fx-background-color: #f6f5f3;
+}
+
+.row-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6e6e73;
+}
+
+.edit-row {
+    -fx-background-color: #f6f5f3;
+    -fx-background-radius: 9;
+    -fx-padding: 4 6 4 10;
+}
+
+.playlist-input {
+    -fx-font-size: 13.5px;
+    -fx-background-color: white;
+    -fx-background-radius: 7;
+    -fx-border-color: #ececeb;
+    -fx-border-radius: 7;
+    -fx-prompt-text-fill: #a3a3a8;
+    -fx-padding: 6 8 6 8;
+}
+
+.playlist-input:focused {
+    -fx-border-color: #e0592b;
+}
+
+.playlist-input.error {
+    -fx-border-color: #d92d20;
+}
+
+.dot {
+    -fx-background-color: #fdeee7;
+    -fx-background-radius: 6;
+}
+
+.dot-label {
+    -fx-text-fill: #e0592b;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.confirm-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e0592b;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-min-width: 26; -fx-min-height: 26;
+    -fx-pref-width: 26; -fx-pref-height: 26;
+    -fx-padding: 0;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.confirm-btn:hover {
+    -fx-background-color: #fdeee7;
+}
+
+.field-error {
+    -fx-text-fill: #d92d20;
+    -fx-font-size: 12px;
+    -fx-padding: 5 10 2 10;
+}
+
+.delete-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d92d20;
+    -fx-cursor: hand;
+    -fx-padding: 0 4;
+    -fx-font-size: 13px;
+}
+
+.delete-btn:hover {
+    -fx-text-fill: #a01010;
+}
