@@ -69,8 +69,6 @@ public class PlaybackService {
 
         notifyTrackChanged(track);
         this.startTimer();
-
-        System.out.println("Playback started:  " + this.currentTrack.getTitle());
     }
 
     public void pause() {
@@ -110,12 +108,9 @@ public class PlaybackService {
         this.timerHandle = this.timer.scheduleAtFixedRate(() -> {
 
             int currentTime = this.simulatedTimeSeconds.incrementAndGet();
-            System.out.println("Seconds: " + currentTime);
             notifyTimeTick(currentTime);
 
             if (currentTime >= currentTrack.getDuration()) {
-                System.out.println("Track '" + currentTrack.getTitle() + "' ended.");
-
                 this.stop();
             }
 
@@ -136,7 +131,6 @@ public class PlaybackService {
         if (timer != null && !timer.isShutdown()) {
             timer.shutdownNow();
         }
-        System.out.println("PlaybackService: Shutdown.");
     }
 
     // --- getter & setter ---
