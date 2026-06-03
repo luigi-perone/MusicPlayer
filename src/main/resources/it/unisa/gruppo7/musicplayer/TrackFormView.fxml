@@ -8,7 +8,7 @@
 
 <VBox prefWidth="400.0" spacing="15.0" style="-fx-padding: 25; -fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.track.TrackFormController">
    <children>
-      <Label fx:id="formTitle" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Nuova Traccia" />
+      <Label fx:id="formTitle" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Track Editor" />
       
       <VBox spacing="5.0">
          <Label text="Titolo *" textFill="#6e6e73" />

@@ -1,15 +1,13 @@
 package it.unisa.gruppo7.musicplayer.musicplayerfacade;
 
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Facade Pattern
@@ -23,9 +21,13 @@ public class MusicPlayerFacade {
     private final Library library;
     private final PlaylistService playlistService;
 
+    // Observer List
+    private final List<TrackObserver> observers = new ArrayList<>();
+
     private MusicPlayerFacade() {
         this.library = Library.getInstance();
         this.playlistService = new PlaylistService();
+        this.addObserver(this.playlistService);
     }
 
     public static MusicPlayerFacade getInstance() {
@@ -71,6 +73,7 @@ public class MusicPlayerFacade {
         boolean success = library.removeTrack(track);
         if (success) {
             library.save();
+            this.notifyTrackDeleted(track);
         }
         return success;
     }
@@ -96,6 +99,9 @@ public class MusicPlayerFacade {
     public String printLibrary() {
         return library.toString();
     }
+
+
+    // --- PLAYLIST METHODS ---
 
     public Playlist createPlaylist(String name) {
         return playlistService.createPlaylist(name);
@@ -123,5 +129,29 @@ public class MusicPlayerFacade {
 
     public void savePlaylists() {
         playlistService.save();
+    }
+
+    public String formatDuration(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    // --- Observer Subject Methods ---
+
+    public void addObserver(TrackObserver observer) {
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
+
+    public void removeObserver(TrackObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyTrackDeleted(Track track) {
+        for (TrackObserver observer : observers) {
+            observer.onTrackDeleted(track);
+        }
     }
 }

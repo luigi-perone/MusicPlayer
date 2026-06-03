@@ -33,7 +33,10 @@ public class TrackFormController {
             titleField.setText(track.getTitle());
             authorField.setText(track.getAuthor());
             durationField.setText(Integer.toString(track.getDuration()));
-            yearField.setText(track.getPublicationYear().toString());
+
+            if (track.getPublicationYear() != null) {
+                yearField.setText(track.getPublicationYear().toString());
+            }
             genreField.setText(track.getGenre());
         
         }

@@ -17,8 +17,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
-import it.unisa.gruppo7.musicplayer.playlist.Playlist;
-import it.unisa.gruppo7.musicplayer.playlist.PlaylistTableAdapter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +51,7 @@ public class PlaylistDetailController {
         authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
         durationColumn.setCellValueFactory(cellData -> {
             Track track = cellData.getValue();
-            String formattedTime = formatDuration(track.getDuration()); 
+            String formattedTime = MusicPlayerFacade.getInstance().formatDuration(track.getDuration());
             return new SimpleStringProperty(formattedTime);
         });
     }
@@ -84,7 +82,7 @@ public class PlaylistDetailController {
 
     private void refreshLabels(Playlist playlist) {
         trackCountLabel.setText(playlist.getTrackCount() + " tracks");
-        totalDurationLabel.setText(formatDuration(playlist.getTotalDuration()));
+        totalDurationLabel.setText(MusicPlayerFacade.getInstance().formatDuration(playlist.getTotalDuration()));
     }
 
     public void setOnBackAction(Runnable onBackAction) {
@@ -162,11 +160,6 @@ public class PlaylistDetailController {
         });
     }
 
-    private String formatDuration(int totalSeconds) {
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-        return String.format("%02d:%02d", minutes, seconds);
-    }
 
     @FXML
     private void onRemoveTrackClick() {
@@ -179,7 +172,15 @@ public class PlaylistDetailController {
             alert.showAndWait();
             return;
         }
-        if (adapter != null) {
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm elimination");
+        alert.setHeaderText("Elimination track");
+        alert.setContentText("Are you sure you want to remove '" + selectedTrack.getTitle() + "' from the playlist?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if ((result.isPresent() && result.get() == ButtonType.OK) && adapter != null) {
             adapter.trackRemoved(selectedTrack);
         }
     }

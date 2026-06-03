@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import java.io.File;
@@ -16,7 +17,7 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  * 
  * @author Maxim Makhovskyy
  */
-public class PlaylistService implements PersistenceService{
+public class PlaylistService implements PersistenceService, TrackObserver {
     private static final String DEFAULT_PATH = "src/main/resources/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
@@ -198,4 +199,13 @@ public class PlaylistService implements PersistenceService{
                             .map(p -> " - " + p)
                             .collect(Collectors.joining(System.lineSeparator()));
     } 
+
+    // -- Observer --
+    @Override
+    public void onTrackDeleted(Track track) {
+        for (Playlist playlist : this.getPlaylists()) {
+            playlist.removeTrack(track); // Metodo ereditato da TrackCollection
+        }
+        this.save();
+    }
 }

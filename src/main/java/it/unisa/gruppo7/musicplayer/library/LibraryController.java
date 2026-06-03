@@ -3,6 +3,7 @@ package it.unisa.gruppo7.musicplayer.library;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackFormController;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -30,7 +31,7 @@ public class LibraryController {
     @FXML
     private TableColumn<Track, String> authorColumn;
     @FXML
-    private TableColumn<Track, Integer> durationColumn;
+    private TableColumn<Track, String> durationColumn;
     @FXML
     private TableColumn<Track, String> genreColumn;
     @FXML
@@ -44,7 +45,11 @@ public class LibraryController {
     public void initialize() {
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
-        durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+        durationColumn.setCellValueFactory(cellData -> {
+            Track track = cellData.getValue();
+            String formattedTime = MusicPlayerFacade.getInstance().formatDuration(track.getDuration());
+            return new SimpleStringProperty(formattedTime);
+        });
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("publicationYear"));
 
@@ -71,7 +76,7 @@ public class LibraryController {
             stage.showAndWait();
 
             observableTracks.setAll(musicPlayer.getTracksFromLibrary());
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             mostraAvviso("Error", "Unable to load the form.");
@@ -129,7 +134,7 @@ public class LibraryController {
 
             musicPlayer.removeTrackFromLibrary(selectedTrack);
 
-            observableTracks.setAll(musicPlayer.getTracksFromLibrary());
+            observableTracks.remove(selectedTrack);
 
             System.out.println("Track eliminated!");
         }
