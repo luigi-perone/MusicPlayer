@@ -48,17 +48,16 @@ public class PlaybackController implements PlaybackObserver {
 
 
 
-    // --- IMPLEMENTAZIONE DELL'OBSERVER ---
+    // --- OBSERVER ---
 
     @Override
     public void onTimeTick(int simulatedSeconds) {
-        // REGOLA D'ORO: Siamo su un thread in background!
-        // Dobbiamo passare il lavoro alla UI con Platform.runLater
+        // Platform.runLater used to transfer the work on the UI
         Platform.runLater(() -> {
-            // Aggiorna l'etichetta di testo
+            // update the label
             timeLabel.setText(musicPlayer.formatDuration(simulatedSeconds));
 
-            // Calcola e aggiorna la ProgressBar
+            // update the proressbar
             if (currentTrack != null && currentTrack.getDuration() > 0) {
                 double progress = (double) simulatedSeconds / currentTrack.getDuration();
                 progressBar.setProgress(progress);
@@ -92,7 +91,7 @@ public class PlaybackController implements PlaybackObserver {
 
     @Override
     public void onStateChanged(PlaybackState newState) {
-        // Qui potresti cambiare il testo del bottone Play/Pausa, sempre con Platform.runLater
+        // bottone Play/Pausa, state change
     }
 
 }
