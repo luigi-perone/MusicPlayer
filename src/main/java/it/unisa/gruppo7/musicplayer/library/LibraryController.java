@@ -68,6 +68,28 @@ public class LibraryController {
         addToPlaylistBtn.disableProperty().bind(
                 trackTable.getSelectionModel().selectedItemProperty().isNull()
         );
+
+        // --- Notify Facade when a track is selected (for Play Button)  ---
+        trackTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldSelection, newSelection) -> {
+                    if (newSelection != null) {
+                        musicPlayer.setSelectedTrack(newSelection);
+                    }
+                }
+        );
+
+
+        // --- Double click logic for Play Track ---
+        trackTable.setRowFactory(tv -> {
+            javafx.scene.control.TableRow<Track> row = new javafx.scene.control.TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    Track selectedTrack = row.getItem();
+                    musicPlayer.playTrack(selectedTrack);
+                }
+            });
+            return row;
+        });
     }
 
     // -------------------------------------------------------------------------

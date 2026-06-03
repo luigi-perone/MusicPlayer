@@ -172,18 +172,25 @@
     -fx-background-color: #f26a3c;
 }
 
-/* Barra di avanzamento e Tempi */
+
 .time-text {
     -fx-font-size: 12px;
     -fx-text-fill: #a3a3a8;
 }
 
+.custom-progress {
+    -fx-padding: 0;
+}
+
 .custom-progress .track {
     -fx-background-color: #f6f5f3;
     -fx-background-radius: 3;
+    -fx-background-insets: 0;
 }
 
 .custom-progress .bar {
     -fx-background-color: #e0592b;
     -fx-background-radius: 3;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
