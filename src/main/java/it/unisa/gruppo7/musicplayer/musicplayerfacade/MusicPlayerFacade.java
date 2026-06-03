@@ -2,6 +2,8 @@ package it.unisa.gruppo7.musicplayer.musicplayerfacade;
 
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.library.Library;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
@@ -21,12 +23,15 @@ public class MusicPlayerFacade {
     private final Library library;
     private final PlaylistService playlistService;
 
+    private final PlaybackService playbackService;
+
     // Observer List
     private final List<TrackObserver> observers = new ArrayList<>();
 
     private MusicPlayerFacade() {
         this.library = Library.getInstance();
         this.playlistService = new PlaylistService();
+        this.playbackService = new PlaybackService();
         this.addObserver(this.playlistService);
     }
 
@@ -135,6 +140,33 @@ public class MusicPlayerFacade {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    // --- Playback Methods ---
+
+    public void playTrack(Track track) {
+        playbackService.play(track);
+    }
+    public void pauseTrack() {
+        playbackService.pause();
+    }
+
+    public void resumeTrack() {
+        playbackService.resume();
+    }
+
+    public PlaybackService getPlaybackService() {
+        return playbackService;
+    }
+
+    public PlaybackState getPlaybackState() {
+        return playbackService.getCurrentState();
+    }
+
+    public void shutdownPlayback() {
+        if (playbackService != null) {
+            playbackService.shutdownTimer();
+        }
     }
 
     // --- Observer Subject Methods ---

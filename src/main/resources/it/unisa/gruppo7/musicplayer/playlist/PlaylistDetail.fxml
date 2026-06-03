@@ -7,19 +7,12 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0"
-            xmlns="http://javafx.com/javafx/8"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController">
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController">
     <top>
-        <VBox spacing="15.0"
-              style="-fx-padding: 20; -fx-background-color: white;
-                     -fx-border-color: #ececeb; -fx-border-width: 0 0 1 0;"
-              BorderPane.alignment="CENTER">
+        <VBox spacing="15.0" style="-fx-padding: 20; -fx-background-color: white;                      -fx-border-color: #ececeb; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
             <children>
 
                 <HBox alignment="CENTER_LEFT">
@@ -27,24 +20,14 @@
 
                         <!-- Nome playlist: Label e TextField si alternano nello stesso slot -->
                         <StackPane fx:id="namePlaceholder" HBox.hgrow="ALWAYS">
-                            <Label fx:id="playlistNameLabel"
-                                   style="-fx-font-size: 24px; -fx-font-weight: bold;
-                                          -fx-text-fill: #1c1c1e; -fx-cursor: hand;"
-                                   text="Nome Playlist" />
-                            <TextField fx:id="playlistNameField"
-                                       style="-fx-font-size: 24px; -fx-font-weight: bold;
-                                        -fx-text-fill: #1c1c1e; -fx-alignment: center;"
-                                       visible="false" managed="false" />
+                            <Label fx:id="playlistNameLabel" style="-fx-font-size: 24px; -fx-font-weight: bold;                                           -fx-text-fill: #1c1c1e; -fx-cursor: hand;" text="Nome Playlist" />
+                            <TextField fx:id="playlistNameField" managed="false" style="-fx-font-size: 24px; -fx-font-weight: bold;                                         -fx-text-fill: #1c1c1e; -fx-alignment: center;" visible="false" />
                         </StackPane>
 
                         <VBox alignment="CENTER_RIGHT" spacing="2.0">
                             <children>
-                                <Label fx:id="trackCountLabel"
-                                       style="-fx-font-size: 14px; -fx-text-fill: #6e6e73;"
-                                       text="0 Tracce" />
-                                <Label fx:id="totalDurationLabel"
-                                       style="-fx-font-size: 14px; -fx-text-fill: #6e6e73;"
-                                       text="00:00" />
+                                <Label fx:id="trackCountLabel" style="-fx-font-size: 14px; -fx-text-fill: #6e6e73;" text="0 Tracce" />
+                                <Label fx:id="totalDurationLabel" style="-fx-font-size: 14px; -fx-text-fill: #6e6e73;" text="00:00" />
                             </children>
                         </VBox>
                     </children>
@@ -52,32 +35,11 @@
 
                 <HBox spacing="10.0">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#onBackClick"
-                                style="-fx-background-color: #6e6e73; -fx-text-fill: white;
-                                       -fx-font-weight: bold; -fx-background-radius: 6;
-                                       -fx-padding: 6 12;"
-                                text="← Torna alla Libreria" />
-                        <Button mnemonicParsing="false" onAction="#onAddTrackClick"
-                                style="-fx-background-color: #34c759; -fx-text-fill: white;
-                                       -fx-font-weight: bold; -fx-background-radius: 6;
-                                       -fx-padding: 6 12;"
-                                text="+ Aggiungi Traccia" />
-                        <Button mnemonicParsing="false" onAction="#onRemoveTrackClick"
-                                style="-fx-background-color: #d92d20; -fx-text-fill: white;
-                                       -fx-font-weight: bold; -fx-background-radius: 6;
-                                       -fx-padding: 6 12;"
-                                text="Rimuovi Traccia" />
-                        <Button mnemonicParsing="false"
-                                style="-fx-background-color: #e0592b; -fx-text-fill: white;
-                                       -fx-font-weight: bold; -fx-background-radius: 6;
-                                       -fx-padding: 6 12;"
-                                text="▶ Riproduci" />
-                        <Button mnemonicParsing="false" fx:id="deletePlaylistBtn"
-                                onAction="#onDeletePlaylistClick"
-                                style="-fx-background-color: #d92d20; -fx-text-fill: white;
-                                       -fx-font-weight: bold; -fx-background-radius: 6;
-                                       -fx-padding: 6 12;"
-                                text="🗑 Elimina Playlist" />
+                        <Button mnemonicParsing="false" onAction="#onBackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-padding: 6 12;" text="← Torna alla Libreria" />
+                        <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #34c759; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-padding: 6 12;" text="+ Aggiungi Traccia" />
+                        <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #d92d20; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-padding: 6 12;" text="Rimuovi Traccia" />
+                        <Button fx:id="playTrack" mnemonicParsing="false" onAction="#onPlayTrackClick" style="-fx-background-color: #1740f6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="▶ Riproduci" />
+                        <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white;                                        -fx-font-weight: bold; -fx-background-radius: 6;                                        -fx-padding: 6 12;" text="🗑 Elimina Playlist" />
                     </children>
                 </HBox>
 
@@ -85,15 +47,12 @@
         </VBox>
     </top>
     <center>
-        <TableView fx:id="playlistTrackTable"
-                   prefHeight="200.0" prefWidth="200.0"
-                   BorderPane.alignment="CENTER">
+        <TableView fx:id="playlistTrackTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <placeholder>
-                <Label style="-fx-font-size: 16px; -fx-text-fill: #6e6e73;"
-                       text="Questa playlist è vuota. Aggiungi brani dalla libreria!" />
+                <Label style="-fx-font-size: 16px; -fx-text-fill: #6e6e73;" text="Questa playlist è vuota. Aggiungi brani dalla libreria!" />
             </placeholder>
             <columns>
-                <TableColumn fx:id="titleColumn"  prefWidth="280.0" text="Titolo" />
+                <TableColumn fx:id="titleColumn" prefWidth="280.0" text="Titolo" />
                 <TableColumn fx:id="authorColumn" prefWidth="180.0" text="Autore" />
                 <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata" />
             </columns>

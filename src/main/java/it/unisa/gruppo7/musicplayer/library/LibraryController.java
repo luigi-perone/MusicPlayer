@@ -172,6 +172,13 @@ public class LibraryController {
         }
     }
 
+    @FXML
+    private void onPlayTrackClick() {
+        Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
+        MusicPlayerFacade.getInstance().playTrack(selectedTrack);
+    }
+
+
     private void mostraAvviso(String titolo, String messaggio) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titolo);
