@@ -25,6 +25,9 @@ public class MusicPlayerFacade {
 
     private final PlaybackService playbackService;
 
+    // selected track for communication between controllers
+    private Track selectedTrack;
+
     // Observer List
     private final List<TrackObserver> observers = new ArrayList<>();
 
@@ -57,6 +60,18 @@ public class MusicPlayerFacade {
             return new Track(title, author, duration, genre, publicationYear);
         }
     }
+
+
+    // Getter & Setter Track
+    public void setSelectedTrack(Track track) {
+        this.selectedTrack = track;
+    }
+
+    public Track getSelectedTrack() {
+        return this.selectedTrack;
+    }
+
+    // --- Library Methods ---
 
     public boolean addNewTrackToLibrary(String title, String author, int duration, String genre, Year publicationYear) {
         try {

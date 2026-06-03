@@ -65,6 +65,7 @@ public class PlaybackService {
 
         this.currentTrack = track;
         this.currentState = PlaybackState.PLAYING;
+        notifyStateChanged(this.currentState);
 
         notifyTrackChanged(track);
         this.startTimer();
@@ -75,6 +76,7 @@ public class PlaybackService {
     public void pause() {
         if (this.currentState == PlaybackState.PLAYING) {
             this.currentState = PlaybackState.PAUSED;
+            notifyStateChanged(this.currentState);
             this.stopTimer();
         }
     }
@@ -82,12 +84,14 @@ public class PlaybackService {
     public void resume() {
         if (this.currentState == PlaybackState.PAUSED) {
             this.currentState = PlaybackState.PLAYING;
+            notifyStateChanged(this.currentState);
             this.startTimer();
         }
     }
 
     public void stop() {
         this.currentState = PlaybackState.STOPPED;
+        notifyStateChanged(this.currentState);
         this.simulatedTimeSeconds.set(0);
         notifyTimeTick(0);
         this.stopTimer();

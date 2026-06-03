@@ -80,6 +80,30 @@ public class PlaylistDetailController {
         playlistNameField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (!isFocused) exitRenameMode();
         });
+
+        // --- Notify Facade when a track is selected (for Play Button)  ---
+        playlistTrackTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldSelection, newSelection) -> {
+                    if (newSelection != null) {
+                        MusicPlayerFacade.getInstance().setSelectedTrack(newSelection);
+                    }
+                }
+        );
+
+        // --- Double click logic for Play Track ---
+
+        playlistTrackTable.setRowFactory(tv -> {
+            javafx.scene.control.TableRow<Track> row = new javafx.scene.control.TableRow<>();
+            row.setOnMouseClicked(event -> {
+                // Intercetta il doppio clic sulla riga non vuota
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    Track selectedTrack = row.getItem();
+                    MusicPlayerFacade.getInstance().playTrack(selectedTrack);
+                }
+            });
+            return row;
+        });
+
     }
 
     public void setPlaylist(Playlist playlist) {

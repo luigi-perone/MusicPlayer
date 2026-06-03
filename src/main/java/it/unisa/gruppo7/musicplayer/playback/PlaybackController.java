@@ -38,11 +38,23 @@ public class PlaybackController implements PlaybackObserver {
     @FXML
     void onPlayPause(ActionEvent event) {
 
-        if (musicPlayer.getPlaybackState() == PlaybackState.PLAYING) {
+        PlaybackState currentState = musicPlayer.getPlaybackState();
+
+        if (currentState == PlaybackState.PLAYING) {
+            // If playing: pause
             musicPlayer.pauseTrack();
-        }
-        else if (musicPlayer.getPlaybackState() == PlaybackState.PAUSED) {
+
+        } else if (currentState == PlaybackState.PAUSED) {
+            // if paused: resume
             musicPlayer.resumeTrack();
+
+        } else { // PlaybackState.STOPPED
+            // If stopped: play new track
+            Track trackToPlay = musicPlayer.getSelectedTrack();
+
+            if (trackToPlay != null) {
+                musicPlayer.playTrack(trackToPlay);
+            }
         }
     }
 
@@ -91,7 +103,17 @@ public class PlaybackController implements PlaybackObserver {
 
     @Override
     public void onStateChanged(PlaybackState newState) {
-        // bottone Play/Pausa, state change
+        // Play/Pause button, state change
+        Platform.runLater(() -> {
+            if (newState == PlaybackState.PLAYING) {
+                // If playing: display "pause"
+                playPauseButton.setText("Pause");
+
+            } else if (newState == PlaybackState.PAUSED || newState == PlaybackState.STOPPED) {
+                // if paused: display "play"
+                playPauseButton.setText("Play");
+            }
+        });
     }
 
 }
