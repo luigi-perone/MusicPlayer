@@ -18,7 +18,7 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  * @author Maxim Makhovskyy
  */
 public class PlaylistService implements PersistenceService, TrackObserver {
-    private static final String DEFAULT_PATH = "src/main/resources/it/unisa/gruppo7/musicplayer/playlist/playlist.json";
+    private static final String DEFAULT_PATH = "data/playlist.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;

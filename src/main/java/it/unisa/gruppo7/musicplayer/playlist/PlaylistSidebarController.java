@@ -46,7 +46,7 @@ public class PlaylistSidebarController {
         this.onPlaylistSelected = listener;
     }
 
-    private void refreshList(){
+    public void refreshList(){
         listBox.getChildren().clear();
         for(Playlist p: service.getPlaylists()){
             listBox.getChildren().add(playlistRow(p));
