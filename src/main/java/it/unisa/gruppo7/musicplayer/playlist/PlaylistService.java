@@ -108,6 +108,41 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         return Optional.of("Unexpected error during renaming");
     }
 
+    /**
+     * Adds a list of tracks to the named playlist in a single batch,
+     * skipping duplicates and persisting once at the end.
+     *
+     * @param playlistName the destination playlist
+     * @param tracks       the tracks to add
+     * @return an empty Optional on success, or one containing an error message
+     */
+    public Optional<String> addTracksToPlaylist(String playlistName, List<Track> tracks) {
+        if (playlistName == null || playlistName.trim().isEmpty())
+            return Optional.of("Playlist name must be provided");
+
+        if (tracks == null || tracks.isEmpty())
+            return Optional.of("No tracks selected");
+
+        Playlist target = getPlaylist(playlistName);
+        if (target == null)
+            return Optional.of("Playlist not found: " + playlistName);
+
+        List<Track> alreadyIn = (List<Track>) target.getTracks();
+        int added = 0;
+        for (Track t : tracks) {
+            if (!alreadyIn.contains(t)) {
+                target.addTrack(t);
+                added++;
+            }
+        }
+
+        if (added == 0)
+            return Optional.of("All selected tracks are already in the playlist");
+
+        save(); // single save after the whole batch
+        return Optional.empty();
+    }
+
     public List<Playlist> getPlaylists() {
         return playlists;
     }

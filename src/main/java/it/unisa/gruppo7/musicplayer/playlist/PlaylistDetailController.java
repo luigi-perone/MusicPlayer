@@ -64,6 +64,8 @@ public class PlaylistDetailController {
             return new SimpleStringProperty(formatted);
         });
 
+        playlistTrackTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         playlistNameLabel.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
                 enterRenameMode();
