@@ -2,30 +2,23 @@
 
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.layout.BorderPane?>
+
 <Pane stylesheets="@playlist/Playlist.css" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
-    <children>
-        <HBox prefHeight="600.0" prefWidth="950.0">
-            <children>
-                
-                <fx:include  source="playlist/PlaylistSidebar.fxml" fx:id="playlistSidebar" />
+    <HBox prefHeight="600.0" prefWidth="950.0">
 
-                <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
-                    <center>
-                        <fx:include source="LibraryView.fxml" fx:id="library"/>
-                    </center>
-                    <bottom>
-                        <HBox prefHeight="100.0" prefWidth="200.0">
-                            <children>
-                                <fx:include  source="playback/PlaybackView.fxml" fx:id="playback" />
-                            </children>
-                        </HBox>
-                    </bottom>
-                </BorderPane>
+        <fx:include source="playlist/PlaylistSidebar.fxml" fx:id="playlistSidebar" />
 
-            </children>
-        </HBox>
-    </children>
+        <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
+            <center>
+                <fx:include source="LibraryView.fxml" fx:id="library"/>
+            </center>
+            <bottom>
+                <HBox prefHeight="100.0" prefWidth="200.0">
+                    <fx:include source="playback/PlaybackView.fxml" fx:id="playback" />
+                </HBox>
+            </bottom>
+        </BorderPane>
+
+    </HBox>
 </Pane>
