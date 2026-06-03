@@ -25,6 +25,7 @@ public class MainController {
     public void initialize() {
         PlaylistService playlistService = MusicPlayerFacade.getInstance().getPlaylistService();
 
+
         if (contentArea != null) {
             libraryView = contentArea.getCenter();
         }
@@ -32,6 +33,13 @@ public class MainController {
         if (playlistSidebarController != null) {
             playlistSidebarController.setOnPlaylistSelected(this::showPlaylistDetail);
             playlistSidebarController.setPlaylistService(playlistService);
+        }
+    }
+
+    private void onPlaylistDeleted(Playlist deleted) {
+        // If the detail view of the deleted playlist is currently open, navigate back to the library
+        if (contentArea.getCenter() != libraryView) {
+            showLibrary();
         }
     }
 
@@ -45,6 +53,11 @@ public class MainController {
                 controller.setPlaylist(playlist);
                 controller.setMusicPlayer(MusicPlayerFacade.getInstance());
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
+
+                controller.setOnDeleteAction(() -> {
+                    playlistSidebarController.refreshList();
+                    showLibrary();
+                });
             }
 
             contentArea.setCenter(playlistDetailView);

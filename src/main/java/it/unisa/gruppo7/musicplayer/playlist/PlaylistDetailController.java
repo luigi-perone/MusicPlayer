@@ -4,6 +4,7 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -36,12 +37,14 @@ public class PlaylistDetailController {
     @FXML private Label trackCountLabel;
     @FXML private Label totalDurationLabel;
     @FXML private Button addTrack;
+    @FXML private Button deletePlaylistBtn;
     @FXML private TableView<Track> playlistTrackTable;
     @FXML private TableColumn<Track, String> titleColumn;
     @FXML private TableColumn<Track, String> authorColumn;
     @FXML private TableColumn<Track, String> durationColumn;
 
     private Runnable onBackAction;
+    private Runnable onDeleteAction;
     private PlaylistTableAdapter adapter;
     private MusicPlayerFacade facade;
 
@@ -182,6 +185,30 @@ public class PlaylistDetailController {
 
         if ((result.isPresent() && result.get() == ButtonType.OK) && adapter != null) {
             adapter.trackRemoved(selectedTrack);
+        }
+    }
+
+    public void setOnDeleteAction(Runnable onDeleteAction) {
+        this.onDeleteAction = onDeleteAction;
+    }
+
+    @FXML
+    private void onDeletePlaylistClick() {
+        String name = playlistNameLabel.getText();
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Elimina playlist");
+        alert.setHeaderText("Eliminare \"" + name + "\"?");
+        alert.setContentText("L'operazione è irreversibile. Le tracce nella libreria non saranno toccate.");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (facade != null) {
+                facade.getPlaylistService().deletePlaylist(name);
+            }
+            if (onDeleteAction != null) {
+                onDeleteAction.run();
+            }
         }
     }
 }

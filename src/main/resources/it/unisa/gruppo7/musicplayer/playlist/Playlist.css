@@ -120,3 +120,15 @@
     -fx-font-size: 12px;
     -fx-padding: 5 10 2 10;
 }
+
+.delete-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d92d20;
+    -fx-cursor: hand;
+    -fx-padding: 0 4;
+    -fx-font-size: 13px;
+}
+
+.delete-btn:hover {
+    -fx-text-fill: #a01010;
+}
