@@ -1,10 +1,14 @@
 package it.unisa.gruppo7.musicplayer.musicplayerfacade;
 
 import it.unisa.gruppo7.musicplayer.library.Library;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -17,9 +21,11 @@ public class MusicPlayerFacade {
     private static MusicPlayerFacade instance;
 
     private final Library library;
+    private final PlaylistService playlistService;
 
     private MusicPlayerFacade() {
         this.library = Library.getInstance();
+        this.playlistService = new PlaylistService();
     }
 
     public static MusicPlayerFacade getInstance() {
@@ -89,5 +95,33 @@ public class MusicPlayerFacade {
 
     public String printLibrary() {
         return library.toString();
+    }
+
+    public Playlist createPlaylist(String name) {
+        return playlistService.createPlaylist(name);
+    }
+
+    public Optional<String> deletePlaylist(String name) {
+        return playlistService.deletePlaylist(name);
+    }
+
+    public Optional<String> renamePlaylist(String oldName, String newName) {
+        return playlistService.renamePlaylist(oldName, newName);
+    }
+
+    public List<Playlist> getPlaylists() {
+        return playlistService.getPlaylists();
+    }
+
+    public Playlist getPlaylist(String name) {
+        return playlistService.getPlaylist(name);
+    }
+
+    public PlaylistService getPlaylistService(){
+        return playlistService;
+    }
+
+    public void savePlaylists() {
+        playlistService.save();
     }
 }

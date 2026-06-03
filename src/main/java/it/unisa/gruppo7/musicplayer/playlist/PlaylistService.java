@@ -29,23 +29,29 @@ public class PlaylistService implements PersistenceService{
     public PlaylistService(String path){
         this.path = path;
         this.mapper = new ObjectMapper();
+        this.load();
     }
 
     /**
      * Creates a new playlist with the given name, if the name is valid and unique.
-     * 
      * @param name the name of the playlist
-     * @return an empty Optional if the playlist creation is successful, or an Optional
-     *          containing an error message if the name is empty or already in use.
+     * @return the newly created Playlist object
+     * @throws IllegalArgumentException if the name is empty or already in use
      */
-    public Optional<String> createPlaylist(String name) {
-        if (name == null || name.trim().isEmpty())
-            return Optional.of("A name for the playlist must be provided");
-        if (existsByName(name))
-            return Optional.of("This playlist name already exists");
-        playlists.add(new Playlist(name, new ArrayList<>()));
+    public Playlist createPlaylist(String name) throws IllegalArgumentException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("A name for the playlist must be provided");
+        }
+        
+        if (existsByName(name)) {
+            throw new IllegalArgumentException("This playlist name already exists");
+        }
+        
+        Playlist newPlaylist = new Playlist(name, new ArrayList<>());
+        playlists.add(newPlaylist);
         save();
-        return Optional.empty();
+        
+        return newPlaylist;
     }
 
     /**
@@ -120,7 +126,7 @@ public class PlaylistService implements PersistenceService{
 
     private boolean existsByName(String name) {
         return playlists.stream()
-                        .anyMatch(p -> p.getName().equals(name));
+                        .anyMatch(p -> p.getName().trim().equals(name.trim()));
     }
 
     public Playlist getTrackFromPlaylist(String name) {

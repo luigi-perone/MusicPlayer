@@ -9,6 +9,7 @@ import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
 
 /**
  * 
@@ -79,5 +80,11 @@ public class Playlist extends TrackCollection{
                             ? this.tracks.size() 
                             : (this.loadedTrackIds != null ? this.loadedTrackIds.size() : 0);
         return this.playlistName + " (" + trackCount + " songs)";
+    }
+    // Necessary for serialization
+    @Override
+    @JsonIgnore
+    public Collection<Track> getTracks(){
+        return super.getTracks();
     }
 }

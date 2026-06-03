@@ -2,7 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.fxml.FXML;
@@ -24,7 +24,7 @@ public class PlaylistSidebarController {
 
     private PlaylistService service;
     private HBox editRow;
-    private Consumer<String> onPlaylistSelected;
+    private Consumer<Playlist> onPlaylistSelected;
 
     /**
      * Flag used to avoid the premature close of the edit module. It is set true when the user
@@ -42,19 +42,19 @@ public class PlaylistSidebarController {
         refreshList();
     }
 
-    public void setOnPlaylistSelected(Consumer<String> listener) {
+    public void setOnPlaylistSelected(Consumer<Playlist> listener) {
         this.onPlaylistSelected = listener;
     }
 
     private void refreshList(){
         listBox.getChildren().clear();
         for(Playlist p: service.getPlaylists()){
-            listBox.getChildren().add(playlistRow(p.getName()));
+            listBox.getChildren().add(playlistRow(p));
         }
     }
 
-    private HBox playlistRow(String name){
-        Label label = new Label(name);
+    private HBox playlistRow(Playlist playlist){
+        Label label = new Label(playlist.getName());
         label.getStyleClass().add("row-label");
         HBox row = new HBox(label);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -62,7 +62,7 @@ public class PlaylistSidebarController {
 
         row.setOnMouseClicked(e -> {
             if (onPlaylistSelected != null) {
-                onPlaylistSelected.accept(name);
+                onPlaylistSelected.accept(playlist);
             }
         });
 
@@ -121,30 +121,27 @@ public class PlaylistSidebarController {
 
     private void confirm(TextField field, Label tip){
         String name = field.getText();
-        Optional<String> error = service.createPlaylist(name);
+        try{
+            Playlist p = service.createPlaylist(name);
+            committing = true;
+            closeEdit();
 
-        if(error.isPresent()){
-            tip.setText(error.get());
+            HBox row = playlistRow(p);
+            listBox.getChildren().add(row);
+            if (onPlaylistSelected != null) {
+                onPlaylistSelected.accept(p);
+            }
+            committing = false;
+        }catch(IllegalArgumentException e){
+            tip.setText(e.getMessage());
             tip.setManaged(true);
             tip.setVisible(true);
+            
             if(!field.getStyleClass().contains("error")){
                 field.getStyleClass().add("error");
             }
             field.requestFocus();
-            return;
         }
-
-        committing = true;
-        String created = name.trim();
-        closeEdit();
-        HBox row = playlistRow(created);
-        listBox.getChildren().add(row);
-
-        if (onPlaylistSelected != null) {
-            onPlaylistSelected.accept(created);
-        }
-
-        committing = false;
     }
 
     private void hideError(TextField field, Label tip) {

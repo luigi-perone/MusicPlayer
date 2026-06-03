@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+
 import java.time.Year;
 import java.util.ArrayList;
 
@@ -100,7 +102,7 @@ class PlaylistTest {
             playlist.addTrack(trk1);
             playlist.addTrack(trk2);
             playlist.removeTrack(trk1);
-            assertTrue(playlist.getPlaylist().contains(trk2));
+            assertTrue(playlist.getTracks().contains(trk2));
         }
 
         @Test

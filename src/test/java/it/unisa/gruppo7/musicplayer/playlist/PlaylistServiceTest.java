@@ -2,6 +2,8 @@ package it.unisa.gruppo7.musicplayer.playlist;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,12 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.Year;
 
 class PlaylistServiceTest {
-
+    
+    @TempDir
+    Path tempDir;
     private PlaylistService service;
 
     @BeforeEach
     void setUp() {
-        service = new PlaylistService();
+        Path tempFile = tempDir.resolve("isolated-test-playlists.json");
+        service = new PlaylistService(tempFile.toString());
     }
 
     @Nested
@@ -51,26 +56,32 @@ class PlaylistServiceTest {
     class WithEmptyName {
 
         @Test
-        void returnsError() {
-            Optional<String> error = service.createPlaylist("");
-            assertTrue(error.isPresent());
+        void throwsExceptionForEmptyString() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                service.createPlaylist("");
+            });
         }
 
         @Test
-        void returnsErrorForNullName() {
-            Optional<String> error = service.createPlaylist(null);
-            assertTrue(error.isPresent());
+        void throwsExceptionForNullName() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                service.createPlaylist(null);
+            });
         }
 
         @Test
-        void returnsErrorForWhitespaceName() {
-            Optional<String> error = service.createPlaylist("   ");
-            assertTrue(error.isPresent());
+        void throwsExceptionForWhitespaceName() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                service.createPlaylist("   ");
+            });
         }
 
         @Test
         void playlistIsNotAdded() {
-            service.createPlaylist("");
+            try {
+                service.createPlaylist("");
+            } catch (IllegalArgumentException ignored) {
+            }
             assertEquals(0, service.getPlaylists().size());
         }
     }
@@ -84,14 +95,18 @@ class PlaylistServiceTest {
         }
 
         @Test
-        void returnsError() {
-            Optional<String> error = service.createPlaylist("My Playlist");
-            assertTrue(error.isPresent());
+        void throwsExceptionForDuplicateName() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                service.createPlaylist("My Playlist");
+            });
         }
 
         @Test
         void duplicateIsNotAdded() {
-            service.createPlaylist("My Playlist");
+            try {
+                service.createPlaylist("My Playlist");
+            } catch (IllegalArgumentException ignored) {
+            }
             assertEquals(1, service.getPlaylists().size());
         }
     }
