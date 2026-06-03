@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController">
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController">
     <top>
         <VBox spacing="15.0" style="-fx-padding: 20; -fx-background-color: white;                      -fx-border-color: #ececeb; -fx-border-width: 0 0 1 0;" BorderPane.alignment="CENTER">
             <children>
