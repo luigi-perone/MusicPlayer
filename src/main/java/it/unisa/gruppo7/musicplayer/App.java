@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer;
 
+import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -23,6 +24,16 @@ public class App extends Application {
         scene = new Scene(loadFXML("mainView"), 950, 600);
         stage.setScene(scene);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        System.out.println("Application Shutdown...");
+
+        // Shutdown the timer process
+        MusicPlayerFacade.getInstance().shutdownPlayback();
+
+        super.stop();
     }
 
     static void setRoot(String fxml) throws IOException {

@@ -262,4 +262,10 @@ public class PlaylistDetailController {
             }
         });
     }
+
+    @FXML
+    private void onPlayTrackClick() {
+        Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
+        MusicPlayerFacade.getInstance().playTrack(selectedTrack);
+    }
 }
