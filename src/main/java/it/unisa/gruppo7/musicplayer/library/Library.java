@@ -97,6 +97,11 @@ public class Library extends TrackCollection implements PersistenceService{
         }
     }
 
+    public void clearLibrary() {
+        this.tracks.clear();
+        this.signatures.clear();
+    }
+
     @Override
     public void save() {
 
