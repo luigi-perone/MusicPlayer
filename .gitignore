@@ -30,5 +30,5 @@ Thumbs.db
 
 #Persistence
 
-data/playlist.json
-data/track-library.json
+data/
+
