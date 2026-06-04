@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
+import com.fasterxml.jackson.databind.deser.std.StackTraceElementDeserializer;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
@@ -181,11 +182,11 @@ public class PlaylistDetailController implements PlaybackObserver {
         String newName = playlistNameField.getText().trim();
 
         Command<Void> renameCommand = new RenamePlaylistCommand(facade.getPlaylistService(), oldName, newName);
-        CommandInvoker.execute(renameCommand).ifPresent(v -> {
-            playlistNameLabel.setText(newName);
-            exitRenameMode();
-            if (onRenameAction != null) onRenameAction.run();
-        });
+        CommandInvoker.execute(renameCommand);
+
+        playlistNameLabel.setText(newName);
+        exitRenameMode();
+        if (onRenameAction!=null)onRenameAction.run();
     }
 
     private void exitRenameMode() {
@@ -265,9 +266,12 @@ public class PlaylistDetailController implements PlaybackObserver {
 
         if (confirmed) {
             Command<Void> removeCommand = new RemoveTrackCommand(currentPlaylist, selectedTrack);
-            CommandInvoker.execute(removeCommand).ifPresent(v -> {
-                if (adapter != null) adapter.getItems().remove(selectedTrack);
-            });
+            CommandInvoker.execute(removeCommand);
+
+            if(adapter!=null){
+                adapter.getItems().remove(selectedTrack);
+                playlistTrackTable.getSelectionModel().clearSelection();
+            }
         }
     }
 
