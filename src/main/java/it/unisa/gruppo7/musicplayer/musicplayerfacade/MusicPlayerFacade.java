@@ -46,6 +46,10 @@ public class MusicPlayerFacade {
         return instance;
     }
 
+    public void clearLibrary() {
+        library.clearLibrary();
+    }
+
     private Track createTrack(String title, String author, int duration, String genre, Year publicationYear) {
         boolean isGenreEmpty = (genre == null || genre.trim().isEmpty());
         boolean isYearEmpty = (publicationYear == null);
