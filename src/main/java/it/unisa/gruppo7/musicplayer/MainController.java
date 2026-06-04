@@ -6,6 +6,7 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistSidebarController;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -55,8 +56,12 @@ public class MainController {
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
                 controller.setOnRenameAction(() -> playlistSidebarController.refreshList());
                 controller.setOnDeleteAction(() -> {
-                    playlistSidebarController.refreshList();
-                    showLibrary();
+                    System.out.println("DEBUG: onDeleteAction triggerato dal controller di dettaglio!");
+                    Platform.runLater(() -> {
+                        playlistSidebarController.refreshList();
+                        showLibrary();
+                        System.out.println("DEBUG: Interfaccia aggiornata.");
+                    });
                 });
             }
 

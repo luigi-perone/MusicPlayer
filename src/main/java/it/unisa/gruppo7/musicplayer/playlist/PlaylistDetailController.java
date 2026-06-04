@@ -276,20 +276,22 @@ public class PlaylistDetailController implements PlaybackObserver {
         String name = playlistNameLabel.getText();
 
         boolean confirmed = DialogUtils.showConfirmation(
-            "Elimina playlist",
-            "Eliminare \"" + name + "\"?",
-            "L'operazione è irreversibile. Le tracce nella libreria non saranno toccate."
+                "Elimina playlist",
+                "Eliminare \"" + name + "\"?",
+                "L'operazione è irreversibile. Le tracce nella libreria non saranno toccate."
         );
 
         if (confirmed) {
             Command<Void> deleteCommand = new DeletePlaylistCommand(
-                facade.getPlaylistService(),
-                name
+                    facade.getPlaylistService(),
+                    name
             );
 
-            CommandInvoker.execute(deleteCommand).ifPresent(v -> {
-                if (onDeleteAction != null) onDeleteAction.run();
-            });
+            CommandInvoker.execute(deleteCommand);
+
+            if (onDeleteAction != null) {
+                Platform.runLater(() -> onDeleteAction.run());
+            }
         }
     }
 
