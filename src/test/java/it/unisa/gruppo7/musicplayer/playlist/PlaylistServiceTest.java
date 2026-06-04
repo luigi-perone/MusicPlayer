@@ -426,4 +426,47 @@ class PlaylistServiceTest {
             assertEquals("Test", reloaded.getPlaylists().get(0).getName());
         }
     }
+
+    @Nested
+    class RemoveTrackFromPlaylist {
+
+        private Track sharedTrack;
+
+        @BeforeEach
+        void setUp() {
+            service.createPlaylist("Playlist A");
+            service.createPlaylist("Playlist B");
+            
+            sharedTrack = new Track("Stayin' Alive", "Bee Gees", 285, "Disco");
+            
+            try {
+                Library.getInstance().addTrack(sharedTrack);
+            } catch (IllegalArgumentException e) {
+            }
+            
+            service.getPlaylist("Playlist A").addTrack(sharedTrack);
+            service.getPlaylist("Playlist B").addTrack(sharedTrack);
+        }
+
+        @Test
+        void removingTrackFromOnePlaylistKeepsItInLibrary() {
+            service.getPlaylist("Playlist A").removeTrack(sharedTrack);
+            service.save();
+
+            assertFalse(service.getPlaylist("Playlist A").getTracks().contains(sharedTrack), 
+                    "Track should've been removed from A");
+
+            assertTrue(Library.getInstance().getTracks().contains(sharedTrack), 
+                    "Tracks must be available in the library");
+        }
+
+        @Test
+        void removingTrackFromOnePlaylistKeepsItInOtherPlaylists() {
+            service.getPlaylist("Playlist A").removeTrack(sharedTrack);
+            service.save();
+
+            assertTrue(service.getPlaylist("Playlist B").getTracks().contains(sharedTrack), 
+                    "Track should be available in Playlist B");
+        }
+    }
 }
