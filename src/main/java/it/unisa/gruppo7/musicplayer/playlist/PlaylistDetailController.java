@@ -10,18 +10,13 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.control.TableCell;
+
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
@@ -92,6 +87,8 @@ public class PlaylistDetailController implements PlaybackObserver {
                 }
         );
 
+
+
         playlistTrackTable.setRowFactory(tv -> {
             TableRow<Track> row = new TableRow<Track>() {
                 @Override
@@ -135,6 +132,14 @@ public class PlaylistDetailController implements PlaybackObserver {
 
     @Override
     public void onTimeTick(int simulatedSeconds) {
+    }
+
+    public void setOnDeleteAction(Runnable onDeleteAction) {
+        this.onDeleteAction = onDeleteAction;
+    }
+
+    public void setOnRenameAction(Runnable onRenameAction) {
+        this.onRenameAction = onRenameAction;
     }
 
     public void setPlaylist(Playlist playlist) {
