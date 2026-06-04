@@ -40,6 +40,8 @@
                 <Label style="-fx-font-size: 16px; -fx-text-fill: #6e6e73;" text="Questa playlist è vuota. Aggiungi brani dalla libreria!" />
             </placeholder>
             <columns>
+                <TableColumn fx:id="indexColumn" prefWidth="40.0" text="#" style="-fx-alignment: CENTER;" />
+                
                 <TableColumn fx:id="titleColumn" prefWidth="280.0" text="Titolo" />
                 <TableColumn fx:id="authorColumn" prefWidth="180.0" text="Autore" />
                 <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata" />

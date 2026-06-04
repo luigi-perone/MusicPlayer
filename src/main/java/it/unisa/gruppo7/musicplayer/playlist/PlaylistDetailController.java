@@ -20,7 +20,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
-
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistTableAdapter;
+import javafx.scene.control.TableCell;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,7 +49,7 @@ public class PlaylistDetailController {
     @FXML private TableColumn<Track, String> titleColumn;
     @FXML private TableColumn<Track, String> authorColumn;
     @FXML private TableColumn<Track, String> durationColumn;
-
+    @FXML private TableColumn<Track, Void> indexColumn;
     private Runnable            onBackAction;
     private Runnable            onDeleteAction;
     private Runnable            onRenameAction;
@@ -56,6 +59,19 @@ public class PlaylistDetailController {
 
     @FXML
     public void initialize() {
+
+        indexColumn.setCellFactory(col -> new TableCell<Track, Void>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(getIndex() + 1));
+                }
+            }
+        });
+
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
         durationColumn.setCellValueFactory(cellData -> {
