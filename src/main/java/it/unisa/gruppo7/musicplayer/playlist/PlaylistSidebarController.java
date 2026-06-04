@@ -1,10 +1,11 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
-import java.util.Optional;
 import java.util.function.Consumer;
-import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+
+import it.unisa.gruppo7.musicplayer.command.Command;
+import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
+import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.application.Platform;
@@ -121,8 +122,18 @@ public class PlaylistSidebarController {
 
     private void confirm(TextField field, Label tip){
         String name = field.getText();
-        try{
-            Playlist p = service.createPlaylist(name);
+        Command<Playlist> createCommand = new CreatePlaylistCommand(service, name);
+        ErrorHandlingStrategy inlineStrategy = e -> {
+            tip.setText(e.getMessage());
+            tip.setManaged(true);
+            tip.setVisible(true);
+            if(!field.getStyleClass().contains("error")){
+                field.getStyleClass().add("error");
+            }
+            field.requestFocus();
+        };
+
+        CommandInvoker.execute(createCommand, inlineStrategy).ifPresent(p -> {
             committing = true;
             closeEdit();
 
@@ -132,16 +143,7 @@ public class PlaylistSidebarController {
                 onPlaylistSelected.accept(p);
             }
             committing = false;
-        }catch(IllegalArgumentException e){
-            tip.setText(e.getMessage());
-            tip.setManaged(true);
-            tip.setVisible(true);
-            
-            if(!field.getStyleClass().contains("error")){
-                field.getStyleClass().add("error");
-            }
-            field.requestFocus();
-        }
+        });
     }
 
     private void hideError(TextField field, Label tip) {

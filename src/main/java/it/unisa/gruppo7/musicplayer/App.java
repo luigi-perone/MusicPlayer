@@ -9,9 +9,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
-import it.unisa.gruppo7.musicplayer.playlist.PlaylistSidebarController;
-
 /**
  * JavaFX App
  */
