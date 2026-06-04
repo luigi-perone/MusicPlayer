@@ -98,14 +98,13 @@ public class PlaylistDetailController implements PlaybackObserver {
                     if (empty || item == null) {
                         setStyle("");
                     } else if (item.equals(playingTrack)) {
-                        setStyle("-fx-background-color: #d4edda; -fx-font-weight: bold;");
+                        setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
                     } else {
                         setStyle("");
                     }
                 }
             };
             row.setOnMouseClicked(event -> {
-                // Intercetta il doppio clic sulla riga non vuota
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
                     Track selectedTrack = row.getItem();
                     CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));

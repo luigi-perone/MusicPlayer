@@ -11,14 +11,10 @@ import javafx.scene.control.ProgressBar;
 
 import java.time.Year;
 
-
-/**
- * @author francescoLemmo
- */
 public class PlaybackController implements PlaybackObserver {
 
     @FXML private Label timeLabel;
-    @FXML  private Button playPauseButton;
+    @FXML private Button playPauseButton;
     @FXML private ProgressBar progressBar;
     @FXML private Label trackAuthorLabel;
     @FXML private Label trackDurationLabel;
@@ -30,46 +26,31 @@ public class PlaybackController implements PlaybackObserver {
 
     @FXML
     public void initialize() {
-        // Controller subscribe to the subject PlaybackService
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
     }
 
     @FXML
     void onPlayPause(ActionEvent event) {
-
         PlaybackState currentState = musicPlayer.getPlaybackState();
 
         if (currentState == PlaybackState.PLAYING) {
-            // If playing: pause
             musicPlayer.pauseTrack();
-
         } else if (currentState == PlaybackState.PAUSED) {
-            // if paused: resume
             musicPlayer.resumeTrack();
-
-        } else { // PlaybackState.STOPPED
-            // If stopped: play new track
+        } else {
             Track trackToPlay = musicPlayer.getSelectedTrack();
-
             if (trackToPlay != null) {
                 musicPlayer.playTrack(trackToPlay);
             }
         }
     }
 
-
-
-    // --- OBSERVER ---
-
     @Override
     public void onTimeTick(int simulatedSeconds) {
-        // Platform.runLater used to transfer the work on the UI
         Platform.runLater(() -> {
-            // update the label
             timeLabel.setText(musicPlayer.formatDuration(simulatedSeconds));
 
-            // update the proressbar
             if (currentTrack != null && currentTrack.getDuration() > 0) {
                 double progress = (double) simulatedSeconds / currentTrack.getDuration();
                 progressBar.setProgress(progress);
@@ -103,17 +84,12 @@ public class PlaybackController implements PlaybackObserver {
 
     @Override
     public void onStateChanged(PlaybackState newState) {
-        // Play/Pause button, state change
         Platform.runLater(() -> {
             if (newState == PlaybackState.PLAYING) {
-                // If playing: display "pause"
-                playPauseButton.setText("Pause");
-
+                playPauseButton.setText("Pausa");
             } else if (newState == PlaybackState.PAUSED || newState == PlaybackState.STOPPED) {
-                // if paused: display "play"
-                playPauseButton.setText("Play");
+                playPauseButton.setText("Riproduci");
             }
         });
     }
-
 }

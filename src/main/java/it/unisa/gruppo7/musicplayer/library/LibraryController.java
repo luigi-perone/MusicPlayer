@@ -80,7 +80,7 @@ public class LibraryController implements PlaybackObserver {
                 if (empty || item == null) {
                     setStyle("");
                 } else if (item.equals(playingTrack)) {
-                    setStyle("-fx-background-color: #d4edda; -fx-font-weight: bold;");
+                    setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
                 } else {
                     setStyle("");
                 }
@@ -95,7 +95,7 @@ public class LibraryController implements PlaybackObserver {
                     if (empty || item == null) {
                         setStyle("");
                     } else if (item.equals(playingTrack)) {
-                        setStyle("-fx-background-color: #d4edda; -fx-font-weight: bold;");
+                        setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
                     } else {
                         setStyle("");
                     }
