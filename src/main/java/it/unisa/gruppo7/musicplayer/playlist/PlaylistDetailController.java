@@ -1,21 +1,31 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
+import it.unisa.gruppo7.musicplayer.command.Command;
+import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
+import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
+import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
+import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
+import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.track.Track;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import javafx.scene.control.TableCell;
+import java.util.Collection;
+import java.util.List;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class PlaylistDetailController implements PlaybackObserver {
 
@@ -55,8 +65,7 @@ public class PlaylistDetailController implements PlaybackObserver {
         authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
         durationColumn.setCellValueFactory(cellData -> {
             Track track = cellData.getValue();
-            String formatted =
-                    MusicPlayerFacade.getInstance().formatDuration(track.getDuration());
+            String formatted = (this.facade != null) ? this.facade.formatDuration(track.getDuration()) : "";
             return new SimpleStringProperty(formatted);
         });
 
@@ -78,7 +87,7 @@ public class PlaylistDetailController implements PlaybackObserver {
         playlistTrackTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldSelection, newSelection) -> {
                     if (newSelection != null) {
-                        MusicPlayerFacade.getInstance().setSelectedTrack(newSelection);
+                        this.facade.setSelectedTrack(newSelection);
                     }
                 }
         );
@@ -98,8 +107,10 @@ public class PlaylistDetailController implements PlaybackObserver {
                 }
             };
             row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    MusicPlayerFacade.getInstance().playTrack(row.getItem());
+                // Intercetta il doppio clic sulla riga non vuota
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    Track selectedTrack = row.getItem();
+                    CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));
                 }
             });
             return row;
@@ -131,17 +142,23 @@ public class PlaylistDetailController implements PlaybackObserver {
         adapter = new PlaylistTableAdapter(playlist);
         playlistTrackTable.setItems(adapter.getItems());
         playlistNameLabel.setText(playlist.getName());
-        refreshLabels(playlist);
+
+        refreshLabels();
+
         adapter.getItems().addListener((ListChangeListener.Change<? extends Track> c) -> {
-            refreshLabels(playlist);
+            refreshLabels();
             if (facade != null) facade.savePlaylists();
         });
     }
 
-    public void setMusicPlayer(MusicPlayerFacade facade)       { this.facade = facade; }
-    public void setOnBackAction(Runnable onBackAction)         { this.onBackAction = onBackAction; }
-    public void setOnDeleteAction(Runnable onDeleteAction)     { this.onDeleteAction = onDeleteAction; }
-    public void setOnRenameAction(Runnable onRenameAction)     { this.onRenameAction = onRenameAction; }
+    public void setMusicPlayer(MusicPlayerFacade facade) {
+        this.facade = facade;
+        refreshLabels();
+    }
+
+    public void setOnBackAction(Runnable onBackAction) {
+        this.onBackAction = onBackAction;
+    }
 
     private void enterRenameMode() {
         playlistNameField.setText(playlistNameLabel.getText());
@@ -157,16 +174,13 @@ public class PlaylistDetailController implements PlaybackObserver {
         if (currentPlaylist == null || facade == null) return;
         String oldName = currentPlaylist.getName();
         String newName = playlistNameField.getText().trim();
-        Optional<String> error =
-                facade.getPlaylistService().renamePlaylist(oldName, newName);
-        if (error.isPresent()) {
-            showRenameError(error.get());
-            playlistNameField.requestFocus();
-            return;
-        }
-        playlistNameLabel.setText(currentPlaylist.getName());
-        exitRenameMode();
-        if (onRenameAction != null) onRenameAction.run();
+
+        Command<Void> renameCommand = new RenamePlaylistCommand(facade.getPlaylistService(), oldName, newName);
+        CommandInvoker.execute(renameCommand).ifPresent(v -> {
+            playlistNameLabel.setText(newName);
+            exitRenameMode();
+            if (onRenameAction != null) onRenameAction.run();
+        });
     }
 
     private void exitRenameMode() {
@@ -176,67 +190,60 @@ public class PlaylistDetailController implements PlaybackObserver {
         playlistNameLabel.setManaged(true);
     }
 
-    private void showRenameError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Rename failed");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
+    private void refreshLabels() {
+        if (adapter == null) return;
 
-    private void refreshLabels(Playlist playlist) {
-        trackCountLabel.setText(playlist.getTrackCount() + " tracks");
-        totalDurationLabel.setText(
-                MusicPlayerFacade.getInstance().formatDuration(playlist.getTotalDuration()));
+        List<Track> currentTracks = adapter.getItems();
+        trackCountLabel.setText(currentTracks.size() + " tracks");
+
+        if (this.facade != null) {
+            int totalDuration = currentTracks.stream()
+                                            .mapToInt(Track::getDuration)
+                                            .sum();
+
+            totalDurationLabel.setText(this.facade.formatDuration(totalDuration));
+        }
     }
 
     @FXML private void onBackClick() { if (onBackAction != null) onBackAction.run(); }
 
+    private List<Track> getAvailableTracksToAdd() {
+        List<Track> alreadyInPlaylist = adapter.getItems();
+        Collection<Track> allLibraryTracks = facade.getTracksFromLibrary();
+        return allLibraryTracks.stream()
+                .filter(t -> !alreadyInPlaylist.contains(t))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     @FXML
     private void onAddTrackClick() {
-        if (adapter == null || facade == null)
-            throw new IllegalStateException("Adapter or facade is null");
+        if (adapter == null || facade == null) return;
 
-        Collection<Track> allLibraryTracks = facade.getTracksFromLibrary();
-        List<Track> alreadyInPlaylist = adapter.getItems();
-        List<Track> availableTracks = allLibraryTracks.stream()
-                .filter(t -> !alreadyInPlaylist.contains(t))
-                .collect(Collectors.toList());
-
+        List<Track> availableTracks = getAvailableTracksToAdd();
         if (availableTracks.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("No track available");
-            alert.setHeaderText(null);
-            alert.setContentText("All tracks are already in this playlist");
-            alert.showAndWait();
+            DialogUtils.showInfo("Nessuna traccia disponibile", "Tutte le tracce sono già nella playlist.");
             return;
         }
 
-        Dialog<List<Track>> dialog = new Dialog<>();
-        dialog.setTitle("Add tracks");
-        dialog.setHeaderText("Select tracks");
-        ButtonType addButtonType =
-                new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+        DialogDirector director = new DialogDirector();
+        DialogBuilder<List<Track>> builder = new TrackSelectionDialogBuilder(availableTracks);
+        Dialog<List<Track>> dialog = director.construct(builder);
 
-        ListView<Track> listView = new ListView<>();
-        listView.getItems().addAll(availableTracks);
-        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listView.setCellFactory(param -> new ListCell<Track>() {
-            protected void updateItem(Track item, boolean empty) {
-                super.updateItem(item, empty);
-                setText((empty || item == null) ? null
-                        : item.getTitle() + " - " + item.getAuthor());
-            }
+        dialog.showAndWait().ifPresent(selectedTracks -> {
+
+            Command<AdditionResult> addCommand = new AddTracksCommand(
+                    facade.getPlaylistService(),
+                    currentPlaylist.getName(),
+                    selectedTracks
+            );
+
+            CommandInvoker.execute(addCommand).ifPresent(result -> {
+                if (result.hasAdded()) {
+                    adapter.getItems().addAll(selectedTracks);
+                }
+            });
+
         });
-        listView.setPrefSize(350, 400);
-        dialog.getDialogPane().setContent(new VBox(listView));
-        dialog.setResultConverter(dialogButton ->
-                dialogButton == addButtonType
-                        ? new ArrayList<>(listView.getSelectionModel().getSelectedItems())
-                        : null);
-        dialog.showAndWait().ifPresent(
-                selected -> selected.forEach(adapter::trackAdded));
     }
 
     @FXML
@@ -244,45 +251,48 @@ public class PlaylistDetailController implements PlaybackObserver {
         Track selectedTrack =
                 playlistTrackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Track to be deleted not selected");
-            alert.setHeaderText(null);
-            alert.setContentText(
-                    "Please, select a track on the table before clicking on delete button");
-            alert.showAndWait();
+            DialogUtils.showWarning("Track to be deleted not selected", "Please, select a track on the table before clicking on delete button");
             return;
         }
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirm elimination");
-        alert.setHeaderText("Elimination track");
-        alert.setContentText("Are you sure you want to remove '"
-                + selectedTrack.getTitle() + "' from the playlist?");
-        alert.showAndWait().ifPresent(result -> {
-            if (result == ButtonType.OK && adapter != null)
-                adapter.trackRemoved(selectedTrack);
-        });
+
+        String msg = "Are you sure you want to remove '" + selectedTrack.getTitle() + "' from the playlist?";
+        boolean confirmed = DialogUtils.showConfirmation("Confirm elimination", "Elimination track", msg);
+
+        if (confirmed) {
+            Command<Void> removeCommand = new RemoveTrackCommand(currentPlaylist, selectedTrack);
+            CommandInvoker.execute(removeCommand).ifPresent(v -> {
+                if (adapter != null) adapter.getItems().remove(selectedTrack);
+            });
+        }
     }
 
     @FXML
     private void onDeletePlaylistClick() {
         String name = playlistNameLabel.getText();
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Elimina playlist");
-        alert.setHeaderText("Eliminare \"" + name + "\"?");
-        alert.setContentText(
-                "L'operazione è irreversibile. Le tracce nella libreria non saranno toccate.");
-        alert.showAndWait().ifPresent(result -> {
-            if (result == ButtonType.OK) {
-                if (facade != null) facade.getPlaylistService().deletePlaylist(name);
+
+        boolean confirmed = DialogUtils.showConfirmation(
+            "Elimina playlist",
+            "Eliminare \"" + name + "\"?",
+            "L'operazione è irreversibile. Le tracce nella libreria non saranno toccate."
+        );
+
+        if (confirmed) {
+            Command<Void> deleteCommand = new DeletePlaylistCommand(
+                facade.getPlaylistService(),
+                name
+            );
+
+            CommandInvoker.execute(deleteCommand).ifPresent(v -> {
                 if (onDeleteAction != null) onDeleteAction.run();
-            }
-        });
+            });
+        }
     }
 
     @FXML
     private void onPlayTrackClick() {
-        Track selectedTrack =
-                playlistTrackTable.getSelectionModel().getSelectedItem();
-        MusicPlayerFacade.getInstance().playTrack(selectedTrack);
+        Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
+        if (selectedTrack != null) {
+            CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));
+        }
     }
 }
