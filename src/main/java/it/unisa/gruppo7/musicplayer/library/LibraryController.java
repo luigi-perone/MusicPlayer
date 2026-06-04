@@ -147,7 +147,7 @@ public class LibraryController implements PlaybackObserver {
             javafx.scene.Parent root = fxmlLoader.load();
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setTitle("Add new track");
+            stage.setTitle("Aggiungi nuova traccia");
             stage.setScene(new javafx.scene.Scene(root));
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
@@ -156,7 +156,7 @@ public class LibraryController implements PlaybackObserver {
 
         } catch (Exception e) {
             e.printStackTrace();
-            mostraAvviso("Error", "Unable to load the form.");
+            mostraAvviso("Errore", "Impossibile caricare il modulo.");
         }
     }
 
@@ -164,7 +164,7 @@ public class LibraryController implements PlaybackObserver {
     private void onEditTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            mostraAvviso("No selection", "Select a table track to edit it.");
+            mostraAvviso("Nessuna selezione", "Seleziona una traccia dalla tabella per modificarla.");
             return;
         }
         try {
@@ -177,7 +177,7 @@ public class LibraryController implements PlaybackObserver {
             controller.setTrack(selectedTrack);
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setTitle("Edit track");
+            stage.setTitle("Modifica traccia");
             stage.setScene(new javafx.scene.Scene(root));
             stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
             stage.showAndWait();
@@ -186,7 +186,7 @@ public class LibraryController implements PlaybackObserver {
 
         } catch (Exception e) {
             e.printStackTrace();
-            mostraAvviso("Error", "Unable to load the form.");
+            mostraAvviso("Errore", "Impossibile caricare il modulo.");
         }
     }
 
@@ -194,14 +194,14 @@ public class LibraryController implements PlaybackObserver {
     private void onDeleteTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            mostraAvviso("No selection", "Select a table track to delete it.");
+            mostraAvviso("Nessuna selezione", "Seleziona una traccia dalla tabella per eliminarla.");
             return;
         }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirm elimination");
-        alert.setHeaderText("Elimination track");
+        alert.setTitle("Conferma eliminazione");
+        alert.setHeaderText("Eliminazione traccia");
         alert.setContentText(
-                "Are you sure you want to eliminate permanently '"
+                "Sei sicuro di voler eliminare definitivamente '"
                         + selectedTrack.getTitle() + "'?");
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {

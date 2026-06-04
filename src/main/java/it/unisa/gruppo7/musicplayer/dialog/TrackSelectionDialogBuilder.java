@@ -20,8 +20,8 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
 
     @Override
     public void buildHeader() {
-        dialog.setTitle("Add tracks");
-        dialog.setHeaderText("Select tracks");
+        dialog.setTitle("Aggiungi tracce");
+        dialog.setHeaderText("Seleziona tracce");
     }
 
     @Override

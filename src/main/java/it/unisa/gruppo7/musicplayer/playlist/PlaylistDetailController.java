@@ -256,12 +256,12 @@ public class PlaylistDetailController implements PlaybackObserver {
         Track selectedTrack =
                 playlistTrackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
-            DialogUtils.showWarning("Track to be deleted not selected", "Please, select a track on the table before clicking on delete button");
+            DialogUtils.showWarning("Traccia da eliminare non selezionata", "Per favore, seleziona una traccia dalla tabella prima di cliccare sul pulsante elimina");
             return;
         }
 
-        String msg = "Are you sure you want to remove '" + selectedTrack.getTitle() + "' from the playlist?";
-        boolean confirmed = DialogUtils.showConfirmation("Confirm elimination", "Elimination track", msg);
+        String msg = "Sei sicuro di voler rimuovere '" + selectedTrack.getTitle() + "' dalla playlist?";
+        boolean confirmed = DialogUtils.showConfirmation("Conferma eliminazione", "Eliminazione traccia", msg);
 
         if (confirmed) {
             Command<Void> removeCommand = new RemoveTrackCommand(currentPlaylist, selectedTrack);

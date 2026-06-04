@@ -52,7 +52,6 @@ public class TrackFormController {
     @FXML
     private void onSave() {
         errorLabel.setVisible(false);
-        errorLabel.setManaged(false);
         Stage stage = (Stage) titleField.getScene().getWindow();
 
         MusicPlayerFacade musicplayer = MusicPlayerFacade.getInstance();
@@ -66,44 +65,44 @@ public class TrackFormController {
 
             int duration = 0;
             if (!durationStr.isEmpty()) {
-                duration = Integer.parseInt(durationStr);
+                try {
+                    duration = Integer.parseInt(durationStr);
+                } catch (NumberFormatException e) {
+                    mostraErrore("La durata deve essere un numero intero (secondi).");
+                    return;
+                }
             }
 
             Year pubYear = null;
             if (yearStr != null && !yearStr.isEmpty()) {
-                pubYear = Year.parse(yearStr);
+                try {
+                    pubYear = Year.parse(yearStr);
+                } catch (Exception e) {
+                    mostraErrore("L'anno di pubblicazione non è valido.");
+                    return;
+                }
             }
-            
+
             boolean success;
 
             if(trackToModify != null){
-                
                 success = musicplayer.modifyTrack(trackToModify, title, author, duration, genre, pubYear);
-
-            }else{
-                
+            } else {
                 success = musicplayer.addNewTrackToLibrary(title, author, duration, genre, pubYear);
-
             }
 
-            
             if(success){
-
                 stage.close();
-
-            }else{
-
-                mostraErrore("Failed to add new track");
+            } else {
+                mostraErrore("Impossibile salvare la traccia.");
             }
-   
-        
+
         } catch (IllegalArgumentException e) {
             mostraErrore(e.getMessage());
         } catch (Exception e) {
-            mostraErrore("Unexpected error occured." );
+            mostraErrore("Si è verificato un errore inatteso.");
             e.printStackTrace();
         }
-        
     }
 
     private void mostraErrore(String messaggio) {

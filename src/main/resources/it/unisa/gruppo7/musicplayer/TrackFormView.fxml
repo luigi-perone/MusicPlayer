@@ -8,7 +8,7 @@
 
 <VBox prefWidth="400.0" spacing="15.0" style="-fx-padding: 25; -fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.track.TrackFormController">
    <children>
-      <Label fx:id="formTitle" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Track Editor" />
+      <Label fx:id="formTitle" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Traccia" />
 
       <VBox spacing="5.0">
          <Label text="Titolo *" textFill="#6e6e73" />
@@ -36,7 +36,11 @@
          <TextField fx:id="genreField" promptText="Es. Rock" styleClass="playlist-input" />
       </VBox>
 
-      <Label fx:id="errorLabel" managed="false" styleClass="field-error" text="Errore: Dati non validi." visible="false" />
+      <VBox minHeight="20.0" alignment="CENTER_LEFT">
+         <children>
+            <Label fx:id="errorLabel" managed="true" styleClass="field-error" text="Errore: Dati non validi." visible="false" />
+         </children>
+      </VBox>
 
       <HBox alignment="CENTER_RIGHT" spacing="10.0" style="-fx-padding: 10 0 0 0;">
          <Button mnemonicParsing="false" onAction="#onCancel" styleClass="icon-btn" text="Annulla" />
