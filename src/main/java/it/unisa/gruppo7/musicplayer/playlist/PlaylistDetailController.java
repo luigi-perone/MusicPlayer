@@ -16,13 +16,9 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 
 import java.util.Collection;
 import java.util.List;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 public class PlaylistDetailController implements PlaybackObserver {
 
@@ -44,78 +40,12 @@ public class PlaylistDetailController implements PlaybackObserver {
     private PlaylistTableAdapter adapter;
     private MusicPlayerFacade    facade;
     private Playlist             currentPlaylist;
+    private PlaylistTableConfigurator configurator;
+    private RenameHandler        renameHandler;
     private Track playingTrack = null;
 
     @FXML
-    public void initialize() {
-
-        indexColumn.setCellFactory(col -> new TableCell<Track, Void>() {
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setText((empty || getTableRow() == null) ? null
-                        : String.valueOf(getIndex() + 1));
-            }
-        });
-
-        titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-        authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
-        durationColumn.setCellValueFactory(cellData -> {
-            Track track = cellData.getValue();
-            String formatted = (this.facade != null) ? this.facade.formatDuration(track.getDuration()) : "";
-            return new SimpleStringProperty(formatted);
-        });
-
-        playlistTrackTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        playlistNameLabel.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                enterRenameMode();
-            }
-        });
-        playlistNameField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER)  applyRename();
-            if (e.getCode() == KeyCode.ESCAPE) exitRenameMode();
-        });
-        playlistNameField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused) exitRenameMode();
-        });
-
-        playlistTrackTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldSelection, newSelection) -> {
-                    if (newSelection != null) {
-                        this.facade.setSelectedTrack(newSelection);
-                    }
-                }
-        );
-
-
-
-        playlistTrackTable.setRowFactory(tv -> {
-            TableRow<Track> row = new TableRow<Track>() {
-                @Override
-                protected void updateItem(Track item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setStyle("");
-                    } else if (item.equals(playingTrack)) {
-                        setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
-                    } else {
-                        setStyle("");
-                    }
-                }
-            };
-            row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && (!row.isEmpty())) {
-                    Track selectedTrack = row.getItem();
-                    CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));
-                }
-            });
-            return row;
-        });
-
-        MusicPlayerFacade.getInstance().getPlaybackService().addObserver(this);
-    }
+    public void initialize() {}
 
     @Override
     public void onTrackChanged(Track newTrack) {
@@ -159,40 +89,36 @@ public class PlaylistDetailController implements PlaybackObserver {
 
     public void setMusicPlayer(MusicPlayerFacade facade) {
         this.facade = facade;
+        facade.getPlaybackService().addObserver(this);
+        configurator = new PlaylistTableConfigurator(
+            playlistTrackTable, titleColumn, authorColumn,
+            durationColumn, indexColumn, facade
+        );
+        configurator.configure(
+            playingTrack,
+            (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, track))
+        );
+
+        renameHandler = new RenameHandler(
+            playlistNameLabel, playlistNameField,
+            () -> {
+                if (currentPlaylist == null) return;
+                String newName = playlistNameField.getText().trim();
+                CommandInvoker.execute(new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName));
+                playlistNameLabel.setText(newName);
+                if (onRenameAction != null) onRenameAction.run();
+            }
+        );
+
+        playlistTrackTable.getSelectionModel().selectedItemProperty()
+            .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
+
         refreshLabels();
+        playlistTrackTable.refresh();
     }
 
     public void setOnBackAction(Runnable onBackAction) {
         this.onBackAction = onBackAction;
-    }
-
-    private void enterRenameMode() {
-        playlistNameField.setText(playlistNameLabel.getText());
-        playlistNameField.selectAll();
-        playlistNameLabel.setVisible(false);
-        playlistNameLabel.setManaged(false);
-        playlistNameField.setVisible(true);
-        playlistNameField.setManaged(true);
-        playlistNameField.requestFocus();
-    }
-
-    private void applyRename() {
-        if (currentPlaylist == null || facade == null) return;
-        String newName = playlistNameField.getText().trim();
-
-        Command<Void> renameCommand = new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName);
-        CommandInvoker.execute(renameCommand);
-
-        playlistNameLabel.setText(newName);
-        exitRenameMode();
-        if (onRenameAction!=null)onRenameAction.run();
-    }
-
-    private void exitRenameMode() {
-        playlistNameField.setVisible(false);
-        playlistNameField.setManaged(false);
-        playlistNameLabel.setVisible(true);
-        playlistNameLabel.setManaged(true);
     }
 
     private void refreshLabels() {
@@ -252,8 +178,7 @@ public class PlaylistDetailController implements PlaybackObserver {
 
     @FXML
     private void onRemoveTrackClick() {
-        Track selectedTrack =
-                playlistTrackTable.getSelectionModel().getSelectedItem();
+        Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack == null) {
             DialogUtils.showWarning("Traccia da eliminare non selezionata", "Per favore, seleziona una traccia dalla tabella prima di cliccare sul pulsante elimina");
             return;

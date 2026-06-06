@@ -1,5 +1,4 @@
 package it.unisa.gruppo7.musicplayer.playlist;
-import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
