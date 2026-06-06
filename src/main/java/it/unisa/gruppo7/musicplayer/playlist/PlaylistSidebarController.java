@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

@@ -1,9 +1,9 @@
 package it.unisa.gruppo7.musicplayer.library;
 
+import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
-import it.unisa.gruppo7.musicplayer.playlist.AddToPlaylistDialog;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackFormController;
 import javafx.application.Platform;
@@ -135,7 +135,7 @@ public class LibraryController implements PlaybackObserver {
         List<Track> selected =
                 new ArrayList<>(trackTable.getSelectionModel().getSelectedItems());
         if (selected.isEmpty()) return;
-        new AddToPlaylistDialog(musicPlayer.getPlaylistService(), selected).show();
+        new TrackSelectionDialogBuilder.AddToPlaylistDialog(musicPlayer.getPlaylistService(), selected).show();
     }
 
     @FXML

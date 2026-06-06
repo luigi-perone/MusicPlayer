@@ -1,7 +1,7 @@
 package it.unisa.gruppo7.musicplayer.integration;
 
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
-import it.unisa.gruppo7.musicplayer.playlist.AdditionResult;
+import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;

@@ -1,6 +1,5 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
-import com.fasterxml.jackson.databind.deser.std.StackTraceElementDeserializer;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
@@ -10,6 +9,8 @@ import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playlist.command.*;
+import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;

@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import java.io.File;
@@ -13,8 +14,6 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 /**
  * Manages the collection of playlists in the music player,
  * handling creation with name validation and access to the playlists.
- *
- * @author Maxim Makhovskyy
  */
 public class PlaylistService implements PersistenceService, TrackObserver {
     private static final String DEFAULT_PATH = "data/playlist.json";
@@ -22,10 +21,17 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;
 
+    /**
+     * Default constructor that initializes the service with the default file path.
+     */
     public PlaylistService() {
         this(DEFAULT_PATH);
     }
 
+    /**
+     * Constructor that initializes the service with a custom file path.
+     * * @param path the file path where playlists will be saved and loaded from
+     */
     public PlaylistService(String path) {
         this.path = path;
         this.mapper = new ObjectMapper();
@@ -62,7 +68,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      *
      * @param playlist the playlist to delete
      * @return an empty Optional if the deletion is successful, or an Optional
-     *         containing an error message if the playlist is null or not found.
+     * containing an error message if the playlist is null or not found.
      */
     public Optional<String> deletePlaylist(Playlist playlist) {
         if (playlist == null)
@@ -83,7 +89,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      * @param playlist the playlist to rename
      * @param newName  the new name for the playlist
      * @return an empty Optional if the rename is successful, or an Optional
-     *         containing an error message otherwise.
+     * containing an error message otherwise.
      */
     public Optional<String> renamePlaylist(Playlist playlist, String newName) {
         if (playlist == null || !playlists.contains(playlist))
@@ -112,7 +118,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      * @param tracks   the tracks to add
      * @return an {@link AdditionResult} describing what was added and what was skipped
      * @throws IllegalArgumentException if the playlist is null, not managed by this
-     *                                  service, or the track list is null/empty
+     * service, or the track list is null/empty
      */
     public AdditionResult addTracksToPlaylist(Playlist playlist, List<Track> tracks) {
         if (playlist == null || !playlists.contains(playlist))
@@ -139,10 +145,19 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         return new AdditionResult(added, skippedTitles);
     }
 
+    /**
+     * Retrieves the list of all playlists managed by this service.
+     * * @return a list of {@link Playlist} objects
+     */
     public List<Playlist> getPlaylists() {
         return playlists;
     }
 
+    /**
+     * Retrieves a playlist by its exact name.
+     * * @param name the name of the playlist to find
+     * @return the {@link Playlist} if found, or null if it does not exist
+     */
     public Playlist getPlaylist(String name) {
         return playlists.stream()
                 .filter(p -> p.getName().equals(name))
@@ -150,6 +165,10 @@ public class PlaylistService implements PersistenceService, TrackObserver {
                 .orElse(null);
     }
 
+    /**
+     * Retrieves the names of all managed playlists.
+     * * @return a list of strings representing the playlist names
+     */
     public List<String> getPlaylistNames() {
         return playlists.stream()
                 .map(Playlist::getName)
@@ -170,11 +189,19 @@ public class PlaylistService implements PersistenceService, TrackObserver {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Checks if a playlist with the given name already exists.
+     * * @param name the name to verify
+     * @return true if the playlist name exists, false otherwise
+     */
     private boolean existsByName(String name) {
         return playlists.stream()
                 .anyMatch(p -> p.getName().trim().equals(name.trim()));
     }
 
+    /**
+     * Saves the current list of playlists to the designated JSON file.
+     */
     @Override
     public void save() {
         try {
@@ -185,6 +212,10 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
     }
 
+    /**
+     * Loads the list of playlists from the designated JSON file
+     * and maps the track IDs to the corresponding {@link Track} objects from the {@link Library}.
+     */
     @Override
     public void load() {
         File file = new File(path);
@@ -215,6 +246,11 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
     }
 
+    /**
+     * Returns a string representation of the PlaylistService,
+     * including its save path and the list of managed playlists.
+     * * @return a formatted string describing the service
+     */
     @Override
     public String toString() {
         if (playlists.isEmpty()) {
@@ -228,7 +264,11 @@ public class PlaylistService implements PersistenceService, TrackObserver {
                         .collect(Collectors.joining(System.lineSeparator()));
     }
 
-    // -- Observer --
+    /**
+     * Observer method triggered when a track is deleted from the library.
+     * Removes the deleted track from all playlists and saves the changes.
+     * * @param track the track that was deleted
+     */
     @Override
     public void onTrackDeleted(Track track) {
         for (Playlist playlist : this.getPlaylists()) {
