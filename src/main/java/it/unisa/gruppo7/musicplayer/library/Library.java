@@ -92,7 +92,6 @@ public class Library extends TrackCollection implements PersistenceService{
         } catch (IllegalArgumentException e) {
             this.signatures.add(generateSignature(t));
 
-            System.err.println("Validation Error: " + e.getMessage());
             throw new IllegalArgumentException(e.getMessage());            
         }
     }

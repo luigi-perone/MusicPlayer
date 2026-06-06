@@ -5,22 +5,21 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import java.util.List;
 
 public class AddTracksCommand implements Command<AdditionResult> {
-    
-    private final PlaylistService service;
-    private final String playlistName;
-    private final List<Track> tracksToAdd;
 
-    public AddTracksCommand(PlaylistService service, String playlistName, List<Track> tracksToAdd) {
-        this.service = service;
-        this.playlistName = playlistName;
-        this.tracksToAdd = tracksToAdd;
+    private final PlaylistService playlistService;
+    private final Playlist        playlist;
+    private final List<Track>     tracks;
+
+    public AddTracksCommand(PlaylistService playlistService,
+                            Playlist playlist,
+                            List<Track> tracks) {
+        this.playlistService = playlistService;
+        this.playlist        = playlist;
+        this.tracks          = tracks;
     }
 
     @Override
-    public AdditionResult execute() throws Exception {
-        if (tracksToAdd == null || tracksToAdd.isEmpty()) {
-            throw new Exception("No selected track");
-        }
-        return service.addTracksToPlaylist(playlistName, tracksToAdd);
+    public AdditionResult execute() {
+        return playlistService.addTracksToPlaylist(playlist, tracks);
     }
 }

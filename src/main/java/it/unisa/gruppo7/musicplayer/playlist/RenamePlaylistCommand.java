@@ -1,27 +1,27 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.Optional;
-
 import it.unisa.gruppo7.musicplayer.command.Command;
 
-public class RenamePlaylistCommand implements Command<Void>{
-    private final PlaylistService service;
-    private final String oldName;
-    private final String newName;
+public class RenamePlaylistCommand implements Command<Void> {
 
-    public RenamePlaylistCommand(PlaylistService service, String oldName, String newName) {
-        this.service = service;
-        this.oldName = oldName;
-        this.newName = newName;
+    private final PlaylistService service;
+    private final Playlist        playlist;
+    private final String          newName;
+
+    public RenamePlaylistCommand(PlaylistService service, Playlist playlist, String newName) {
+        this.service  = service;
+        this.playlist = playlist;
+        this.newName  = newName;
     }
 
     @Override
     public Void execute() throws Exception {
-        if (oldName.equals(newName)) {
+        if (playlist.getName().equals(newName)) {
             return null;
         }
 
-        Optional<String> error = service.renamePlaylist(oldName, newName);
+        Optional<String> error = service.renamePlaylist(playlist, newName);
         if (error.isPresent()) {
             throw new Exception("Errore di rinomina: " + error.get());
         }

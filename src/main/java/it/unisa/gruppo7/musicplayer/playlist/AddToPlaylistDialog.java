@@ -19,15 +19,15 @@ public class AddToPlaylistDialog {
     }
 
     public void show() {
-        List<String> playlistNames = playlistService.getPlaylistNames();
+        List<Playlist> playlists = playlistService.getPlaylists();
 
-        if (playlistNames.isEmpty()) {
+        if (playlists.isEmpty()) {
             showInfo("Nessuna playlist disponibile",
                     "Non ci sono ancora playlist. Creane prima una dalla barra laterale.");
             return;
         }
 
-        Dialog<String> dialog = new Dialog<>();
+        Dialog<Playlist> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi alla playlist");
         dialog.setHeaderText(buildHeader());
 
@@ -37,18 +37,24 @@ public class AddToPlaylistDialog {
                 .getButtonTypes()
                 .addAll(confirmType, ButtonType.CANCEL);
 
-        ListView<String> playlistView = new ListView<>();
-        playlistView.getItems().addAll(playlistNames);
+        ListView<Playlist> playlistView = new ListView<>();
+        playlistView.getItems().addAll(playlists);
         playlistView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         playlistView.setPrefSize(340, 220);
+        playlistView.setCellFactory(lv -> new ListCell<Playlist>() {
+            @Override
+            protected void updateItem(Playlist item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getName());
+            }
+        });
 
         Label hint = new Label("Seleziona una playlist");
         hint.setStyle("-fx-font-size: 12px; -fx-text-fill: #6e6e73;");
         playlistView.getSelectionModel().getSelectedItems()
-                .addListener((ListChangeListener<String>) c -> {
-                    String chosen =
-                            playlistView.getSelectionModel().getSelectedItem();
-                    hint.setText(chosen == null ? "Seleziona una playlist" : "→  " + chosen);
+                .addListener((ListChangeListener<Playlist>) c -> {
+                    Playlist chosen = playlistView.getSelectionModel().getSelectedItem();
+                    hint.setText(chosen == null ? "Seleziona una playlist" : "→  " + chosen.getName());
                 });
 
         Button addButton =
@@ -57,24 +63,23 @@ public class AddToPlaylistDialog {
         playlistView.getSelectionModel().selectedItemProperty()
                 .addListener((obs, old, now) -> addButton.setDisable(now == null));
 
-        final String[] snapshot = {null};
+        final Playlist[] snapshot = {null};
         addButton.addEventFilter(
                 javafx.scene.input.MouseEvent.MOUSE_PRESSED,
                 e -> snapshot[0] = playlistView.getSelectionModel().getSelectedItem());
 
-        dialog.getDialogPane().setContent(
-                buildContent(playlistView, hint));
+        dialog.getDialogPane().setContent(buildContent(playlistView, hint));
 
         dialog.setResultConverter(btn ->
                 btn == confirmType ? snapshot[0] : null);
 
-        dialog.showAndWait().ifPresent(playlistName -> {
-            if (playlistName == null) return;
+        dialog.showAndWait().ifPresent(playlist -> {
+            if (playlist == null) return;
 
             try {
                 AdditionResult result =
-                        playlistService.addTracksToPlaylist(playlistName, selectedTracks);
-                showResultFeedback(result, playlistName);
+                        playlistService.addTracksToPlaylist(playlist, selectedTracks);
+                showResultFeedback(result, playlist.getName());
             } catch (IllegalArgumentException e) {
                 showError("Operazione fallita", e.getMessage());
             }
@@ -109,8 +114,7 @@ public class AddToPlaylistDialog {
                   + selectedTracks.size() + " tracce";
     }
 
-    private javafx.scene.layout.VBox buildContent(ListView<String> listView,
-                                                  Label hint) {
+    private javafx.scene.layout.VBox buildContent(ListView<Playlist> listView, Label hint) {
         javafx.scene.layout.VBox box =
                 new javafx.scene.layout.VBox(8, listView, hint);
         box.setPadding(new Insets(8, 0, 0, 0));
@@ -119,25 +123,16 @@ public class AddToPlaylistDialog {
 
     private void showInfo(String title, String message) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(message);
-        a.showAndWait();
+        a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
     }
 
     private void showWarning(String title, String message) {
         Alert a = new Alert(Alert.AlertType.WARNING);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(message);
-        a.showAndWait();
+        a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
     }
 
     private void showError(String title, String message) {
         Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(message);
-        a.showAndWait();
+        a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
     }
 }

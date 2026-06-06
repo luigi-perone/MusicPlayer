@@ -56,11 +56,9 @@ public class MainController {
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
                 controller.setOnRenameAction(() -> playlistSidebarController.refreshList());
                 controller.setOnDeleteAction(() -> {
-                    System.out.println("DEBUG: onDeleteAction triggerato dal controller di dettaglio!");
                     Platform.runLater(() -> {
                         playlistSidebarController.refreshList();
                         showLibrary();
-                        System.out.println("DEBUG: Interfaccia aggiornata.");
                     });
                 });
             }

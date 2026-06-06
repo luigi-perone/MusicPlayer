@@ -1,24 +1,22 @@
 package it.unisa.gruppo7.musicplayer.playlist;
-import it.unisa.gruppo7.musicplayer.core.PersistenceService;
+
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.track.Track;
-import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Year;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
-import java.time.Year;
 
 class PlaylistServiceTest {
-    
+
     @TempDir
     Path tempDir;
     private PlaylistService service;
@@ -31,13 +29,6 @@ class PlaylistServiceTest {
 
     @Nested
     class WithValidName {
-
-        /**
-        @Test
-        void returnsEmptyOptional() {
-            Optional<String> error = service.createPlaylist("My Playlist");
-            assertTrue(error.isEmpty());
-        }*/
 
         @Test
         void playlistIsAddedToCollection() {
@@ -57,31 +48,25 @@ class PlaylistServiceTest {
 
         @Test
         void throwsExceptionForEmptyString() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.createPlaylist("");
-            });
+            assertThrows(IllegalArgumentException.class, () ->
+                    service.createPlaylist(""));
         }
 
         @Test
         void throwsExceptionForNullName() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.createPlaylist(null);
-            });
+            assertThrows(IllegalArgumentException.class, () ->
+                    service.createPlaylist(null));
         }
 
         @Test
         void throwsExceptionForWhitespaceName() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.createPlaylist("   ");
-            });
+            assertThrows(IllegalArgumentException.class, () ->
+                    service.createPlaylist("   "));
         }
 
         @Test
         void playlistIsNotAdded() {
-            try {
-                service.createPlaylist("");
-            } catch (IllegalArgumentException ignored) {
-            }
+            try { service.createPlaylist(""); } catch (IllegalArgumentException ignored) {}
             assertEquals(0, service.getPlaylists().size());
         }
     }
@@ -96,17 +81,13 @@ class PlaylistServiceTest {
 
         @Test
         void throwsExceptionForDuplicateName() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.createPlaylist("My Playlist");
-            });
+            assertThrows(IllegalArgumentException.class, () ->
+                    service.createPlaylist("My Playlist"));
         }
 
         @Test
         void duplicateIsNotAdded() {
-            try {
-                service.createPlaylist("My Playlist");
-            } catch (IllegalArgumentException ignored) {
-            }
+            try { service.createPlaylist("My Playlist"); } catch (IllegalArgumentException ignored) {}
             assertEquals(1, service.getPlaylists().size());
         }
     }
@@ -114,37 +95,40 @@ class PlaylistServiceTest {
     @Nested
     class DeletePlaylist {
 
+        private Playlist myPlaylist;
+        private Playlist anotherPlaylist;
+
         @BeforeEach
         void existingPlaylist() {
-            service.createPlaylist("My Playlist");
-            service.createPlaylist("Another Playlist");
+            myPlaylist      = service.createPlaylist("My Playlist");
+            anotherPlaylist = service.createPlaylist("Another Playlist");
         }
 
         @Nested
-        class WithValidName {
+        class WithValidPlaylist {
 
             @Test
             void returnsEmptyOptional() {
-                Optional<String> error = service.deletePlaylist("My Playlist");
+                Optional<String> error = service.deletePlaylist(myPlaylist);
                 assertFalse(error.isPresent());
             }
 
             @Test
             void playlistIsRemovedFromCollection() {
-                service.deletePlaylist("My Playlist");
+                service.deletePlaylist(myPlaylist);
                 assertEquals(1, service.getPlaylists().size());
             }
 
             @Test
             void correctPlaylistIsRemoved() {
-                service.deletePlaylist("My Playlist");
+                service.deletePlaylist(myPlaylist);
                 assertEquals("Another Playlist", service.getPlaylists().get(0).getName());
             }
 
             @Test
             void deletingLastPlaylistLeavesEmptyCollection() {
-                service.deletePlaylist("My Playlist");
-                service.deletePlaylist("Another Playlist");
+                service.deletePlaylist(myPlaylist);
+                service.deletePlaylist(anotherPlaylist);
                 assertEquals(0, service.getPlaylists().size());
             }
         }
@@ -154,81 +138,61 @@ class PlaylistServiceTest {
 
             @Test
             void deletingPlaylistDoesNotRemoveTracksSharedWithOtherPlaylists() {
-                service.createPlaylist("Playlist A");
-                service.createPlaylist("Playlist B");
-                Track track=new Track("Track1", "pippo", 180, "rock");
-                service.getPlaylist("Playlist A").addTrack(track);
-                service.getPlaylist("Playlist B").addTrack(track);
+                Playlist playlistA = service.createPlaylist("Playlist A");
+                Playlist playlistB = service.createPlaylist("Playlist B");
+                Track track = new Track("Track1", "pippo", 180, "rock");
+                playlistA.addTrack(track);
+                playlistB.addTrack(track);
 
-                service.deletePlaylist("Playlist A");
+                service.deletePlaylist(playlistA);
 
-
-                Collection<Track> libraryTracks = service.getPlaylist("Playlist B").getTracks();
-                assertTrue(libraryTracks.contains(track));
+                Collection<Track> tracksInB = playlistB.getTracks();
+                assertTrue(tracksInB.contains(track));
             }
 
             @Test
             void deletingPopulatedPlaylistKeepsTracksInLibrary() {
-                service.createPlaylist("Playlist");
+                Playlist playlist = service.createPlaylist("Playlist");
                 Track track = new Track("Track1", "pippo", 180, "rock");
-
-
                 Library.getInstance().addTrack(track);
-                service.getPlaylist("Playlist").addTrack(track);
+                playlist.addTrack(track);
 
-                service.deletePlaylist("Playlist");
-
+                service.deletePlaylist(playlist);
 
                 assertTrue(Library.getInstance().getTracks().contains(track));
             }
         }
 
         @Nested
-        class WithInvalidName {
+        class WithNullPlaylist {
 
             @Test
-            void returnsErrorForNullName() {
+            void returnsErrorForNullPlaylist() {
                 Optional<String> error = service.deletePlaylist(null);
                 assertTrue(error.isPresent());
             }
 
             @Test
-            void returnsErrorForEmptyName() {
-                Optional<String> error = service.deletePlaylist("");
-                assertTrue(error.isPresent());
-            }
-
-            @Test
-            void returnsErrorForWhitespaceName() {
-                Optional<String> error = service.deletePlaylist("   ");
-                assertTrue(error.isPresent());
-            }
-
-            @Test
-            void collectionIsUnchangedForNullName() {
+            void collectionIsUnchangedForNullPlaylist() {
                 service.deletePlaylist(null);
-                assertEquals(2, service.getPlaylists().size());
-            }
-
-            @Test
-            void collectionIsUnchangedForEmptyName() {
-                service.deletePlaylist("");
                 assertEquals(2, service.getPlaylists().size());
             }
         }
 
         @Nested
-        class WithNonExistentName {
+        class WithNonExistentPlaylist {
 
             @Test
             void returnsError() {
-                Optional<String> error = service.deletePlaylist("Ghost Playlist");
+                Playlist ghost = new Playlist("Ghost Playlist", null);
+                Optional<String> error = service.deletePlaylist(ghost);
                 assertTrue(error.isPresent());
             }
 
             @Test
             void collectionIsUnchanged() {
-                service.deletePlaylist("Ghost Playlist");
+                Playlist ghost = new Playlist("Ghost Playlist", null);
+                service.deletePlaylist(ghost);
                 assertEquals(2, service.getPlaylists().size());
             }
         }
@@ -253,7 +217,8 @@ class PlaylistServiceTest {
 
             @Test
             void deletedPlaylistIsNotRestoredAfterReload() {
-                persistenceService.deletePlaylist("To Delete");
+                Playlist toDelete = persistenceService.getPlaylist("To Delete");
+                persistenceService.deletePlaylist(toDelete);
 
                 PlaylistService reloaded = new PlaylistService(tempFile.toString());
                 reloaded.load();
@@ -264,7 +229,8 @@ class PlaylistServiceTest {
 
             @Test
             void survivingPlaylistIsStillPresentAfterReload() {
-                persistenceService.deletePlaylist("To Delete");
+                Playlist toDelete = persistenceService.getPlaylist("To Delete");
+                persistenceService.deletePlaylist(toDelete);
 
                 PlaylistService reloaded = new PlaylistService(tempFile.toString());
                 reloaded.load();
@@ -277,51 +243,56 @@ class PlaylistServiceTest {
     @Nested
     class RenamePlaylist {
 
+        private Playlist oldPlaylist;
+        private Playlist anotherPlaylist;
+
         @BeforeEach
         void existingPlaylists() {
-            service.createPlaylist("Old Name");
-            service.createPlaylist("Another Playlist");
+            oldPlaylist     = service.createPlaylist("Old Name");
+            anotherPlaylist = service.createPlaylist("Another Playlist");
         }
 
         @Test
         void successfulRename() {
-            Optional<String> error = service.renamePlaylist("Old Name", "New Name");
+            Optional<String> error = service.renamePlaylist(oldPlaylist, "New Name");
             assertFalse(error.isPresent());
+            assertEquals("New Name", oldPlaylist.getName());
             assertNull(service.getPlaylist("Old Name"));
             assertNotNull(service.getPlaylist("New Name"));
         }
 
         @Test
         void returnsErrorForNullNewName() {
-            Optional<String> error = service.renamePlaylist("Old Name", null);
+            Optional<String> error = service.renamePlaylist(oldPlaylist, null);
             assertTrue(error.isPresent());
-            assertNotNull(service.getPlaylist("Old Name"));
+            assertEquals("Old Name", oldPlaylist.getName());
         }
 
         @Test
         void returnsErrorForEmptyNewName() {
-            Optional<String> error = service.renamePlaylist("Old Name", "   ");
+            Optional<String> error = service.renamePlaylist(oldPlaylist, "   ");
             assertTrue(error.isPresent());
-            assertNotNull(service.getPlaylist("Old Name"));
+            assertEquals("Old Name", oldPlaylist.getName());
         }
 
         @Test
-        void returnsErrorIfOldPlaylistNotFound() {
-            Optional<String> error = service.renamePlaylist("Non Existent", "New Name");
+        void returnsErrorIfPlaylistNotManaged() {
+            Playlist external = new Playlist("Non Existent", null);
+            Optional<String> error = service.renamePlaylist(external, "New Name");
             assertTrue(error.isPresent());
         }
 
         @Test
         void returnsEmptyOptionalIfNamesAreIdentical() {
-            Optional<String> error = service.renamePlaylist("Old Name", "Old Name");
+            Optional<String> error = service.renamePlaylist(oldPlaylist, "Old Name");
             assertFalse(error.isPresent());
         }
 
         @Test
         void returnsErrorIfNewNameAlreadyExists() {
-            Optional<String> error = service.renamePlaylist("Old Name", "Another Playlist");
+            Optional<String> error = service.renamePlaylist(oldPlaylist, "Another Playlist");
             assertTrue(error.isPresent());
-            assertNotNull(service.getPlaylist("Old Name"));
+            assertEquals("Old Name", oldPlaylist.getName());
         }
 
         @Nested
@@ -343,7 +314,8 @@ class PlaylistServiceTest {
 
             @Test
             void renamedPlaylistIsRestoredAfterReload() {
-                persistenceService.renamePlaylist("Old Name", "New Name");
+                Playlist toRename = persistenceService.getPlaylist("Old Name");
+                persistenceService.renamePlaylist(toRename, "New Name");
 
                 PlaylistService reloaded = new PlaylistService(tempFile.toString());
                 reloaded.load();
@@ -357,7 +329,7 @@ class PlaylistServiceTest {
 
     @Nested
     class Persistence {
-        // Creates a temporary directory which will be deleted after the test is done.
+
         @TempDir
         Path tempDir;
 
@@ -377,25 +349,6 @@ class PlaylistServiceTest {
             assertTrue(Files.exists(tempFile));
         }
 
-        /**
-        @Test
-        void saveWritesPlaylistName() throws IOException {
-            persistenceService.createPlaylist("My Playlist");
-            persistenceService.save();
-            String content = Files.readString(tempFile);
-            assertTrue(content.contains("My Playlist"));
-        }
-
-        @Test
-        void saveWritesMultiplePlaylists() throws IOException {
-            persistenceService.createPlaylist("Playlist A");
-            persistenceService.createPlaylist("Playlist B");
-            persistenceService.save();
-            String content = Files.readString(tempFile);
-            assertTrue(content.contains("Playlist A"));
-            assertTrue(content.contains("Playlist B"));
-        }*/
-
         @Test
         void loadDoesNothingIfFileDoesNotExist() {
             Path nonExisting = tempDir.resolve("does-not-exist.json");
@@ -403,16 +356,6 @@ class PlaylistServiceTest {
             s.load();
             assertEquals(0, s.getPlaylists().size());
         }
-
-        /**
-        @Test
-        void saveActuallyWritesContent() throws IOException {
-            persistenceService.createPlaylist("Test");
-            persistenceService.save();
-            String content = Files.readString(tempFile);
-            System.out.println("FILE CONTENT: " + content);
-            assertTrue(content.contains("Test"));
-        }*/
 
         @Test
         void savePlaylistIsRestoredAfterReload() {
@@ -431,42 +374,42 @@ class PlaylistServiceTest {
     class RemoveTrackFromPlaylist {
 
         private Track sharedTrack;
+        private Playlist playlistA;
+        private Playlist playlistB;
 
         @BeforeEach
         void setUp() {
-            service.createPlaylist("Playlist A");
-            service.createPlaylist("Playlist B");
-            
+            playlistA = service.createPlaylist("Playlist A");
+            playlistB = service.createPlaylist("Playlist B");
+
             sharedTrack = new Track("Stayin' Alive", "Bee Gees", 285, "Disco");
-            
+
             try {
                 Library.getInstance().addTrack(sharedTrack);
-            } catch (IllegalArgumentException e) {
-            }
-            
-            service.getPlaylist("Playlist A").addTrack(sharedTrack);
-            service.getPlaylist("Playlist B").addTrack(sharedTrack);
+            } catch (IllegalArgumentException ignored) {}
+
+            playlistA.addTrack(sharedTrack);
+            playlistB.addTrack(sharedTrack);
         }
 
         @Test
         void removingTrackFromOnePlaylistKeepsItInLibrary() {
-            service.getPlaylist("Playlist A").removeTrack(sharedTrack);
+            playlistA.removeTrack(sharedTrack);
             service.save();
 
-            assertFalse(service.getPlaylist("Playlist A").getTracks().contains(sharedTrack), 
+            assertFalse(playlistA.getTracks().contains(sharedTrack),
                     "Track should've been removed from A");
-
-            assertTrue(Library.getInstance().getTracks().contains(sharedTrack), 
-                    "Tracks must be available in the library");
+            assertTrue(Library.getInstance().getTracks().contains(sharedTrack),
+                    "Track must still be available in the library");
         }
 
         @Test
         void removingTrackFromOnePlaylistKeepsItInOtherPlaylists() {
-            service.getPlaylist("Playlist A").removeTrack(sharedTrack);
+            playlistA.removeTrack(sharedTrack);
             service.save();
 
-            assertTrue(service.getPlaylist("Playlist B").getTracks().contains(sharedTrack), 
-                    "Track should be available in Playlist B");
+            assertTrue(playlistB.getTracks().contains(sharedTrack),
+                    "Track should still be available in Playlist B");
         }
     }
 }

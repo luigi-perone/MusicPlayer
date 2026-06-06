@@ -177,10 +177,9 @@ public class PlaylistDetailController implements PlaybackObserver {
 
     private void applyRename() {
         if (currentPlaylist == null || facade == null) return;
-        String oldName = currentPlaylist.getName();
         String newName = playlistNameField.getText().trim();
 
-        Command<Void> renameCommand = new RenamePlaylistCommand(facade.getPlaylistService(), oldName, newName);
+        Command<Void> renameCommand = new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName);
         CommandInvoker.execute(renameCommand);
 
         playlistNameLabel.setText(newName);
@@ -238,7 +237,7 @@ public class PlaylistDetailController implements PlaybackObserver {
 
             Command<AdditionResult> addCommand = new AddTracksCommand(
                     facade.getPlaylistService(),
-                    currentPlaylist.getName(),
+                    currentPlaylist,
                     selectedTracks
             );
 
@@ -247,7 +246,6 @@ public class PlaylistDetailController implements PlaybackObserver {
                     adapter.getItems().addAll(selectedTracks);
                 }
             });
-
         });
     }
 
@@ -287,7 +285,7 @@ public class PlaylistDetailController implements PlaybackObserver {
         if (confirmed) {
             Command<Void> deleteCommand = new DeletePlaylistCommand(
                     facade.getPlaylistService(),
-                    name
+                    currentPlaylist
             );
 
             CommandInvoker.execute(deleteCommand);

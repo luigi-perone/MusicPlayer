@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,12 +33,11 @@ public class TrackModificationIntegrationTest {
 
     @Test
     public void testValidModificationPropagatesToPlaylist() {
-        playlistService.createPlaylist("Test Playlist");
-        playlistService.addTracksToPlaylist("Test Playlist", java.util.Collections.singletonList(track));
+        Playlist playlist = playlistService.createPlaylist("Test Playlist");
+        playlistService.addTracksToPlaylist(playlist, Collections.singletonList(track));
 
         library.modifyTrackInLibrary(track, "New Title", "New Author", 250, "Rock", Year.of(2022));
 
-        Playlist playlist = playlistService.getPlaylist("Test Playlist");
         Track trackInPlaylist = playlist.getPlaylist().get(0);
 
         assertEquals("New Title", trackInPlaylist.getTitle());

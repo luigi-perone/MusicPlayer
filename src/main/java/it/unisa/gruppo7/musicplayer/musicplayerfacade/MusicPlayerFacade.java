@@ -88,7 +88,6 @@ public class MusicPlayerFacade {
             return success;
 
         } catch (IllegalArgumentException e) {
-            System.err.println("Validation Error: " + e.getMessage());
             throw new IllegalArgumentException(e.getMessage());            
         }
     }
@@ -124,19 +123,16 @@ public class MusicPlayerFacade {
         return library.toString();
     }
 
-
-    // --- PLAYLIST METHODS ---
-
     public Playlist createPlaylist(String name) {
         return playlistService.createPlaylist(name);
     }
 
-    public Optional<String> deletePlaylist(String name) {
-        return playlistService.deletePlaylist(name);
+    public Optional<String> deletePlaylist(Playlist playlist) {
+        return playlistService.deletePlaylist(playlist);
     }
 
-    public Optional<String> renamePlaylist(String oldName, String newName) {
-        return playlistService.renamePlaylist(oldName, newName);
+    public Optional<String> renamePlaylist(Playlist playlist, String newName) {
+        return playlistService.renamePlaylist(playlist, newName);
     }
 
     public List<Playlist> getPlaylists() {
@@ -161,7 +157,6 @@ public class MusicPlayerFacade {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    // --- Playback Methods ---
 
     public void playTrack(Track track) {
         playbackService.play(track);
@@ -188,7 +183,6 @@ public class MusicPlayerFacade {
         }
     }
 
-    // --- Observer Subject Methods ---
 
     public void addObserver(TrackObserver observer) {
         if (!observers.contains(observer)) {

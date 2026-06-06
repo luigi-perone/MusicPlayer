@@ -29,8 +29,9 @@ public class TrackRemovalFromPlaylistIntegrationTest {
     private MusicPlayerFacade facade;
     private PlaylistService   playlistService;
     private Track             track;
+    private Playlist          testPlaylist;
 
-    private static final String PLAYLIST_NAME = "Test Playlist US010";
+    private static final String PLAYLIST_NAME = "Test Playlist";
 
     @BeforeEach
     public void setUp() {
@@ -48,29 +49,27 @@ public class TrackRemovalFromPlaylistIntegrationTest {
                 .findFirst()
                 .orElseThrow(NoSuchElementException::new);
 
-        facade.createPlaylist(PLAYLIST_NAME);
+        testPlaylist = facade.createPlaylist(PLAYLIST_NAME);
 
         List<Track> both = new ArrayList<>(facade.getTracksFromLibrary());
-        AdditionResult result = playlistService.addTracksToPlaylist(PLAYLIST_NAME, both);
+        AdditionResult result = playlistService.addTracksToPlaylist(testPlaylist, both);
         assertEquals(2, result.getAdded(), "Setup: both tracks should have been added");
     }
 
     @Test
     public void testRemovalDecreasesCountAndPreservesLibraryTrack() {
-        Playlist playlist = facade.getPlaylist(PLAYLIST_NAME);
-
-        assertTrue(playlist.getPlaylist().contains(track),
+        assertTrue(testPlaylist.getPlaylist().contains(track),
                 "Pre-condition: track must be in the playlist before removal");
 
-        int countBefore = playlist.getTrackCount();
+        int countBefore = testPlaylist.getTrackCount();
 
-        playlist.removeTrack(track);
+        testPlaylist.removeTrack(track);
         playlistService.save();
 
-        assertEquals(countBefore - 1, playlist.getTrackCount(),
+        assertEquals(countBefore - 1, testPlaylist.getTrackCount(),
                 "Track count must decrease by 1 after removal");
 
-        assertFalse(playlist.getPlaylist().contains(track),
+        assertFalse(testPlaylist.getPlaylist().contains(track),
                 "Removed track must not appear in the playlist anymore");
 
         assertNotNull(facade.getTrackFromLibrary(track.getId()),
@@ -79,15 +78,13 @@ public class TrackRemovalFromPlaylistIntegrationTest {
 
     @Test
     public void testCancelRemovalProducesNoSideEffects() {
-        Playlist playlist = facade.getPlaylist(PLAYLIST_NAME);
-
-        int countBefore   = playlist.getTrackCount();
+        int countBefore   = testPlaylist.getTrackCount();
         int libSizeBefore = facade.getTracksFromLibrary().size();
 
-        assertEquals(countBefore, playlist.getTrackCount(),
+        assertEquals(countBefore, testPlaylist.getTrackCount(),
                 "Playlist count must not change when removal is cancelled");
 
-        assertTrue(playlist.getPlaylist().contains(track),
+        assertTrue(testPlaylist.getPlaylist().contains(track),
                 "Track must still be present in the playlist when removal is cancelled");
 
         assertEquals(libSizeBefore, facade.getTracksFromLibrary().size(),
@@ -99,17 +96,15 @@ public class TrackRemovalFromPlaylistIntegrationTest {
 
     @Test
     public void testSiblingTrackRemainsInPlaylistAfterRemoval() {
-        Playlist playlist = facade.getPlaylist(PLAYLIST_NAME);
-
         Track sibling = facade.getTracksFromLibrary().stream()
                 .filter(t -> t.getTitle().equals("Track To Keep"))
                 .findFirst()
                 .orElseThrow(NoSuchElementException::new);
 
-        playlist.removeTrack(track);
+        testPlaylist.removeTrack(track);
         playlistService.save();
 
-        assertTrue(playlist.getPlaylist().contains(sibling),
+        assertTrue(testPlaylist.getPlaylist().contains(sibling),
                 "Sibling track must remain in the playlist after another track is removed");
 
         assertNotNull(facade.getTrackFromLibrary(sibling.getId()),

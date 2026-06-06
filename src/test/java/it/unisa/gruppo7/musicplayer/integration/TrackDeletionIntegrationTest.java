@@ -32,10 +32,10 @@ public class TrackDeletionIntegrationTest {
                 .findFirst()
                 .orElseThrow(NoSuchElementException::new);
 
-        facade.createPlaylist("My Playlist");
+        Playlist playlist=facade.createPlaylist("My Playlist");
         List<Track> list = new ArrayList<>();
         list.add(track);
-        facade.getPlaylistService().addTracksToPlaylist("My Playlist", list);
+        facade.getPlaylistService().addTracksToPlaylist(playlist, list);
     }
 
     @Test
