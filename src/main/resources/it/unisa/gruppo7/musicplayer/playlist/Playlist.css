@@ -225,3 +225,82 @@
 .play-btn-graphic:hover {
     -fx-background-color: #f26a3c;
 }
+
+/* --- Stile Moderno TableView --- */
+
+/* Sfondo generale e altezza righe */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-table-cell-border-color: transparent; /* Nasconde la griglia di default */
+    -fx-fixed-cell-size: 44px; /* Aumenta l'altezza delle righe */
+}
+
+/* Intestazioni piatte */
+.table-view .column-header-background {
+    -fx-background-color: white;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #ececeb;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 38px;
+    -fx-border-width: 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #6e6e73;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* Stile delle righe e separatore orizzontale tenue */
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #f6f5f3;
+}
+
+/* Colore di selezione personalizzato (Arancione chiaro del tuo tema) */
+.table-row-cell:selected {
+    -fx-background-color: #fdeee7;
+    -fx-background-insets: 0;
+}
+
+/* Testo nelle celle */
+.table-cell {
+    -fx-text-fill: #1c1c1e;
+    -fx-font-size: 14px;
+    -fx-alignment: center-left;
+    -fx-padding: 0 10; /* Margine interno per staccare i testi dai bordi */
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #e0592b; /* Testo arancione scuro quando selezionato */
+}
+
+.secondary-col {
+    -fx-text-fill: #6e6e73;
+}
+.table-row-cell:selected .secondary-col {
+    -fx-text-fill: #e0592b; /* Mantiene la leggibilità in selezione */
+}
+
+/* Rimuove i bordi blu di focus da tutta la tabella */
+.table-view {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Stile della riga selezionata */
+.table-row-cell:selected {
+    -fx-background-color: #80B5FFFF;
+    -fx-table-cell-border-color: transparent; /* Rimuove linee interne */
+}
+
+/* Testo nella riga selezionata */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #1c1c1e; /* Testo scuro per garantire massima leggibilità */
+    -fx-font-weight: bold; /* Opzionale: fa risaltare la riga */
+}
