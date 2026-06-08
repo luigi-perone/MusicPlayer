@@ -11,30 +11,51 @@ import javafx.scene.layout.VBox;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Concrete builder implementation for a multiple track selection dialog.
+ * This class sets up a multi-selection ListView containing unassigned library tracks.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
+ */
 public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
-    
+
     private Dialog<List<Track>> dialog;
     private ListView<Track> listView;
     private ButtonType addButtonType;
     private List<Track> availableTracks;
 
+    /**
+     * Constructs a TrackSelectionDialogBuilder.
+     *
+     * @param availableTracks The collection of tracks eligible for display and selection.
+     */
     public TrackSelectionDialogBuilder(List<Track> availableTracks) {
         this.availableTracks = availableTracks;
         this.dialog = new Dialog<>();
     }
 
+    /**
+     * Assigns standard window frame titles to the dialogue header panel.
+     */
     @Override
     public void buildHeader() {
         dialog.setTitle("Aggiungi tracce");
         dialog.setHeaderText("Seleziona tracce");
     }
 
+    /**
+     * Generates and pins the operational approval selection button triggers.
+     */
     @Override
     public void buildButtons() {
         addButtonType = new ButtonType("Aggiungi", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
     }
 
+    /**
+     * Configures the inner ListView layout supporting multiple item selection ranges
+     * and formats cell display text to show "Title - Author".
+     */
     @Override
     public void buildContent() {
         listView = new ListView<>();
@@ -51,31 +72,53 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
         dialog.getDialogPane().setContent(new VBox(listView));
     }
 
+    /**
+     * Hooks up conversion algorithms turning active row indices into a list collection output
+     * when confirmed via the add button type.
+     */
     @Override
     public void buildResultConverter() {
-        dialog.setResultConverter(dialogButton -> 
-            dialogButton == addButtonType 
-                ? new ArrayList<>(listView.getSelectionModel().getSelectedItems()) 
-                : null
+        dialog.setResultConverter(dialogButton ->
+                dialogButton == addButtonType
+                        ? new ArrayList<>(listView.getSelectionModel().getSelectedItems())
+                        : null
         );
     }
 
+    /**
+     * Extracts the finished track selector dialogue framework node wrapper.
+     *
+     * @return The ready-to-use Dialog object container.
+     */
     @Override
     public Dialog<List<Track>> getResult() {
         return dialog;
     }
 
+    /**
+     * Nested controller module managing independent workflow components
+     * to add selected tracks into playlist containers.
+     */
     public static class AddToPlaylistDialog {
 
         private final PlaylistService playlistService;
         private final List<Track>     selectedTracks;
 
+        /**
+         * Constructs an AddToPlaylistDialog helper controller context instance.
+         *
+         * @param playlistService The playlist data manager backend engine layer service.
+         * @param selectedTracks  The list collection of tracks being reassigned.
+         */
         public AddToPlaylistDialog(PlaylistService playlistService,
                                    List<Track> selectedTracks) {
             this.playlistService = playlistService;
             this.selectedTracks  = selectedTracks;
         }
 
+        /**
+         * Launches execution operations to construct, validate, and render the selection interface alert dialogue.
+         */
         public void show() {
             List<Playlist> playlists = playlistService.getPlaylists();
 
@@ -132,7 +175,6 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
                     btn == confirmType ? snapshot[0] : null);
 
             dialog.showAndWait().ifPresent(playlist -> {
-                if (playlist == null) return;
 
                 try {
                     AdditionResult result =
@@ -144,6 +186,12 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
             });
         }
 
+        /**
+         * Parses insertion transaction results to provide matching alert feedback notifications.
+         *
+         * @param result       The structural transaction log report summary outcome tracker.
+         * @param playlistName The targeted destination profile name tag string label.
+         */
         private void showResultFeedback(AdditionResult result, String playlistName) {
             if (result.hasAdded() && !result.hasSkipped()) {
                 showInfo("Completato",
@@ -164,6 +212,11 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
             }
         }
 
+        /**
+         * Assembles context-dependent window display descriptions matching selection size scales.
+         *
+         * @return The formatted textual label description instruction sequence.
+         */
         private String buildHeader() {
             return selectedTracks.size() == 1
                     ? "Scegli la playlist di destinazione per \""
@@ -172,6 +225,13 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
                       + selectedTracks.size() + " tracce";
         }
 
+        /**
+         * Generates the structured graphic layout enclosing list objects.
+         *
+         * @param listView The configured interactive ListView entity node reference.
+         * @param hint     The feedback information layout tracker tag text element field node.
+         * @return A styled vertical VBox assembly grid container box.
+         */
         private VBox buildContent(ListView<Playlist> listView, Label hint) {
             VBox box =
                     new VBox(8, listView, hint);
@@ -179,19 +239,34 @@ public class TrackSelectionDialogBuilder implements DialogBuilder<List<Track>> {
             return box;
         }
 
+        /**
+         * Internal helper to trigger information modals.
+         *
+         * @param title   Title string text.
+         * @param message Description parameters body details content text string.
+         */
         private void showInfo(String title, String message) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
+            DialogUtils.showInfo(title, message);
         }
 
+        /**
+         * Internal helper to trigger notice warnings alerts.
+         *
+         * @param title   Title configuration strip string.
+         * @param message Text paragraph explaining context concerns details.
+         */
         private void showWarning(String title, String message) {
-            Alert a = new Alert(Alert.AlertType.WARNING);
-            a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
+            DialogUtils.showWarning(title, message);
         }
 
+        /**
+         * Internal auxiliary function to trigger blocking error status alerts.
+         *
+         * @param title   Frame header title parameter.
+         * @param message Core analysis parameter failure reason message.
+         */
         private void showError(String title, String message) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle(title); a.setHeaderText(null); a.setContentText(message); a.showAndWait();
+            DialogUtils.showError(title, message);
         }
     }
 }

@@ -14,6 +14,8 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
 /**
  * Manages the collection of playlists in the music player,
  * handling creation with name validation and access to the playlists.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class PlaylistService implements PersistenceService, TrackObserver {
     private static final String DEFAULT_PATH = "data/playlist.json";

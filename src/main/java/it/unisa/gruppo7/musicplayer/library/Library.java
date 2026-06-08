@@ -16,18 +16,23 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
 /**
- * @author francescoLemmo
+ * Represents the primary music library registry, managing the collection of all available tracks.
+ * It enforces track uniqueness using a case-insensitive title and author signature combination.
+ * Implements the Singleton pattern and provides persistence capabilities via JSON storage.
+ *
+ * @author Francesco Lemmo
  */
-public class Library extends TrackCollection implements PersistenceService{
+public class Library extends TrackCollection implements PersistenceService {
 
-    // pattern singleton
     private static Library instance;
     private static final String DEFAULT_PATH = "data/track-library.json";
 
     private transient HashSet<String> signatures = new HashSet<>();
 
+    /**
+     * Private constructor initializing the track collection path and loading existing data.
+     */
     private Library() {
         super(DEFAULT_PATH, new HashSet<>());
         this.load();
@@ -35,10 +40,22 @@ public class Library extends TrackCollection implements PersistenceService{
 
     // --- Methods ---
 
+    /**
+     * Generates a unique, case-insensitive string signature for a track using its title and author.
+     *
+     * @param track The track to generate a signature for.
+     * @return A formatted string signature tracking uniqueness.
+     */
     private String generateSignature(Track track) {
         return track.getTitle().toLowerCase() + "|" + track.getAuthor().toLowerCase();
     }
 
+    /**
+     * Retrieves the unique singleton instance of the Library.
+     * If the instance does not exist, it is lazily initialized.
+     *
+     * @return The active singleton Library instance.
+     */
     public static Library getInstance() {
         if (instance == null) {
             instance = new Library();
@@ -47,6 +64,14 @@ public class Library extends TrackCollection implements PersistenceService{
         return instance;
     }
 
+    /**
+     * Adds a track to the library if it does not already exist.
+     * Uniqueness is validated via a signature generated from the track's title and author.
+     *
+     * @param t The track to be added.
+     * @return true if the track was successfully added.
+     * @throws IllegalArgumentException If a track with the same title and author already exists in the library.
+     */
     @Override
     public boolean addTrack(Track t) {
         String signature = this.generateSignature(t);
@@ -56,19 +81,45 @@ public class Library extends TrackCollection implements PersistenceService{
         return super.addTrack(t);
     }
 
+    /**
+     * Removes a track from the library and clears its uniqueness signature.
+     *
+     * @param track The track to be removed.
+     * @return true if the track was successfully removed.
+     */
     @Override
     public boolean removeTrack(Track track) {
         this.signatures.remove(generateSignature(track));
         return super.removeTrack(track);
     }
 
+    /**
+     * Finds and retrieves a track from the library using its unique identifier.
+     *
+     * @param id The UUID of the track to find.
+     * @return The matching Track object, or null if no track matches the given ID.
+     */
     public Track getTrackById(UUID id) {
         return tracks.stream()
-                    .filter(t -> t.getId().equals(id))
-                    .findFirst()
-                    .orElse(null);
+                .filter(t -> t.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
+    /**
+     * Modifies the metadata of an existing track in the library.
+     * If the updated title and author generate a signature conflict with an existing track,
+     * the modification is automatically rolled back to preserve library uniqueness constraints.
+     *
+     * @param t                  The track instance to modify.
+     * @param newTitle           The new title to assign.
+     * @param newAuthor          The new author to assign.
+     * @param newDuration        The new duration in seconds.
+     * @param newGenre           The new genre description.
+     * @param newPublicationYear The new release year.
+     * @return true if the modification succeeded without signature conflicts, false otherwise.
+     * @throws IllegalArgumentException If the new arguments fail domain validation checks.
+     */
     public boolean modifyTrackInLibrary(Track t, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
         String oldTitle = t.getTitle();
         String oldAuthor = t.getAuthor();
@@ -81,7 +132,7 @@ public class Library extends TrackCollection implements PersistenceService{
             t.modifyTrack(newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
 
             boolean success = this.signatures.add(generateSignature(t));
-            //if the modified signature is already in the library, do a rollback of the modification
+            // if the modified signature is already in the library, do a rollback of the modification
             if (!success) {
                 t.modifyTrack(oldTitle, oldAuthor, oldDuration, oldGenre, oldPublicationYear);
                 this.signatures.add(generateSignature(t));
@@ -92,15 +143,21 @@ public class Library extends TrackCollection implements PersistenceService{
         } catch (IllegalArgumentException e) {
             this.signatures.add(generateSignature(t));
 
-            throw new IllegalArgumentException(e.getMessage());            
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
+    /**
+     * Purges all tracks and uniqueness signatures currently held in the library memory.
+     */
     public void clearLibrary() {
         this.tracks.clear();
         this.signatures.clear();
     }
 
+    /**
+     * Serializes and saves the current state of the track library to a JSON file.
+     */
     @Override
     public void save() {
 
@@ -116,6 +173,10 @@ public class Library extends TrackCollection implements PersistenceService{
         }
     }
 
+    /**
+     * Deserializes and loads the track library data from the designated JSON storage file.
+     * If the target file does not exist, it creates a new empty file.
+     */
     @Override
     public void load() {
         File file = new File(path);
@@ -139,7 +200,7 @@ public class Library extends TrackCollection implements PersistenceService{
         mapper.registerModule(new JavaTimeModule());
 
         try {
-            // Jackson to reads the file as a standard List
+            // Jackson reads the file as a standard List
             List<Track> loadedTracks = mapper.readValue(file, new TypeReference<List<Track>>() {});
 
             // Clear out whatever is currently in memory
@@ -159,8 +220,11 @@ public class Library extends TrackCollection implements PersistenceService{
         }
     }
 
-    // -- toString --
-
+    /**
+     * Returns a string representation of the track library, formatting each contained track item.
+     *
+     * @return A formatted detail text listing all current tracks.
+     */
     @Override
     public String toString() {
         return "Track Library:\n" +

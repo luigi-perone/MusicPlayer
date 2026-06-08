@@ -20,6 +20,12 @@ import javafx.scene.control.*;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Controller for the playlist detail view.
+ * Manages the display of tracks within a selected playlist, updates track metadata,
+ * and handles UI actions such as adding/removing tracks, renaming, or deleting the playlist.
+ * * @author Maxim Makhovskyy, Luigi Perone
+ */
 public class PlaylistDetailController implements PlaybackObserver {
 
     @FXML private Label     playlistNameLabel;
@@ -40,19 +46,31 @@ public class PlaylistDetailController implements PlaybackObserver {
     private PlaylistTableAdapter adapter;
     private MusicPlayerFacade    facade;
     private Playlist             currentPlaylist;
-    private PlaylistTableConfigurator configurator;
-    private RenameHandler        renameHandler;
     private Track playingTrack = null;
 
+    /**
+     * Initializes the controller class. Called automatically after the FXML file has been loaded.
+     */
     @FXML
     public void initialize() {}
 
+    /**
+     * Called when the currently playing track changes. Updates the internal reference
+     * and refreshes the table to update row styling.
+     *
+     * @param newTrack The newly playing track.
+     */
     @Override
     public void onTrackChanged(Track newTrack) {
         this.playingTrack = newTrack;
         Platform.runLater(() -> playlistTrackTable.refresh());
     }
 
+    /**
+     * Called when the playback state changes. Clears the playing track styling if playback stops.
+     *
+     * @param newState The new playback state.
+     */
     @Override
     public void onStateChanged(PlaybackState newState) {
         if (newState == PlaybackState.STOPPED) {
@@ -61,18 +79,39 @@ public class PlaylistDetailController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Called on periodic playback time updates.
+     *
+     * @param simulatedSeconds The elapsed simulation time in seconds.
+     */
     @Override
     public void onTimeTick(int simulatedSeconds) {
     }
 
+    /**
+     * Sets the callback action to be executed when the playlist is deleted.
+     *
+     * @param onDeleteAction The action to execute.
+     */
     public void setOnDeleteAction(Runnable onDeleteAction) {
         this.onDeleteAction = onDeleteAction;
     }
 
+    /**
+     * Sets the callback action to be executed when the playlist is successfully renamed.
+     *
+     * @param onRenameAction The action to execute.
+     */
     public void setOnRenameAction(Runnable onRenameAction) {
         this.onRenameAction = onRenameAction;
     }
 
+    /**
+     * Binds a specific playlist to this controller, populating the track table
+     * and initializing data listeners.
+     *
+     * @param playlist The playlist model to display.
+     */
     public void setPlaylist(Playlist playlist) {
         this.currentPlaylist = playlist;
         adapter = new PlaylistTableAdapter(playlist);
@@ -87,40 +126,54 @@ public class PlaylistDetailController implements PlaybackObserver {
         });
     }
 
+    /**
+     * Injects the core music player facade, configures the table component,
+     * initializes event behaviors, and registers this controller as a playback observer.
+     *
+     * @param facade The system backend facade.
+     */
     public void setMusicPlayer(MusicPlayerFacade facade) {
         this.facade = facade;
         facade.getPlaybackService().addObserver(this);
-        configurator = new PlaylistTableConfigurator(
-            playlistTrackTable, titleColumn, authorColumn,
-            durationColumn, indexColumn, facade
+        PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
+                playlistTrackTable, titleColumn, authorColumn,
+                durationColumn, indexColumn, facade
         );
         configurator.configure(
-            playingTrack,
-            (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, track))
+                playingTrack,
+                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, track))
         );
 
-        renameHandler = new RenameHandler(
-            playlistNameLabel, playlistNameField,
-            () -> {
-                if (currentPlaylist == null) return;
-                String newName = playlistNameField.getText().trim();
-                CommandInvoker.execute(new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName));
-                playlistNameLabel.setText(newName);
-                if (onRenameAction != null) onRenameAction.run();
-            }
+        RenameHandler renameHandler = new RenameHandler(
+                playlistNameLabel, playlistNameField,
+                () -> {
+                    if (currentPlaylist == null) return;
+                    String newName = playlistNameField.getText().trim();
+                    CommandInvoker.execute(new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName));
+                    playlistNameLabel.setText(newName);
+                    if (onRenameAction != null) onRenameAction.run();
+                }
         );
 
         playlistTrackTable.getSelectionModel().selectedItemProperty()
-            .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
+                .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
 
         refreshLabels();
         playlistTrackTable.refresh();
     }
 
+    /**
+     * Sets the callback action to be executed when the back button is clicked.
+     *
+     * @param onBackAction The action to execute.
+     */
     public void setOnBackAction(Runnable onBackAction) {
         this.onBackAction = onBackAction;
     }
 
+    /**
+     * Updates the UI labels displaying the track count and total aggregated duration.
+     */
     private void refreshLabels() {
         if (adapter == null) return;
 
@@ -129,15 +182,26 @@ public class PlaylistDetailController implements PlaybackObserver {
 
         if (this.facade != null) {
             int totalDuration = currentTracks.stream()
-                                            .mapToInt(Track::getDuration)
-                                            .sum();
+                    .mapToInt(Track::getDuration)
+                    .sum();
 
             totalDurationLabel.setText(this.facade.formatDuration(totalDuration));
         }
     }
 
-    @FXML private void onBackClick() { if (onBackAction != null) onBackAction.run(); }
+    /**
+     * Triggers the navigation back action callback.
+     */
+    @FXML
+    private void onBackClick() {
+        if (onBackAction != null) onBackAction.run();
+    }
 
+    /**
+     * Filters out tracks already present in the playlist from the global music library.
+     *
+     * @return A list of tracks available to be added.
+     */
     private List<Track> getAvailableTracksToAdd() {
         List<Track> alreadyInPlaylist = adapter.getItems();
         Collection<Track> allLibraryTracks = facade.getTracksFromLibrary();
@@ -146,6 +210,10 @@ public class PlaylistDetailController implements PlaybackObserver {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    /**
+     * Opens a selection dialog containing all library tracks not yet added,
+     * executing an insertion command if the user confirms.
+     */
     @FXML
     private void onAddTrackClick() {
         if (adapter == null || facade == null) return;
@@ -176,6 +244,10 @@ public class PlaylistDetailController implements PlaybackObserver {
         });
     }
 
+    /**
+     * Removes the currently selected track from the table view and playlist database model
+     * after requiring explicit user confirmation.
+     */
     @FXML
     private void onRemoveTrackClick() {
         Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
@@ -198,6 +270,10 @@ public class PlaylistDetailController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Deletes the entire playlist module permanently via structural command confirmation.
+     * Fires the completion action callback upon success.
+     */
     @FXML
     private void onDeletePlaylistClick() {
         String name = playlistNameLabel.getText();
@@ -222,6 +298,9 @@ public class PlaylistDetailController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Attempts to instantly play back the track currently selected within the table view.
+     */
     @FXML
     private void onPlayTrackClick() {
         Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();

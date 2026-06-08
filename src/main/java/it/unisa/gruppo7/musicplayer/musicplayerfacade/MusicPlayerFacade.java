@@ -12,25 +12,26 @@ import java.time.Year;
 import java.util.*;
 
 /**
- * Facade Pattern
+ * Structural Facade that centralizes and coordinates core music player sub-systems
+ * including audio playback, library index curation, and custom playlist profiles.
+ * Implements the Singleton pattern to guarantee a single unified controller context.
  *
- * @author francescoLemmo
+ * @author Francesco Lemmo
  */
 public class MusicPlayerFacade {
-    // pattern singleton
+
     private static MusicPlayerFacade instance;
 
     private final Library library;
     private final PlaylistService playlistService;
-
     private final PlaybackService playbackService;
 
-    // selected track for communication between controllers
     private Track selectedTrack;
-
-    // Observer List
     private final List<TrackObserver> observers = new ArrayList<>();
 
+    /**
+     * Private constructor initializing subsystems and registering internal dependencies.
+     */
     private MusicPlayerFacade() {
         this.library = Library.getInstance();
         this.playlistService = new PlaylistService();
@@ -38,18 +39,35 @@ public class MusicPlayerFacade {
         this.addObserver(this.playlistService);
     }
 
+    /**
+     * Retrieves the global thread-safe singleton state interface context.
+     *
+     * @return The active MusicPlayerFacade context runtime.
+     */
     public static MusicPlayerFacade getInstance() {
         if (instance == null) {
             instance = new MusicPlayerFacade();
         }
-
         return instance;
     }
 
+    /**
+     * Erases all managed music tracks currently stored inside the structural library database.
+     */
     public void clearLibrary() {
         library.clearLibrary();
     }
 
+    /**
+     * Selects the correct Track constructor mapping variant based on structural null field parameters.
+     *
+     * @param title           The track name.
+     * @param author          The creator name.
+     * @param duration        The length in seconds.
+     * @param genre           The category filter identifier.
+     * @param publicationYear The domain year calendar instance.
+     * @return A validated track metadata object wrapper.
+     */
     private Track createTrack(String title, String author, int duration, String genre, Year publicationYear) {
         boolean isGenreEmpty = (genre == null || genre.trim().isEmpty());
         boolean isYearEmpty = (publicationYear == null);
@@ -65,18 +83,37 @@ public class MusicPlayerFacade {
         }
     }
 
-
-    // Getter & Setter Track
+    /**
+     * Sets the shared reference pointer targeting a specific track active in selection layouts.
+     *
+     * @param track The current track selection view model node.
+     */
     public void setSelectedTrack(Track track) {
         this.selectedTrack = track;
     }
 
+    /**
+     * Gets the current selection track pointer active across presentation controllers.
+     *
+     * @return The selected track entity reference, or null.
+     */
     public Track getSelectedTrack() {
         return this.selectedTrack;
     }
 
     // --- Library Methods ---
 
+    /**
+     * Instantiates a track entry data footprint and appends it to the user database library.
+     *
+     * @param title           The track title name.
+     * @param author          The creator name string.
+     * @param duration        The audio layout length in seconds.
+     * @param genre           The music genre style categorization.
+     * @param publicationYear The structured release calendar Year metadata object.
+     * @return true if added successfully, false otherwise.
+     * @throws IllegalArgumentException If argument business fields fail structural boundary constraints.
+     */
     public boolean addNewTrackToLibrary(String title, String author, int duration, String genre, Year publicationYear) {
         try {
             Track newTrack = this.createTrack(title, author, duration, genre, publicationYear);
@@ -88,10 +125,17 @@ public class MusicPlayerFacade {
             return success;
 
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(e.getMessage());            
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
+    /**
+     * Permanently drops a track configuration out of the library indexing systems
+     * and broadcasts a notification to observers.
+     *
+     * @param track The targeted track object wrapper mapping instance to drop.
+     * @return true if structural record removal succeeded.
+     */
     public boolean removeTrackFromLibrary(Track track) {
         boolean success = library.removeTrack(track);
         if (success) {
@@ -101,6 +145,17 @@ public class MusicPlayerFacade {
         return success;
     }
 
+    /**
+     * Overwrites mutable attribute data inside a target track registry tracking record index.
+     *
+     * @param track              The target database object map structure reference being modified.
+     * @param newTitle           The adjusted track title.
+     * @param newAuthor          The adjusted track artist creator.
+     * @param newDuration        The modified duration metric length in seconds.
+     * @param newGenre           The updated genre identity.
+     * @param newPublicationYear The updated release year entity calendar timestamp.
+     * @return true if the modifications were cleanly written to persistence storage.
+     */
     public boolean modifyTrack(Track track, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
         boolean success = library.modifyTrackInLibrary(track, newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
         if (success) {
@@ -109,91 +164,187 @@ public class MusicPlayerFacade {
         return success;
     }
 
+    /**
+     * Searches structural database files to fetch a single track entity via precise UUID.
+     *
+     * @param id The global unique identifier signature lookup tag.
+     * @return The matching Track wrapper database profile, or null.
+     */
     public Track getTrackFromLibrary(UUID id) {
         return library.getTrackById(id);
     }
 
+    /**
+     * Collects all tracks currently cataloged in the core music manager index structure.
+     *
+     * @return A collection view containing the complete track library index dataset.
+     */
     public Collection<Track> getTracksFromLibrary() {
         return library.getTracks();
     }
 
-    // --print library--
-
+    /**
+     * Serializes the structural library tracks dataset out to an explicit printable layout string.
+     *
+     * @return A formatted text breakdown reporting current storage parameters.
+     */
     public String printLibrary() {
         return library.toString();
     }
 
+    /**
+     * Instantiates a new playlist grouping binder.
+     *
+     * @param name The identification name label tag string.
+     * @return The freshly allocated structural Playlist mapping file wrapper.
+     */
     public Playlist createPlaylist(String name) {
         return playlistService.createPlaylist(name);
     }
 
+    /**
+     * Removes an entire playlist record permanently from the application profile records.
+     *
+     * @param playlist The playlist profile record map to truncate.
+     * @return An Optional detailing failure log messages, or empty if dropped cleanly.
+     */
     public Optional<String> deletePlaylist(Playlist playlist) {
         return playlistService.deletePlaylist(playlist);
     }
 
+    /**
+     * Structural renaming mutator utility for renaming custom user playlists.
+     *
+     * @param playlist The target playlist data mapping context file.
+     * @param newName  The target updated name string to apply.
+     * @return An Optional detailing failure logs, or empty if renamed cleanly.
+     */
     public Optional<String> renamePlaylist(Playlist playlist, String newName) {
         return playlistService.renamePlaylist(playlist, newName);
     }
 
+    /**
+     * Gathers all custom track compilation playlists stored inside the persistence profile registry.
+     *
+     * @return A collection list containing all active playlist configurations.
+     */
     public List<Playlist> getPlaylists() {
         return playlistService.getPlaylists();
     }
 
+    /**
+     * Resolves a custom playlist reference tracking record look-up using an exact string match query.
+     *
+     * @param name The identity name query parameter.
+     * @return The located playlist instance, or null if unmapped.
+     */
     public Playlist getPlaylist(String name) {
         return playlistService.getPlaylist(name);
     }
 
+    /**
+     * Gets the encapsulated structural application business logic service for playlist persistence fields.
+     *
+     * @return The integrated backend playlist service entity handle.
+     */
     public PlaylistService getPlaylistService(){
         return playlistService;
     }
 
+    /**
+     * Serializes current user playlist tracking parameters to disk storage.
+     */
     public void savePlaylists() {
         playlistService.save();
     }
 
+    /**
+     * Formats an raw numerical integer seconds index into a standard user-readable "MM:SS" time layout.
+     *
+     * @param totalSeconds Total aggregated track duration length in seconds.
+     * @return A padded string structured format presentation.
+     */
     public String formatDuration(int totalSeconds) {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-
+    /**
+     * Loads a specific target track model pointer directly into processing hardware stream buffers.
+     *
+     * @param track The music file container to parse and play.
+     */
     public void playTrack(Track track) {
         playbackService.play(track);
     }
+
+    /**
+     * Halts active layout audio stream output processing and preserves structural index markers.
+     */
     public void pauseTrack() {
         playbackService.pause();
     }
 
+    /**
+     * Resumes playback operations processing from preserved layout marker points.
+     */
     public void resumeTrack() {
         playbackService.resume();
     }
 
+    /**
+     * Returns the structural subsystem instance managing low-level audio tracking streams.
+     *
+     * @return The background media playback tracking context handle.
+     */
     public PlaybackService getPlaybackService() {
         return playbackService;
     }
 
+    /**
+     * Fetches the ongoing state indicator flags mapping out device operational conditions.
+     *
+     * @return The structural PlaybackState enum tracking device actions.
+     */
     public PlaybackState getPlaybackState() {
         return playbackService.getCurrentState();
     }
 
+    /**
+     * Safely triggers hardware timer sequence destruction tasks on application exit boundaries.
+     */
     public void shutdownPlayback() {
         if (playbackService != null) {
             playbackService.shutdownTimer();
         }
     }
 
-
+    /**
+     * Hooks up an update subscriber interface onto tracking collection registries.
+     *
+     * @param observer The target dynamic subscriber tracking module implementation.
+     */
     public void addObserver(TrackObserver observer) {
         if (!observers.contains(observer)) {
             observers.add(observer);
         }
     }
 
+    /**
+     * Breaks off an update subscriber hook from observation pipelines.
+     *
+     * @param observer The tracking receiver interface target to drop.
+     */
     public void removeObserver(TrackObserver observer) {
         observers.remove(observer);
     }
 
+    /**
+     * Iterates through active pipeline subscribers to execute deletion notification parameters.
+     *
+     * @param track The dropped entity metadata profile.
+     */
     private void notifyTrackDeleted(Track track) {
         for (TrackObserver observer : observers) {
             observer.onTrackDeleted(track);

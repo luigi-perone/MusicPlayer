@@ -8,6 +8,8 @@ import java.util.List;
  * Immutable result of a batch track-addition operation.
  * Carries both the counts and the duplicate titles so the UI
  * can build a precise, localised message without touching the service.
+ *
+ * @author Luigi Perone
  */
 public class AdditionResult {
 

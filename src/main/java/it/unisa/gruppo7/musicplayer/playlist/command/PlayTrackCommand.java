@@ -6,6 +6,8 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
  * Command to start the playback of a specific track.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class PlayTrackCommand implements Command<Void> {
     private final MusicPlayerFacade facade;

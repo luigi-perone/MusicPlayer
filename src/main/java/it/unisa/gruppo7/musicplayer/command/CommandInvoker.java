@@ -8,6 +8,8 @@ import it.unisa.gruppo7.musicplayer.errorHandling.PopupErrorStrategy;
 /**
  * Class responsible for invoking commands.
  * Manages the safe execution of commands and their error handling.
+ *
+ * @author Maxim Makhovskyy
  */
 public class CommandInvoker {
 

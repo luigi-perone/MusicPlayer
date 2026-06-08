@@ -8,6 +8,8 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
 /**
  * Command to delete an existing playlist.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class DeletePlaylistCommand implements Command<Void> {
     private final PlaylistService service;

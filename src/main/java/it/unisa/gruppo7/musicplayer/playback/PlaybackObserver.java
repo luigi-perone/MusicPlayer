@@ -3,16 +3,31 @@ package it.unisa.gruppo7.musicplayer.playback;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
- * @author francescoLemmo
+ * Interface defining an observer for tracking application playback events.
+ * Provides update hooks for synchronization changes across timing counters, audio track mutations,
+ * and operational engine states.
+ * * @author Francesco Lemmo
  */
-
 public interface PlaybackObserver {
-    // Invoked on every tick
+
+    /**
+     * Invoked periodically on every elapsed simulated second.
+     *
+     * @param simulatedSeconds The cumulative seconds elapsed since the track started.
+     */
     void onTimeTick(int simulatedSeconds);
 
-    // Invoked on track change
+    /**
+     * Invoked when the system switches execution to a different audio track target.
+     *
+     * @param currentTrack The newly selected track, or null if playback is stopped.
+     */
     void onTrackChanged(Track currentTrack);
 
-    // Invoked on state change
+    /**
+     * Invoked when the core engine operational mode state changes.
+     *
+     * @param newState The updated playback state.
+     */
     void onStateChanged(PlaybackState newState);
 }

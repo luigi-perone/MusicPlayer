@@ -6,6 +6,8 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
 /**
  * Command to create a new playlist.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class CreatePlaylistCommand implements Command<Playlist> {
 

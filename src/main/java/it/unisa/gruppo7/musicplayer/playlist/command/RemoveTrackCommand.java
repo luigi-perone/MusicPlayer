@@ -6,6 +6,8 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
  * Command to remove a track from a playlist.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class RemoveTrackCommand implements Command<Void> {
     private final Playlist playlist;

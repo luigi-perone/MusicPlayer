@@ -18,7 +18,9 @@ import javafx.scene.layout.*;
 
 /**
  * Manages the communication between the model and the view of the playlist's sidebar.
- * * @author Maxim Makhovskyy
+ * Handles displaying the list of available playlists and providing an inline interface
+ * to create new playlists.
+ * * @author Maxim Makhovskyy, Luigi Perone
  */
 public class PlaylistSidebarController {
     @FXML private VBox listBox;
@@ -30,24 +32,41 @@ public class PlaylistSidebarController {
 
     /**
      * Flag used to avoid the premature close of the edit module. It is set true when the user
-     * clicks a UI button so that the TextField's focus-lost listener ignores the focuse change.
+     * clicks a UI button so that the TextField's focus-lost listener ignores the focus change.
      */
     private boolean committing;
 
+    /**
+     * Initializes the controller. Sets up event filters to manage focus state transitions
+     * when the add button is pressed.
+     */
     @FXML
     private void initialize() {
         addBtn.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> committing = true);
     }
 
+    /**
+     * Sets the playlist service injection and refreshes the sidebar list view.
+     *
+     * @param service The playlist service containing backend data logic.
+     */
     public void setPlaylistService(PlaylistService service){
         this.service = service;
         refreshList();
     }
 
+    /**
+     * Sets the callback listener that triggers when a playlist is selected from the sidebar.
+     *
+     * @param listener The consumer callback action accepting the selected Playlist.
+     */
     public void setOnPlaylistSelected(Consumer<Playlist> listener) {
         this.onPlaylistSelected = listener;
     }
 
+    /**
+     * Clears the current list display and repopulates it with playlists fetched from the service.
+     */
     public void refreshList(){
         listBox.getChildren().clear();
         for(Playlist p: service.getPlaylists()){
@@ -55,6 +74,12 @@ public class PlaylistSidebarController {
         }
     }
 
+    /**
+     * Creates a graphical HBox row representing a single playlist in the sidebar.
+     *
+     * @param playlist The playlist data model to bind to this row.
+     * @return A configured HBox container acting as the visual row.
+     */
     private HBox playlistRow(Playlist playlist){
         Label label = new Label(playlist.getName());
         label.getStyleClass().add("row-label");
@@ -71,6 +96,9 @@ public class PlaylistSidebarController {
         return row;
     }
 
+    /**
+     * Handles clicking the add/cancel button to toggle the inline creation text field form.
+     */
     @FXML
     private void onAddToggle(){
         if(editRow != null){
@@ -121,6 +149,13 @@ public class PlaylistSidebarController {
         });
     }
 
+    /**
+     * Confirms the playlist creation process by executing the corresponding command.
+     * Handles inline error rendering if creation validation fails.
+     *
+     * @param field The text input field containing the playlist name.
+     * @param tip   The feedback label used to display errors.
+     */
     private void confirm(TextField field, Label tip){
         String name = field.getText();
         Command<Playlist> createCommand = new CreatePlaylistCommand(service, name);
@@ -147,12 +182,21 @@ public class PlaylistSidebarController {
         });
     }
 
+    /**
+     * Clears validation error messages and restores the text field style.
+     *
+     * @param field The target text field.
+     * @param tip   The target error feedback label.
+     */
     private void hideError(TextField field, Label tip) {
         tip.setVisible(false);
         tip.setManaged(false);
         field.getStyleClass().remove("error");
     }
 
+    /**
+     * Closes the inline creation form and resets the add button visual appearance.
+     */
     private void closeEdit(){
         if(editRow == null) return;
         Node wrap = editRow.getParent();
@@ -163,6 +207,13 @@ public class PlaylistSidebarController {
         addBtn.getStyleClass().remove("cancel-btn");
     }
 
+    /**
+     * Generates a structural placeholder circle indicator showing the first letter of
+     * the entered text, dynamically responding to text changes.
+     *
+     * @param field The text field to bind for letter extraction.
+     * @return A StackPane displaying the placeholder dot.
+     */
     private StackPane dot(TextField field) {
         Label initial = new Label("?");
         initial.getStyleClass().add("dot-label");
@@ -178,6 +229,13 @@ public class PlaylistSidebarController {
         return tile;
     }
 
+    /**
+     * Instantiates the validation button for the creation row form.
+     *
+     * @param field The text input field to bind.
+     * @param tip   The error display label to bind.
+     * @return A configured checkmark validation Button.
+     */
     private Button confirmBtn(TextField field, Label tip) {
         Button b = new Button("\u2713");
         b.getStyleClass().add("confirm-btn");

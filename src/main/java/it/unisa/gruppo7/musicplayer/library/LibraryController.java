@@ -1,9 +1,12 @@
 package it.unisa.gruppo7.musicplayer.library;
 
+import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackFormController;
 import javafx.application.Platform;
@@ -14,6 +17,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -24,7 +28,14 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+/**
+ * Controller for the primary music library view interface.
+ * It manages the track table overview, multi-selection operations, active track row highlighting,
+ * and handles main interface button actions such as track creation, modifications, deletions, and playlist mapping.
+ *
+ */
 public class LibraryController implements PlaybackObserver {
 
     @FXML private TableView<Track>           trackTable;
@@ -39,6 +50,11 @@ public class LibraryController implements PlaybackObserver {
     private ObservableList<Track> observableTracks;
     private Track playingTrack = null;
 
+    /**
+     * Initializes the controller class. Configures table cell value factories,
+     * selection tracking properties, visual background style row factories, and registers
+     * this controller instance into the system playback observer pipeline.
+     */
     @FXML
     public void initialize() {
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -73,20 +89,6 @@ public class LibraryController implements PlaybackObserver {
                 }
         );
 
-        trackTable.setRowFactory(tv -> new TableRow<Track>() {
-            @Override
-            protected void updateItem(Track item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setStyle("");
-                } else if (item.equals(playingTrack)) {
-                    setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
-                } else {
-                    setStyle("");
-                }
-            }
-        });
-
         trackTable.setRowFactory(tv -> {
             TableRow<Track> row = new TableRow<Track>() {
                 @Override
@@ -112,12 +114,24 @@ public class LibraryController implements PlaybackObserver {
         musicPlayer.getPlaybackService().addObserver(this);
     }
 
+    /**
+     * Invoked when the currently playing track changes. Updates the internal reference pointer
+     * and triggers a safe background UI thread layout refresh.
+     *
+     * @param newTrack The newly playing audio track, or null if stopped.
+     */
     @Override
     public void onTrackChanged(Track newTrack) {
         this.playingTrack = newTrack;
         Platform.runLater(() -> trackTable.refresh());
     }
 
+    /**
+     * Invoked when the system playback operational running state machine shifts.
+     * Clears highlighters if the audio engine stops.
+     *
+     * @param newState The incoming core state metric.
+     */
     @Override
     public void onStateChanged(PlaybackState newState) {
         if (newState == PlaybackState.STOPPED) {
@@ -126,24 +140,98 @@ public class LibraryController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Invoked periodically on ongoing system time tick progress updates.
+     *
+     * @param simulatedSeconds The elapsed track duration counter position in seconds.
+     */
     @Override
     public void onTimeTick(int simulatedSeconds) {
     }
 
+    /**
+     * Extracts selected row items and constructs an inline popup dialog
+     * via AddToPlaylistDialogBuilder to reassign items onto target playlist nodes.
+     */
     @FXML
     private void onAddToPlaylistClick() {
-        List<Track> selected =
-                new ArrayList<>(trackTable.getSelectionModel().getSelectedItems());
+        List<Track> selected = new ArrayList<>(trackTable.getSelectionModel().getSelectedItems());
         if (selected.isEmpty()) return;
-        new TrackSelectionDialogBuilder.AddToPlaylistDialog(musicPlayer.getPlaylistService(), selected).show();
+
+        List<Playlist> playlists = musicPlayer.getPlaylists();
+        if (playlists.isEmpty()) {
+            mostraAvviso("Nessuna playlist disponibile", "Non ci sono ancora playlist. Creane prima una dalla barra laterale.");
+            return;
+        }
+
+        List<String> playlistNames = playlists.stream()
+                .map(Playlist::getName)
+                .collect(Collectors.toList());
+
+        AddToPlaylistDialogBuilder builder = new AddToPlaylistDialogBuilder(playlistNames, selected);
+        builder.buildHeader();
+        builder.buildButtons();
+        builder.buildContent();
+        builder.buildResultConverter();
+
+        Dialog<String> dialog = builder.getResult();
+        dialog.showAndWait().ifPresent(targetPlaylistName -> {
+            Playlist targetPlaylist = musicPlayer.getPlaylist(targetPlaylistName);
+            if (targetPlaylist != null) {
+                try {
+                    AdditionResult result = musicPlayer.getPlaylistService()
+                            .addTracksToPlaylist(targetPlaylist, selected);
+                    musicPlayer.savePlaylists();
+                    showResultFeedback(result, targetPlaylistName);
+                } catch (IllegalArgumentException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Operazione fallita");
+                    alert.setHeaderText(null);
+                    alert.setContentText(e.getMessage());
+                    alert.showAndWait();
+                }
+            }
+        });
     }
 
+    /**
+     * Parses insertion transaction results to provide matching alert feedback notifications.
+     *
+     * @param result       The structural transaction log report summary outcome tracker.
+     * @param playlistName The targeted destination profile name tag string label.
+     */
+    private void showResultFeedback(AdditionResult result, String playlistName) {
+        Alert alert;
+        if (result.hasAdded() && !result.hasSkipped()) {
+            alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Completato");
+            alert.setContentText(result.getAdded() + " traccia/e aggiunta/e a \"" + playlistName + "\".");
+        } else if (result.hasAdded() && result.hasSkipped()) {
+            alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Aggiunta parziale");
+            String skippedList = String.join("\n  • ", result.getSkippedTitles());
+            alert.setContentText(result.getAdded() + " traccia/e aggiunta/e a \"" + playlistName + "\".\n\n"
+                    + "Le seguenti tracce erano già presenti e sono state ignorate:\n  • " + skippedList);
+        } else {
+            alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Già nella playlist");
+            String skippedList = String.join("\n  • ", result.getSkippedTitles());
+            alert.setContentText("Tutte le tracce selezionate sono già in \"" + playlistName + "\":\n  • " + skippedList);
+        }
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    /**
+     * Opens a standalone modal scene frame holding input fields to register a new track entry
+     * into global tracking files.
+     */
     @FXML
     private void onAddTrackClick() {
         try {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
-                            "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
+                            "/it/unisa.gruppo7.musicplayer/TrackFormView.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
@@ -160,6 +248,10 @@ public class LibraryController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Launches the track operational entry editor frame panel, preloading structural properties
+     * bound onto the currently selected layout entry row.
+     */
     @FXML
     private void onEditTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
@@ -170,7 +262,7 @@ public class LibraryController implements PlaybackObserver {
         try {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
-                            "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
+                            "/it/unisa.gruppo7.musicplayer/TrackFormView.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             TrackFormController controller = fxmlLoader.getController();
@@ -190,6 +282,10 @@ public class LibraryController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Drops the highlighted selected index target track container entirely out of core persistence registries
+     * after validating confirmation popup requests.
+     */
     @FXML
     private void onDeleteTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
@@ -210,12 +306,21 @@ public class LibraryController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Sends the current row selection context model pointer straight into audio pipeline processing engines.
+     */
     @FXML
     private void onPlayTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
         MusicPlayerFacade.getInstance().playTrack(selectedTrack);
     }
 
+    /**
+     * Auxiliary internal framework utility to prompt basic instructional popups to users.
+     *
+     * @param titolo    The message alert title header context.
+     * @param messaggio The details info description text.
+     */
     private void mostraAvviso(String titolo, String messaggio) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titolo);

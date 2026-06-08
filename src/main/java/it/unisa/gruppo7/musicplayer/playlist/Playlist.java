@@ -14,6 +14,8 @@ import java.util.Collection;
 /**
  * * Models a playlist in the music player, identified by a name 
  * and holding a collection of tracks.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Playlist extends TrackCollection{

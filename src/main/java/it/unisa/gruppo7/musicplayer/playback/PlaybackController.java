@@ -11,6 +11,13 @@ import javafx.scene.control.ProgressBar;
 
 import java.time.Year;
 
+/**
+ * Controller for the playback user interface bar.
+ * It observes the playback system to dynamically update track details,
+ * simulated elapsed time, state transitions, and the progress bar.
+ *
+ * @author Francesco Lemmo
+ */
 public class PlaybackController implements PlaybackObserver {
 
     @FXML private Label timeLabel;
@@ -24,12 +31,22 @@ public class PlaybackController implements PlaybackObserver {
     private Track currentTrack;
     private MusicPlayerFacade musicPlayer;
 
+    /**
+     * Initializes the controller. Resolves the main system facade
+     * and registers this controller instance as a playback observer.
+     */
     @FXML
     public void initialize() {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
     }
 
+    /**
+     * Handles the action event triggered when the play/pause button is pressed.
+     * Determines whether to pause, resume, or start playing the currently selected track.
+     *
+     * @param event The action event context.
+     */
     @FXML
     void onPlayPause(ActionEvent event) {
         PlaybackState currentState = musicPlayer.getPlaybackState();
@@ -46,6 +63,12 @@ public class PlaybackController implements PlaybackObserver {
         }
     }
 
+    /**
+     * Updates the time counter label and recalculates the progress bar percentage ratio
+     * at periodic simulated time increments.
+     *
+     * @param simulatedSeconds The elapsed playback time in seconds.
+     */
     @Override
     public void onTimeTick(int simulatedSeconds) {
         Platform.runLater(() -> {
@@ -58,6 +81,12 @@ public class PlaybackController implements PlaybackObserver {
         });
     }
 
+    /**
+     * Updates the text labels showing track metadata whenever the active track changes.
+     * Resets indicators to defaults if the structural reference is null.
+     *
+     * @param newTrack The updated track metadata model, or null if stopped.
+     */
     @Override
     public void onTrackChanged(Track newTrack) {
         this.currentTrack = newTrack;
@@ -82,6 +111,12 @@ public class PlaybackController implements PlaybackObserver {
         });
     }
 
+    /**
+     * Toggles the displayed string label text of the execution action button
+     * based on engine state machine updates.
+     *
+     * @param newState The incoming system operational playback state.
+     */
     @Override
     public void onStateChanged(PlaybackState newState) {
         Platform.runLater(() -> {

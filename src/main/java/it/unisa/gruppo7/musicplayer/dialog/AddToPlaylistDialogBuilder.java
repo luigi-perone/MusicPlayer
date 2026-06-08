@@ -9,6 +9,13 @@ import javafx.scene.input.MouseEvent;
 
 import java.util.List;
 
+/**
+ * Concrete builder implementation for creating a playlist selection dialog.
+ * This class builds a dialog that allows the user to choose a target playlist
+ * to which the selected tracks will be added.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
+ */
 public class AddToPlaylistDialogBuilder implements DialogBuilder<String> {
 
     private final List<String> playlistNames;
@@ -18,33 +25,49 @@ public class AddToPlaylistDialogBuilder implements DialogBuilder<String> {
     private ButtonType      confirmType;
     private ListView<String> playlistView;
 
+    /**
+     * Constructs an AddToPlaylistDialogBuilder with the specified playlists and selected tracks.
+     *
+     * @param playlistNames  The list of available playlist names to display.
+     * @param selectedTracks The list of tracks currently selected to be added.
+     */
     public AddToPlaylistDialogBuilder(List<String> playlistNames,
-                                List<Track> selectedTracks) {
+                                      List<Track> selectedTracks) {
         this.playlistNames  = playlistNames;
         this.selectedTracks = selectedTracks;
         this.dialog         = new Dialog<>();
     }
 
+    /**
+     * Configures the title and header text based on the number of selected tracks.
+     */
     @Override
     public void buildHeader() {
         dialog.setTitle("Aggiungi alla playlist");
         dialog.setHeaderText(
-            selectedTracks.size() == 1
-                ? "Scegli la playlist di destinazione per \""
-                  + selectedTracks.get(0).getTitle() + "\""
-                : "Scegli la playlist di destinazione per "
-                  + selectedTracks.size() + " tracce"
+                selectedTracks.size() == 1
+                        ? "Scegli la playlist di destinazione per \""
+                          + selectedTracks.get(0).getTitle() + "\""
+                        : "Scegli la playlist di destinazione per "
+                          + selectedTracks.size() + " tracce"
         );
     }
 
+    /**
+     * Registers the "Aggiungi" confirmation button and the "Annulla" cancel button.
+     */
     @Override
     public void buildButtons() {
         confirmType = new ButtonType("Aggiungi", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane()
-              .getButtonTypes()
-              .addAll(confirmType, ButtonType.CANCEL);
+                .getButtonTypes()
+                .addAll(confirmType, ButtonType.CANCEL);
     }
 
+    /**
+     * Builds the content layout featuring a single-selection ListView of playlist names
+     * along with a dynamic tracking feedback hint.
+     */
     @Override
     public void buildContent() {
         playlistView = new ListView<>();
@@ -64,13 +87,17 @@ public class AddToPlaylistDialogBuilder implements DialogBuilder<String> {
         Button addButton = (Button) dialog.getDialogPane().lookupButton(confirmType);
         addButton.setDisable(true);
         playlistView.getSelectionModel().selectedItemProperty()
-                    .addListener((obs, old, now) -> addButton.setDisable(now == null));
+                .addListener((obs, old, now) -> addButton.setDisable(now == null));
 
         VBox content = new VBox(8, playlistView, hint);
         content.setPadding(new Insets(8, 0, 0, 0));
         dialog.getDialogPane().setContent(content);
     }
 
+    /**
+     * Configures the result converter to map the confirmation action
+     * to the currently selected playlist name string.
+     */
     @Override
     public void buildResultConverter() {
         final String[] snapshot = {null};
@@ -86,6 +113,11 @@ public class AddToPlaylistDialogBuilder implements DialogBuilder<String> {
         );
     }
 
+    /**
+     * Returns the fully configured playlist selection dialog instance.
+     *
+     * @return The constructed Dialog instance returning a String.
+     */
     @Override
     public Dialog<String> getResult() {
         return dialog;

@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * Command to add a list of tracks to a specific playlist.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class AddTracksCommand implements Command<AdditionResult> {
 

@@ -7,6 +7,8 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
 /**
  * Command to rename an existing playlist.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class RenamePlaylistCommand implements Command<Void> {
 

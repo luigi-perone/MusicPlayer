@@ -1,6 +1,5 @@
 package it.unisa.gruppo7.musicplayer.track;
 
-
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -8,12 +7,12 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.time.Year;
-/**
- * Manages the communication between the model and the view of the library.
- * 
- * @author Matteo Postiglione
- */
 
+/**
+ * Manages the communication between the model and the view of the track form.
+ * Handles both creating a new track and modifying an existing track record.
+ * * @author Matteo Postiglione
+ */
 public class TrackFormController {
 
     @FXML private Label formTitle;
@@ -26,6 +25,11 @@ public class TrackFormController {
 
     private Track trackToModify;
 
+    /**
+     * Sets the track to be modified and populates the form fields with its current data.
+     *
+     * @param track The track model to edit, or null if creating a new track.
+     */
     public void setTrack(Track track){
         this.trackToModify=track;
         if(track != null){
@@ -38,17 +42,26 @@ public class TrackFormController {
                 yearField.setText(track.getPublicationYear().toString());
             }
             genreField.setText(track.getGenre());
-        
+
         }
 
     }
 
+    /**
+     * Handles the action event when the user clicks the cancel button.
+     * Closes the form window without saving any changes.
+     */
     @FXML
     private void onCancel() {
         Stage stage = (Stage) titleField.getScene().getWindow();
         stage.close();
     }
 
+    /**
+     * Handles the action event when the user clicks the save button.
+     * Validates form field inputs and executes the track creation or update operation
+     * via the application facade.
+     */
     @FXML
     private void onSave() {
         errorLabel.setVisible(false);
@@ -68,7 +81,7 @@ public class TrackFormController {
                 try {
                     duration = Integer.parseInt(durationStr);
                 } catch (NumberFormatException e) {
-                    mostraErrore("La durata deve essere un numero intero (secondi).");
+                    showError("La durata deve essere un numero intero (secondi).");
                     return;
                 }
             }
@@ -78,7 +91,7 @@ public class TrackFormController {
                 try {
                     pubYear = Year.parse(yearStr);
                 } catch (Exception e) {
-                    mostraErrore("L'anno di pubblicazione non è valido.");
+                    showError("L'anno di pubblicazione non è valido.");
                     return;
                 }
             }
@@ -94,19 +107,24 @@ public class TrackFormController {
             if(success){
                 stage.close();
             } else {
-                mostraErrore("Impossibile salvare la traccia.");
+                showError("Impossibile salvare la traccia.");
             }
 
         } catch (IllegalArgumentException e) {
-            mostraErrore(e.getMessage());
+            showError(e.getMessage());
         } catch (Exception e) {
-            mostraErrore("Si è verificato un errore inatteso.");
+            showError("Si è verificato un errore inatteso.");
             e.printStackTrace();
         }
     }
 
-    private void mostraErrore(String messaggio) {
-        errorLabel.setText(messaggio);
+    /**
+     * Displays a specific error message string on the form UI container.
+     *
+     * @param msg The error message text to present.
+     */
+    private void showError(String msg) {
+        errorLabel.setText(msg);
         errorLabel.setVisible(true);
         errorLabel.setManaged(true);
     }

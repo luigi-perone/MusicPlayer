@@ -4,6 +4,8 @@ package it.unisa.gruppo7.musicplayer.command;
  * Generic interface for implementing the Command pattern.
  *
  * @param <T> The return type of the command's execution.
+ *
+ * @author Maxim Makhovskyy
  */
 public interface Command<T> {
     /**

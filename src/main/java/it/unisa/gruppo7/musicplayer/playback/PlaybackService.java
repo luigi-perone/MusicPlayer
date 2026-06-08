@@ -11,7 +11,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author francescoLemmo
+ * Service responsible for managing media playback simulation, state transitions,
+ * background thread timer tasks, and notifying registered structural observers.
+ * * @author Francesco Lemmo
  */
 public class PlaybackService {
 
@@ -28,6 +30,10 @@ public class PlaybackService {
     // observer list
     private final List<PlaybackObserver> observers;
 
+    /**
+     * Constructs a new PlaybackService and allocates resource executors
+     * required for multi-threaded time tracking simulation.
+     */
     public PlaybackService() {
         this.currentState = PlaybackState.STOPPED;
         this.simulatedTimeSeconds = new AtomicInteger(0);
@@ -37,19 +43,38 @@ public class PlaybackService {
 
     // -- observer methods --
 
+    /**
+     * Appends a validation listener to the playback events notification registry pipeline.
+     *
+     * @param observer The target playback observer implementation.
+     */
     public void addObserver(PlaybackObserver observer) {
         if (!observers.contains(observer)) observers.add(observer);
     }
 
-    //
+    /**
+     * Dispatches timed tick milestones to all registered observer components.
+     *
+     * @param seconds The current simulated progression counter position.
+     */
     private void notifyTimeTick(int seconds) {
         for (PlaybackObserver obs : observers) obs.onTimeTick(seconds);
     }
 
+    /**
+     * Broadcasts target active track selection changes to all registered observer components.
+     *
+     * @param track The current track object reference, or null.
+     */
     private void notifyTrackChanged(Track track) {
         for (PlaybackObserver obs : observers) obs.onTrackChanged(track);
     }
 
+    /**
+     * Emits state transition notifications to all registered observer components.
+     *
+     * @param newState The newly applied execution mode.
+     */
     private void notifyStateChanged(PlaybackState newState) {
         for (PlaybackObserver obs : observers) obs.onStateChanged(newState);
     }
@@ -57,6 +82,11 @@ public class PlaybackService {
 
     // -- Playback methods --
 
+    /**
+     * Begins or overrides execution context tracking to load and play a specified target track.
+     *
+     * @param track The targeted track object wrapper to launch.
+     */
     public void play(Track track) {
         if (track == null) {
             return;
@@ -71,6 +101,9 @@ public class PlaybackService {
         this.startTimer();
     }
 
+    /**
+     * Suspends the playback stream loop, preserving current execution index points.
+     */
     public void pause() {
         if (this.currentState == PlaybackState.PLAYING) {
             this.currentState = PlaybackState.PAUSED;
@@ -79,6 +112,9 @@ public class PlaybackService {
         }
     }
 
+    /**
+     * Restores thread loop sequence processing on a previously paused session tracking block.
+     */
     public void resume() {
         if (this.currentState == PlaybackState.PAUSED) {
             this.currentState = PlaybackState.PLAYING;
@@ -87,6 +123,9 @@ public class PlaybackService {
         }
     }
 
+    /**
+     * Aborts playback streams entirely, resetting system progress values back to base defaults.
+     */
     public void stop() {
         this.currentState = PlaybackState.STOPPED;
         notifyStateChanged(this.currentState);
@@ -98,6 +137,10 @@ public class PlaybackService {
 
     // -- timer methods --
 
+    /**
+     * Allocates a recurring background thread schedule routine mapping out incremental progress ticks.
+     * Triggers safety termination automatically when progress matches the maximum track limits.
+     */
     public void startTimer() {
 
         if (this.getCurrentState() == PlaybackState.STOPPED) {
@@ -118,6 +161,9 @@ public class PlaybackService {
 
     }
 
+    /**
+     * Intercepts and stops ongoing background timer loop processes safely.
+     */
     public void stopTimer() {
         if (timerHandle != null && !timerHandle.isCancelled()) {
             // Stops the timer
@@ -125,8 +171,12 @@ public class PlaybackService {
         }
     }
 
+    /**
+     * Completely shuts down the internal executor pool service structures.
+     * Cleans up background threads safely upon application close boundaries.
+     */
     public void shutdownTimer() {
-       this.stop();
+        this.stop();
 
         if (timer != null && !timer.isShutdown()) {
             timer.shutdownNow();
@@ -135,42 +185,92 @@ public class PlaybackService {
 
     // --- getter & setter ---
 
+    /**
+     * Gets the track that is currently loaded into the playback engine.
+     *
+     * @return The active Track wrapper, or null if inactive.
+     */
     public Track getCurrentTrack() {
         return currentTrack;
     }
 
+    /**
+     * Explicitly sets the current track context reference pointer.
+     *
+     * @param currentTrack The target track reference.
+     */
     public void setCurrentTrack(Track currentTrack) {
         this.currentTrack = currentTrack;
     }
 
+    /**
+     * Gets the active operational execution state flag.
+     *
+     * @return The active PlaybackState status indicator.
+     */
     public PlaybackState getCurrentState() {
         return currentState;
     }
 
+    /**
+     * Explicitly overrides the system status playback operational flag.
+     *
+     * @param currentState The target updated PlaybackState status.
+     */
     public void setCurrentState(PlaybackState currentState) {
         this.currentState = currentState;
     }
 
+    /**
+     * Retrieves the structural counter tracking current tracking elapsed seconds.
+     *
+     * @return The atomic integer counter instance mapping active elapsed time.
+     */
     public AtomicInteger getSimulatedTimeSeconds() {
         return simulatedTimeSeconds;
     }
 
+    /**
+     * Injects an atomic progress tracking container counter wrapper reference.
+     *
+     * @param simulatedTimeSeconds The target progress index container reference.
+     */
     public void setSimulatedTimeSeconds(AtomicInteger simulatedTimeSeconds) {
         this.simulatedTimeSeconds = simulatedTimeSeconds;
     }
 
+    /**
+     * Returns the service manager instance scheduling background sequence tasks.
+     *
+     * @return The active ScheduledExecutorService engine reference handle.
+     */
     public ScheduledExecutorService getTimer() {
         return timer;
     }
 
+    /**
+     * Injects a specialized custom thread task executor scheduler onto the engine pipeline.
+     *
+     * @param timer The executor service infrastructure tool.
+     */
     public void setTimer(ScheduledExecutorService timer) {
         this.timer = timer;
     }
 
+    /**
+     * Returns the future task handle context tracking ongoing active loop sequences.
+     *
+     * @return The active ScheduledFuture tracking parameter, or null.
+     */
     public ScheduledFuture<?> getTimerHandle() {
         return timerHandle;
     }
 
+    /**
+     * Links a targeted feature handling token pointer context onto execution trackers.
+     *
+     * @param timerHandle The targeted scheduling track context loop descriptor.
+     */
     public void setTimerHandle(ScheduledFuture<?> timerHandle) {
         this.timerHandle = timerHandle;
     }
