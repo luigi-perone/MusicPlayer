@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
+import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.util.ArrayList;
@@ -13,7 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Service responsible for managing media playback simulation, state transitions,
  * background thread timer tasks, and notifying registered structural observers.
- * * @author Francesco Lemmo
+ * It provides core routing facilities for track navigation and queue progression.
+ *
+ * @author Francesco Lemmo
  */
 public class PlaybackService {
 
@@ -79,7 +82,6 @@ public class PlaybackService {
         for (PlaybackObserver obs : observers) obs.onStateChanged(newState);
     }
 
-
     // -- Playback methods --
 
     /**
@@ -135,6 +137,22 @@ public class PlaybackService {
         this.currentTrack = null;
     }
 
+    /**
+     * Skips forward to the next track available in the execution queue.
+     * If no next track exists, the playback engine stops.
+     */
+    public void nextTrack() {
+
+    }
+
+    /**
+     * Skips backward to the previous track available in the execution queue.
+     * If no previous track exists, restarts the current track execution from the beginning.
+     */
+    public void previousTrack() {
+
+    }
+
     // -- timer methods --
 
     /**
@@ -142,23 +160,20 @@ public class PlaybackService {
      * Triggers safety termination automatically when progress matches the maximum track limits.
      */
     public void startTimer() {
-
         if (this.getCurrentState() == PlaybackState.STOPPED) {
             this.simulatedTimeSeconds.set(0);
             notifyTimeTick(0);
         }
 
         this.timerHandle = this.timer.scheduleAtFixedRate(() -> {
-
             int currentTime = this.simulatedTimeSeconds.incrementAndGet();
             notifyTimeTick(currentTime);
 
             if (currentTime >= currentTrack.getDuration()) {
-                this.stop();
+                // Al termine del brano, passa automaticamente alla traccia successiva
+                javafx.application.Platform.runLater(this::nextTrack);
             }
-
         }, 1, 1, TimeUnit.SECONDS);
-
     }
 
     /**
@@ -166,7 +181,6 @@ public class PlaybackService {
      */
     public void stopTimer() {
         if (timerHandle != null && !timerHandle.isCancelled()) {
-            // Stops the timer
             timerHandle.cancel(false);
         }
     }

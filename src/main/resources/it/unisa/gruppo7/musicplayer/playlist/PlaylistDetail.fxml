@@ -26,10 +26,15 @@
             </HBox>
 
             <HBox spacing="10.0">
-                <Button mnemonicParsing="false" onAction="#onBackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="← Torna alla Libreria" />
-                <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #34c759; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="+ Aggiungi Traccia" />
-                <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Rimuovi Traccia" />
-                <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="🗑 Elimina Playlist" />
+                <Button mnemonicParsing="false" onAction="#onBackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="← Indietro" />
+
+                <Button mnemonicParsing="false" onAction="#onPlayPlaylistClick" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="▶ Riproduci" />
+
+                <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #b4a0ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="+ Aggiungi" />
+
+                <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="- Rimuovi" />
+
+                <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="🗑 Elimina" />
             </HBox>
         </VBox>
     </top>

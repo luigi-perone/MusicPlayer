@@ -14,6 +14,7 @@ import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -307,5 +308,13 @@ public class PlaylistDetailController implements PlaybackObserver {
         if (selectedTrack != null) {
             CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));
         }
+    }
+
+    /**
+     * Starts the sequential playback of all tracks in the playlist.
+     * Method called by pressing the "Play" button in the FXML interface.
+     */
+    public void onPlayPlaylistClick(ActionEvent actionEvent) {
+
     }
 }
