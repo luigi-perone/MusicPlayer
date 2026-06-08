@@ -8,12 +8,16 @@ import java.time.Year;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
+ * Unit test suite for the {@link Track} class.
+ * Validates track creation constraints, attribute validation rules, and exception handling boundaries.
  *
- * @author francescoLemmo
+ * @author Francesco Lemmo
  */
-
 public class TrackTest {
 
+    /**
+     * Verifies that a track is correctly initialized when provided with valid parameters.
+     */
     @Test
     public void testCorrectTrackCreation() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -25,6 +29,9 @@ public class TrackTest {
         assertEquals(Year.of(1983), track.getPublicationYear());
     }
 
+    /**
+     * Verifies that attempting to create a track with an empty or null title throws an exception.
+     */
     @Test
     public void testNoTitleThrowsException() {
         assertThrows(Exception.class, () -> {
@@ -36,6 +43,9 @@ public class TrackTest {
         });
     }
 
+    /**
+     * Verifies that providing an invalid or future publication year throws an {@link IllegalArgumentException}.
+     */
     @Test
     public void testWrongYearThrowsException() {
         assertThrows(IllegalArgumentException.class, () -> {
@@ -43,6 +53,9 @@ public class TrackTest {
         });
     }
 
+    /**
+     * Verifies that specifying a negative duration value throws an {@link IllegalArgumentException}.
+     */
     @Test
     public void testNegativeDurationThrowsException() {
         assertThrows(IllegalArgumentException.class, () -> {

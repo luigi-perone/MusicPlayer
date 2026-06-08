@@ -15,27 +15,47 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit test suite for the {@link PlaylistService} class.
+ * Validates playlist lifecycle actions including creation, name validation,
+ * safe deletion, structural renaming, track consistency, and JSON disk persistence.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
+ */
 class PlaylistServiceTest {
 
     @TempDir
     Path tempDir;
     private PlaylistService service;
 
+    /**
+     * Initializes a new isolated state context before each test method execution.
+     * Creates a temporary file to separate testing persistence IO operations.
+     */
     @BeforeEach
     void setUp() {
         Path tempFile = tempDir.resolve("isolated-test-playlists.json");
         service = new PlaylistService(tempFile.toString());
     }
 
+    /**
+     * Test scenarios verifying playlist creation when valid names are supplied.
+     */
     @Nested
     class WithValidName {
 
+        /**
+         * Verifies that a valid playlist name successfully increases the collection size.
+         */
         @Test
         void playlistIsAddedToCollection() {
             service.createPlaylist("My Playlist");
             assertEquals(1, service.getPlaylists().size());
         }
 
+        /**
+         * Assures that the assigned playlist name perfectly matches the original input data.
+         */
         @Test
         void playlistHasGivenName() {
             service.createPlaylist("My Playlist");
@@ -43,27 +63,43 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Test scenarios verifying rejection behavior when blank, empty, or null inputs are provided.
+     */
     @Nested
     class WithEmptyName {
 
+        /**
+         * Checks that an empty string input prompts an IllegalArgumentException.
+         */
         @Test
         void throwsExceptionForEmptyString() {
             assertThrows(IllegalArgumentException.class, () ->
                     service.createPlaylist(""));
         }
 
+        /**
+         * Checks that a null reference value prompts an IllegalArgumentException.
+         */
         @Test
         void throwsExceptionForNullName() {
             assertThrows(IllegalArgumentException.class, () ->
                     service.createPlaylist(null));
         }
 
+        /**
+         * Checks that white space strings prompt an IllegalArgumentException.
+         */
         @Test
         void throwsExceptionForWhitespaceName() {
             assertThrows(IllegalArgumentException.class, () ->
                     service.createPlaylist("   "));
         }
 
+        /**
+         * Guarantees the internal playlist collection data array remains unchanged
+         * after a failed validation attempt.
+         */
         @Test
         void playlistIsNotAdded() {
             try { service.createPlaylist(""); } catch (IllegalArgumentException ignored) {}
@@ -71,20 +107,32 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Test scenarios evaluating duplicate constraint enforcement behaviors.
+     */
     @Nested
     class WithDuplicateName {
 
+        /**
+         * Sets up a baseline collision name condition within the environment.
+         */
         @BeforeEach
         void existingPlaylist() {
             service.createPlaylist("My Playlist");
         }
 
+        /**
+         * Assures an IllegalArgumentException triggers if a matching name string is submitted again.
+         */
         @Test
         void throwsExceptionForDuplicateName() {
             assertThrows(IllegalArgumentException.class, () ->
                     service.createPlaylist("My Playlist"));
         }
 
+        /**
+         * Confirms that duplicate creation actions do not duplicate record structures.
+         */
         @Test
         void duplicateIsNotAdded() {
             try { service.createPlaylist("My Playlist"); } catch (IllegalArgumentException ignored) {}
@@ -92,39 +140,60 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Comprehensive test suite validating playlist deletion routines.
+     */
     @Nested
     class DeletePlaylist {
 
         private Playlist myPlaylist;
         private Playlist anotherPlaylist;
 
+        /**
+         * Seeds initial dummy records to process deletion transitions.
+         */
         @BeforeEach
         void existingPlaylist() {
             myPlaylist      = service.createPlaylist("My Playlist");
             anotherPlaylist = service.createPlaylist("Another Playlist");
         }
 
+        /**
+         * Core deletion validations for verified tracked records.
+         */
         @Nested
         class WithValidPlaylist {
 
+            /**
+             * Assures successful execution yields an empty Optional error indicator.
+             */
             @Test
             void returnsEmptyOptional() {
                 Optional<String> error = service.deletePlaylist(myPlaylist);
                 assertFalse(error.isPresent());
             }
 
+            /**
+             * Assures the registry array down-sizes correctly following record deletion.
+             */
             @Test
             void playlistIsRemovedFromCollection() {
                 service.deletePlaylist(myPlaylist);
                 assertEquals(1, service.getPlaylists().size());
             }
 
+            /**
+             * Confirms only the explicitly targeted record instance gets pruned away.
+             */
             @Test
             void correctPlaylistIsRemoved() {
                 service.deletePlaylist(myPlaylist);
                 assertEquals("Another Playlist", service.getPlaylists().get(0).getName());
             }
 
+            /**
+             * Verifies that removing all sequential entities cleans the storage mapping space entirely.
+             */
             @Test
             void deletingLastPlaylistLeavesEmptyCollection() {
                 service.deletePlaylist(myPlaylist);
@@ -133,9 +202,15 @@ class PlaylistServiceTest {
             }
         }
 
+        /**
+         * Safety validations protecting structural track entities during playlist cleanup tasks.
+         */
         @Nested
         class TracksIntegrity {
 
+            /**
+             * Assures that wiping playlist A leaves common shared tracks untouched inside playlist B.
+             */
             @Test
             void deletingPlaylistDoesNotRemoveTracksSharedWithOtherPlaylists() {
                 Playlist playlistA = service.createPlaylist("Playlist A");
@@ -150,6 +225,10 @@ class PlaylistServiceTest {
                 assertTrue(tracksInB.contains(track));
             }
 
+            /**
+             * Verifies that deleting a populated playlist profile does not purge its constituent
+             * tracks from the global system music library repository.
+             */
             @Test
             void deletingPopulatedPlaylistKeepsTracksInLibrary() {
                 Playlist playlist = service.createPlaylist("Playlist");
@@ -163,15 +242,24 @@ class PlaylistServiceTest {
             }
         }
 
+        /**
+         * Edge-case validations handling null pointer requests gracefully.
+         */
         @Nested
         class WithNullPlaylist {
 
+            /**
+             * Assures a diagnostic error logging feedback string returns on a null request.
+             */
             @Test
             void returnsErrorForNullPlaylist() {
                 Optional<String> error = service.deletePlaylist(null);
                 assertTrue(error.isPresent());
             }
 
+            /**
+             * Guarantees data arrays remain unmodified upon incoming null parameters.
+             */
             @Test
             void collectionIsUnchangedForNullPlaylist() {
                 service.deletePlaylist(null);
@@ -179,9 +267,15 @@ class PlaylistServiceTest {
             }
         }
 
+        /**
+         * Edge-case validations handling unmanaged playlist references.
+         */
         @Nested
         class WithNonExistentPlaylist {
 
+            /**
+             * Assures an error message generates when processing an unmapped record reference.
+             */
             @Test
             void returnsError() {
                 Playlist ghost = new Playlist("Ghost Playlist", null);
@@ -189,6 +283,9 @@ class PlaylistServiceTest {
                 assertTrue(error.isPresent());
             }
 
+            /**
+             * Assures registry parameters stay perfectly static under unknown execution contexts.
+             */
             @Test
             void collectionIsUnchanged() {
                 Playlist ghost = new Playlist("Ghost Playlist", null);
@@ -197,6 +294,9 @@ class PlaylistServiceTest {
             }
         }
 
+        /**
+         * Validates IO file persistence interaction consistency for deletion transactions.
+         */
         @Nested
         class Persistence {
 
@@ -206,6 +306,9 @@ class PlaylistServiceTest {
             private PlaylistService persistenceService;
             private Path tempFile;
 
+            /**
+             * Pre-loads an explicit physical JSON disk state before verifying update loads.
+             */
             @BeforeEach
             void setUpTempFile() {
                 tempFile = tempDir.resolve("test-playlists.json");
@@ -215,6 +318,9 @@ class PlaylistServiceTest {
                 persistenceService.save();
             }
 
+            /**
+             * Verifies a deleted profile configuration is not restored after a reload.
+             */
             @Test
             void deletedPlaylistIsNotRestoredAfterReload() {
                 Playlist toDelete = persistenceService.getPlaylist("To Delete");
@@ -227,6 +333,9 @@ class PlaylistServiceTest {
                 assertEquals("To Keep", reloaded.getPlaylists().get(0).getName());
             }
 
+            /**
+             * Ensures non-deleted tracking profiles remain intact after loading data.
+             */
             @Test
             void survivingPlaylistIsStillPresentAfterReload() {
                 Playlist toDelete = persistenceService.getPlaylist("To Delete");
@@ -240,18 +349,27 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Test scenarios evaluating renaming operation boundaries and conditions.
+     */
     @Nested
     class RenamePlaylist {
 
         private Playlist oldPlaylist;
         private Playlist anotherPlaylist;
 
+        /**
+         * Generates target test fields for naming mutation operations.
+         */
         @BeforeEach
         void existingPlaylists() {
             oldPlaylist     = service.createPlaylist("Old Name");
             anotherPlaylist = service.createPlaylist("Another Playlist");
         }
 
+        /**
+         * Verifies a standard valid title mutation processes correctly.
+         */
         @Test
         void successfulRename() {
             Optional<String> error = service.renamePlaylist(oldPlaylist, "New Name");
@@ -261,6 +379,9 @@ class PlaylistServiceTest {
             assertNotNull(service.getPlaylist("New Name"));
         }
 
+        /**
+         * Confirms title update requests containing null are blocked with error responses.
+         */
         @Test
         void returnsErrorForNullNewName() {
             Optional<String> error = service.renamePlaylist(oldPlaylist, null);
@@ -268,6 +389,9 @@ class PlaylistServiceTest {
             assertEquals("Old Name", oldPlaylist.getName());
         }
 
+        /**
+         * Confirms title update requests containing empty whitespaces are rejected.
+         */
         @Test
         void returnsErrorForEmptyNewName() {
             Optional<String> error = service.renamePlaylist(oldPlaylist, "   ");
@@ -275,6 +399,9 @@ class PlaylistServiceTest {
             assertEquals("Old Name", oldPlaylist.getName());
         }
 
+        /**
+         * Confirms rename attempts directed at external unmanaged references are rejected.
+         */
         @Test
         void returnsErrorIfPlaylistNotManaged() {
             Playlist external = new Playlist("Non Existent", null);
@@ -282,12 +409,18 @@ class PlaylistServiceTest {
             assertTrue(error.isPresent());
         }
 
+        /**
+         * Verifies renaming to the exact same value acts as a safe, error-free no-op.
+         */
         @Test
         void returnsEmptyOptionalIfNamesAreIdentical() {
             Optional<String> error = service.renamePlaylist(oldPlaylist, "Old Name");
             assertFalse(error.isPresent());
         }
 
+        /**
+         * Confirms that a name change conflict with an existing playlist returns an error.
+         */
         @Test
         void returnsErrorIfNewNameAlreadyExists() {
             Optional<String> error = service.renamePlaylist(oldPlaylist, "Another Playlist");
@@ -295,6 +428,9 @@ class PlaylistServiceTest {
             assertEquals("Old Name", oldPlaylist.getName());
         }
 
+        /**
+         * Validates persistence synchronization states across renaming transactions.
+         */
         @Nested
         class Persistence {
 
@@ -304,6 +440,9 @@ class PlaylistServiceTest {
             private PlaylistService persistenceService;
             private Path tempFile;
 
+            /**
+             * Saves baseline structure entries to disc.
+             */
             @BeforeEach
             void setUpTempFile() {
                 tempFile = tempDir.resolve("test-rename-playlists.json");
@@ -312,6 +451,9 @@ class PlaylistServiceTest {
                 persistenceService.save();
             }
 
+            /**
+             * Assures the new name maps correctly onto persistence records upon system reload.
+             */
             @Test
             void renamedPlaylistIsRestoredAfterReload() {
                 Playlist toRename = persistenceService.getPlaylist("Old Name");
@@ -327,6 +469,9 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Verification suite handling disk IO read and write integration operations.
+     */
     @Nested
     class Persistence {
 
@@ -336,12 +481,18 @@ class PlaylistServiceTest {
         private PlaylistService persistenceService;
         private Path tempFile;
 
+        /**
+         * Assigns localized isolated disk resource endpoints.
+         */
         @BeforeEach
         void setUpTempFile() {
             tempFile = tempDir.resolve("test-playlists.json");
             persistenceService = new PlaylistService(tempFile.toString());
         }
 
+        /**
+         * Assures saving a model profile generates a valid file on disk.
+         */
         @Test
         void saveWritesFileToDisk() {
             persistenceService.createPlaylist("My Playlist");
@@ -349,6 +500,9 @@ class PlaylistServiceTest {
             assertTrue(Files.exists(tempFile));
         }
 
+        /**
+         * Verifies that attempting to load a non-existent file completes safely without errors.
+         */
         @Test
         void loadDoesNothingIfFileDoesNotExist() {
             Path nonExisting = tempDir.resolve("does-not-exist.json");
@@ -357,6 +511,9 @@ class PlaylistServiceTest {
             assertEquals(0, s.getPlaylists().size());
         }
 
+        /**
+         * Validates full structural data recovery during serialized storage read phases.
+         */
         @Test
         void savePlaylistIsRestoredAfterReload() {
             persistenceService.createPlaylist("Test");
@@ -370,6 +527,9 @@ class PlaylistServiceTest {
         }
     }
 
+    /**
+     * Verifies system boundaries when deleting tracks from playlist entities.
+     */
     @Nested
     class RemoveTrackFromPlaylist {
 
@@ -377,6 +537,9 @@ class PlaylistServiceTest {
         private Playlist playlistA;
         private Playlist playlistB;
 
+        /**
+         * populates testing playlists with shared tracks.
+         */
         @BeforeEach
         void setUp() {
             playlistA = service.createPlaylist("Playlist A");
@@ -392,6 +555,9 @@ class PlaylistServiceTest {
             playlistB.addTrack(sharedTrack);
         }
 
+        /**
+         * Assures removing a track from a playlist does not remove it from the global music library.
+         */
         @Test
         void removingTrackFromOnePlaylistKeepsItInLibrary() {
             playlistA.removeTrack(sharedTrack);
@@ -403,6 +569,9 @@ class PlaylistServiceTest {
                     "Track must still be available in the library");
         }
 
+        /**
+         * Assures dropping a track out of playlist A leaves playlist B completely untouched.
+         */
         @Test
         void removingTrackFromOnePlaylistKeepsItInOtherPlaylists() {
             playlistA.removeTrack(sharedTrack);

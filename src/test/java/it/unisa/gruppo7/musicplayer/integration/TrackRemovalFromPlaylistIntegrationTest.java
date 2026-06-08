@@ -16,13 +16,16 @@ import java.util.NoSuchElementException;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration test for US-010.
+ * Integration test for User Story US-010.
  *
  * Verifies that removing a track from a playlist:
- *   1. Decreases the playlist track count.
- *   2. Leaves the track untouched in the library.
+ * 1. Decreases the playlist track count.
+ * 2. Leaves the track completely untouched inside the global library.
  *
- * Also verifies that cancelling the removal produces no side effects.
+ * Also verifies that cancelling the removal workflow produces no side effects,
+ * and that sibling tracks are preserved.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class TrackRemovalFromPlaylistIntegrationTest {
 
@@ -33,6 +36,10 @@ public class TrackRemovalFromPlaylistIntegrationTest {
 
     private static final String PLAYLIST_NAME = "Test Playlist";
 
+    /**
+     * Pre-populates the environment with test tracks, sets up a temporary playlist,
+     * and links tracks to establish baseline conditions.
+     */
     @BeforeEach
     public void setUp() {
         facade          = MusicPlayerFacade.getInstance();
@@ -56,6 +63,10 @@ public class TrackRemovalFromPlaylistIntegrationTest {
         assertEquals(2, result.getAdded(), "Setup: both tracks should have been added");
     }
 
+    /**
+     * Verifies that track removal drops the item from the playlist container and decrements
+     * total tracks, while preserving the track instance inside the library.
+     */
     @Test
     public void testRemovalDecreasesCountAndPreservesLibraryTrack() {
         assertTrue(testPlaylist.getPlaylist().contains(track),
@@ -76,6 +87,10 @@ public class TrackRemovalFromPlaylistIntegrationTest {
                 "Track must still exist in the library after playlist removal");
     }
 
+    /**
+     * Assures that when a removal operation is skipped or cancelled,
+     * no structural side effects alter the library or playlist contents.
+     */
     @Test
     public void testCancelRemovalProducesNoSideEffects() {
         int countBefore   = testPlaylist.getTrackCount();
@@ -94,6 +109,10 @@ public class TrackRemovalFromPlaylistIntegrationTest {
                 "Track must still exist in the library when removal is cancelled");
     }
 
+    /**
+     * Verifies that removing a specific track does not accidentally remove or affect
+     * neighboring sibling tracks mapped inside the same playlist.
+     */
     @Test
     public void testSiblingTrackRemainsInPlaylistAfterRemoval() {
         Track sibling = facade.getTracksFromLibrary().stream()

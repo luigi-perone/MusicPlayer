@@ -13,11 +13,23 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration test suite validating the cascading effects of track deletion.
+ * Verifies that when a track is deleted from the global library, it is automatically
+ * removed from all playlists containing it.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
+ */
 public class TrackDeletionIntegrationTest {
 
     private MusicPlayerFacade facade;
     private Track track;
 
+    /**
+     * Sets up the integration testing environment before each test case.
+     * Resets the library and playlists, adds a sample track to the library,
+     * and maps it into a newly created test playlist.
+     */
     @BeforeEach
     public void setUp() {
         facade = MusicPlayerFacade.getInstance();
@@ -32,12 +44,16 @@ public class TrackDeletionIntegrationTest {
                 .findFirst()
                 .orElseThrow(NoSuchElementException::new);
 
-        Playlist playlist=facade.createPlaylist("My Playlist");
+        Playlist playlist = facade.createPlaylist("My Playlist");
         List<Track> list = new ArrayList<>();
         list.add(track);
         facade.getPlaylistService().addTracksToPlaylist(playlist, list);
     }
 
+    /**
+     * Tests that removing a track from the central library successfully cascades
+     * and purges it from any associated user playlists.
+     */
     @Test
     public void testTrackDeletionCascadesToPlaylists() {
         Playlist playlist = facade.getPlaylist("My Playlist");

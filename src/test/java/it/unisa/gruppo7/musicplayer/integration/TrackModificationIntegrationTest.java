@@ -12,6 +12,13 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration test suite validating track modification propagation and validation boundaries.
+ * Verifies that valid track metadata changes correctly reflect inside playlists,
+ * and invalid modifications are strictly rejected.
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
+ */
 public class TrackModificationIntegrationTest {
 
     private Library library;
@@ -19,6 +26,10 @@ public class TrackModificationIntegrationTest {
     private Track track;
     private final String TEST_PLAYLIST_PATH = "data/test-playlist.json";
 
+    /**
+     * Resets the data collections and inserts a baseline track into the library
+     * before each test execution.
+     */
     @BeforeEach
     public void setUp() {
         library = Library.getInstance();
@@ -31,6 +42,10 @@ public class TrackModificationIntegrationTest {
         library.addTrack(track);
     }
 
+    /**
+     * Verifies that a valid metadata modification updates the track fields
+     * and that the changes are visible through references inside playlists.
+     */
     @Test
     public void testValidModificationPropagatesToPlaylist() {
         Playlist playlist = playlistService.createPlaylist("Test Playlist");
@@ -45,6 +60,10 @@ public class TrackModificationIntegrationTest {
         assertEquals(250, trackInPlaylist.getDuration());
     }
 
+    /**
+     * Assures that attempting to modify a track with an empty title is blocked
+     * by an {@link IllegalArgumentException} and the original metadata is preserved.
+     */
     @Test
     public void testModificationWithEmptyTitleIsBlocked() {
         assertThrows(IllegalArgumentException.class, () -> {
@@ -54,6 +73,10 @@ public class TrackModificationIntegrationTest {
         assertEquals("Original Title", track.getTitle());
     }
 
+    /**
+     * Assures that modifying a track with a publication year set in the future is blocked
+     * and leaves the original track state untouched.
+     */
     @Test
     public void testModificationWithFutureYearIsBlocked() {
         Year futureYear = Year.now().plusYears(1);
