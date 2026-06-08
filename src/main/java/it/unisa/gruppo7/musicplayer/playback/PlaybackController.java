@@ -3,11 +3,19 @@ package it.unisa.gruppo7.musicplayer.playback;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.VBox;
 
 import java.time.Year;
 
@@ -31,6 +39,8 @@ public class PlaybackController implements PlaybackObserver {
     @FXML private Label trackDurationLabel;
     @FXML private Label trackTitleLabel;
     @FXML private Label trackYearLabel;
+    @FXML private ListView<Track> queueListView;
+    @FXML private VBox queuePanel;
 
     private Track currentTrack;
     private MusicPlayerFacade musicPlayer;
@@ -43,6 +53,31 @@ public class PlaybackController implements PlaybackObserver {
     public void initialize() {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
+        queueListView.setCellFactory(param -> new ListCell<Track>() {
+            @Override
+            protected void updateItem(Track item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getTitle() + " - " + item.getAuthor());
+                }
+            }
+        });
+
+        queueListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                Track selectedTrack = queueListView.getSelectionModel().getSelectedItem();
+                if (selectedTrack != null) {
+                    musicPlayer.playFromQueue(selectedTrack);
+                }
+            }
+        });
+
+        ObservableList<Track> items = FXCollections.observableArrayList(
+            musicPlayer.getPlaybackService().getQueue().getTracks()
+        );
+        queueListView.setItems(items);
     }
 
     /**
@@ -74,7 +109,7 @@ public class PlaybackController implements PlaybackObserver {
      */
     @FXML
     void onNextTrack(ActionEvent event) {
-
+        musicPlayer.getPlaybackService().playNext();
     }
 
     /**
@@ -85,7 +120,7 @@ public class PlaybackController implements PlaybackObserver {
      */
     @FXML
     void onPreviousTrack(ActionEvent event) {
-
+        musicPlayer.getPlaybackService().playPrevious();
     }
 
     /**
@@ -96,7 +131,20 @@ public class PlaybackController implements PlaybackObserver {
      */
     @FXML
     void onToggleQueue(ActionEvent event) {
-
+        System.out.println("Bottone coda cliccato!");
+        
+        if (queuePanel != null) {
+            boolean isNowVisible = !queuePanel.isVisible();
+            queuePanel.setVisible(isNowVisible);
+            queuePanel.setManaged(isNowVisible);
+            
+            if (isNowVisible) {
+                System.out.println("Aggiorno la lista dei brani...");
+                queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
+            }
+        } else {
+            System.out.println("ERRORE CRITICO: queuePanel è NULL. L'fx:id nell'FXML non corrisponde!");
+        }
     }
 
     /**

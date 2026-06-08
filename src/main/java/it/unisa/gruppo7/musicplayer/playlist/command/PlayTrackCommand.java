@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist.command;
 
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
@@ -11,6 +12,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
  */
 public class PlayTrackCommand implements Command<Void> {
     private final MusicPlayerFacade facade;
+    private final Playlist playlist;
     private final Track track;
 
     /**
@@ -19,8 +21,9 @@ public class PlayTrackCommand implements Command<Void> {
      * @param facade The facade interface of the music player.
      * @param track  The track to play.
      */
-    public PlayTrackCommand(MusicPlayerFacade facade, Track track) {
+    public PlayTrackCommand(MusicPlayerFacade facade, Playlist playlist, Track track) {
         this.facade = facade;
+        this.playlist = playlist;
         this.track = track;
     }
 
@@ -32,7 +35,7 @@ public class PlayTrackCommand implements Command<Void> {
     @Override
     public Void execute() {
         if (track != null) {
-            facade.playTrack(track);
+            facade.playFromPlaylistFrom(playlist, track);
         }
         return null;
     }

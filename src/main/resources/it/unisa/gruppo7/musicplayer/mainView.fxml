@@ -14,9 +14,7 @@
                 <fx:include source="LibraryView.fxml" fx:id="library"/>
             </center>
             <bottom>
-                <HBox prefHeight="100.0" prefWidth="200.0">
-                    <fx:include source="playback/PlaybackView.fxml" fx:id="playback" />
-                </HBox>
+                <fx:include source="playback/PlaybackView.fxml" fx:id="playback" />
             </bottom>
         </BorderPane>
 

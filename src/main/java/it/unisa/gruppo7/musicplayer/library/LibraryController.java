@@ -1,7 +1,6 @@
 package it.unisa.gruppo7.musicplayer.library;
 
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
-import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
@@ -105,7 +104,7 @@ public class LibraryController implements PlaybackObserver {
             };
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    musicPlayer.playTrack(row.getItem());
+                    musicPlayer.playFromLibraryFrom(row.getItem());
                 }
             });
             return row;
@@ -312,7 +311,7 @@ public class LibraryController implements PlaybackObserver {
     @FXML
     private void onPlayTrackClick() {
         Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
-        MusicPlayerFacade.getInstance().playTrack(selectedTrack);
+        musicPlayer.playFromLibraryFrom(selectedTrack);
     }
 
     /**

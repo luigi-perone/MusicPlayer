@@ -1,6 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
-import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.util.ArrayList;
@@ -18,10 +18,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Francesco Lemmo
  */
-public class PlaybackService {
+public class PlaybackService implements TrackObserver{
 
     private Track currentTrack;
     private PlaybackState currentState;
+    private PlaybackList queue;
     private AtomicInteger simulatedTimeSeconds;
 
     // Service for background time
@@ -41,6 +42,7 @@ public class PlaybackService {
         this.currentState = PlaybackState.STOPPED;
         this.simulatedTimeSeconds = new AtomicInteger(0);
         this.timer = Executors.newScheduledThreadPool(1);
+        this.queue = new PlaybackList();
         this.observers = new ArrayList<>();
     }
 
@@ -137,21 +139,54 @@ public class PlaybackService {
         this.currentTrack = null;
     }
 
-    /**
-     * Skips forward to the next track available in the execution queue.
-     * If no next track exists, the playback engine stops.
-     */
-    public void nextTrack() {
+    public void playNext() {
+        Track nextTrack = this.queue.getNextTrack(this.currentTrack); 
 
+        if (nextTrack != null) {
+            this.play(nextTrack);
+        } else {
+            this.stop();
+        }
     }
 
-    /**
-     * Skips backward to the previous track available in the execution queue.
-     * If no previous track exists, restarts the current track execution from the beginning.
-     */
-    public void previousTrack() {
-
+    public void playPrevious() {
+        if (this.queue == null || this.queue.getTracks().isEmpty()) {
+            return;
+        }
+        if (this.currentTrack == null) {
+            List<Track> tracks = new ArrayList<>(this.queue.getTracks());
+            Track lastTrack = tracks.get(tracks.size() - 1);
+            this.play(lastTrack);
+            return;
+        }
+        Track previousTrack = this.queue.getPreviousTrack(this.currentTrack);
+        
+        if (previousTrack != null) {
+            this.play(previousTrack);
+        } else {
+            this.play(this.currentTrack);
+        }
     }
+
+    public void playFromQueue(Track track) {
+        this.play(track);
+    }   
+
+    public void loadSource(List<Track> tracks) {
+        this.queue.loadTracks(tracks);
+        if (!tracks.isEmpty()) {
+            this.play(tracks.get(0));
+        }
+    }
+
+    public void loadSourceFrom(List<Track> tracks, Track startFrom) {
+        this.queue.loadTracks(tracks);
+        this.play(startFrom);
+    }
+
+    public void appendSource(List<Track> tracks) {
+        this.queue.appendTracks(tracks);
+    }   
 
     // -- timer methods --
 
@@ -170,8 +205,7 @@ public class PlaybackService {
             notifyTimeTick(currentTime);
 
             if (currentTime >= currentTrack.getDuration()) {
-                // Al termine del brano, passa automaticamente alla traccia successiva
-                javafx.application.Platform.runLater(this::nextTrack);
+                this.playNext();
             }
         }, 1, 1, TimeUnit.SECONDS);
     }
@@ -198,6 +232,10 @@ public class PlaybackService {
     }
 
     // --- getter & setter ---
+
+    public PlaybackList getQueue() {
+        return this.queue;
+    }
 
     /**
      * Gets the track that is currently loaded into the playback engine.
@@ -287,5 +325,14 @@ public class PlaybackService {
      */
     public void setTimerHandle(ScheduledFuture<?> timerHandle) {
         this.timerHandle = timerHandle;
+    }
+
+    @Override
+    public void onTrackDeleted(Track track) {
+        if(this.currentTrack != null && this.currentTrack.equals(track)){
+            this.stop();
+        }
+
+        this.queue.removeTrack(track);
     }
 }

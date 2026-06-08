@@ -64,4 +64,8 @@ public abstract class TrackCollection {
     public Collection<Track> getTracks() {
         return tracks;
     }
+
+    public void clear() {
+        this.tracks.clear();
+    }
 }

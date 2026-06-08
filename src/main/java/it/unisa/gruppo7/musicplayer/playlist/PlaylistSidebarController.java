@@ -5,15 +5,20 @@ import java.util.function.Consumer;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
+import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 
 /**
@@ -87,9 +92,35 @@ public class PlaylistSidebarController {
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("row");
 
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem playItem = new MenuItem("Riproduci");
+        playItem.setOnAction(e -> {
+            try {
+                MusicPlayerFacade.getInstance().playFromPlaylist(playlist);
+            } catch (IllegalArgumentException ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Errore");
+                alert.setHeaderText(null);
+                alert.setContentText(ex.getMessage());
+                alert.showAndWait();
+            }
+        });
+
+        MenuItem appendItem = new MenuItem("Aggiungi a coda");
+        appendItem.setOnAction(e -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist));
+
+        contextMenu.getItems().addAll(playItem, appendItem);
+
         row.setOnMouseClicked(e -> {
-            if (onPlaylistSelected != null) {
-                onPlaylistSelected.accept(playlist);
+            if (e.getButton() == MouseButton.PRIMARY) {
+                contextMenu.hide();
+                if (onPlaylistSelected != null) {
+                    onPlaylistSelected.accept(playlist);
+                }
+            }
+            if (e.getButton() == MouseButton.SECONDARY) {
+                contextMenu.show(row, e.getScreenX(), e.getScreenY());
             }
         });
 

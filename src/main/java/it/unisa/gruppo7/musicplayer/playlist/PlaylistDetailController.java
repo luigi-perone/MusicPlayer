@@ -141,8 +141,8 @@ public class PlaylistDetailController implements PlaybackObserver {
                 durationColumn, indexColumn, facade
         );
         configurator.configure(
-                playingTrack,
-                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, track))
+            playingTrack,
+            (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade,currentPlaylist, track))
         );
 
         RenameHandler renameHandler = new RenameHandler(
@@ -306,7 +306,7 @@ public class PlaylistDetailController implements PlaybackObserver {
     private void onPlayTrackClick() {
         Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
         if (selectedTrack != null) {
-            CommandInvoker.execute(new PlayTrackCommand(facade, selectedTrack));
+            CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, selectedTrack));
         }
     }
 

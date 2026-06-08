@@ -37,6 +37,7 @@ public class MusicPlayerFacade {
         this.playlistService = new PlaylistService();
         this.playbackService = new PlaybackService();
         this.addObserver(this.playlistService);
+        this.addObserver(this.playbackService);
     }
 
     /**
@@ -291,6 +292,40 @@ public class MusicPlayerFacade {
      */
     public void resumeTrack() {
         playbackService.resume();
+    }
+
+    public void playFromLibrary() {
+        List<Track> tracks = new ArrayList<>(library.getTracks());
+        playbackService.loadSource(tracks);
+    }
+
+    public void playFromPlaylist(Playlist playlist) {
+        if (playlist.getTracks().isEmpty()) {
+            throw new IllegalArgumentException("La playlist \"" + playlist.getName() + "\" non contiene brani.");
+        }
+        List<Track> tracks = new ArrayList<>(playlist.getTracks());
+        playbackService.loadSource(tracks);
+    }
+
+    public void appendPlaylistToQueue(Playlist playlist) {
+        List<Track> tracks = new ArrayList<>(playlist.getTracks());
+        playbackService.appendSource(tracks);
+    }
+
+    public void playFromLibraryFrom(Track track) {
+        List<Track> tracks = new ArrayList<>(library.getTracks());
+        System.out.println("Tracks from library: " + tracks.size());
+        playbackService.loadSourceFrom(tracks, track);
+        System.out.println("Queue after load: " + playbackService.getQueue().getTrackCount());
+    }
+
+    public void playFromPlaylistFrom(Playlist playlist, Track track) {
+        List<Track> tracks = new ArrayList<>(playlist.getTracks());
+        playbackService.loadSourceFrom(tracks, track);
+    }
+
+    public void playFromQueue(Track track) {
+        playbackService.playFromQueue(track);
     }
 
     /**
