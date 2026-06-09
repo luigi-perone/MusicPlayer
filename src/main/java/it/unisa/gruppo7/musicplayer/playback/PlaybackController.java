@@ -29,7 +29,7 @@ import java.time.Year;
  */
 public class PlaybackController implements PlaybackObserver {
     private static final String SHUFFLE_ACTIVE_CLASS = "player-button-active";
-
+    private static final String LOOP_ACTIVE_CLASS = "player-button-active";
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
     @FXML private Button prevButton;
@@ -43,7 +43,7 @@ public class PlaybackController implements PlaybackObserver {
     @FXML private ListView<Track> queueListView;
     @FXML private VBox queuePanel;
     @FXML private Button shuffleButton;
-    @FXML private Button loopButton;
+    @FXML private Button repeatButton;
 
 
     private Track currentTrack;
@@ -83,6 +83,7 @@ public class PlaybackController implements PlaybackObserver {
         );
         queueListView.setItems(items);
         updateShuffleButtonState();
+        updateRepeatButtonState();
     }
 
     /**
@@ -163,11 +164,13 @@ public class PlaybackController implements PlaybackObserver {
         // queue view update
         queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
         updateShuffleButtonState();
+        
     }
 
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
+        updateRepeatButtonState();
     }
 
 
@@ -180,6 +183,21 @@ public class PlaybackController implements PlaybackObserver {
             shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
         }
 
+    }
+
+    private void updateRepeatButtonState() {
+        RepeatMode repeatMode = musicPlayer.getCurrentRepeatMode();
+        repeatButton.getStyleClass().remove(LOOP_ACTIVE_CLASS);
+
+        if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
+            repeatButton.setText("↻");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else if (repeatMode == RepeatMode.REPEAT_ONE) {
+            repeatButton.setText("↻1");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else {
+            repeatButton.setText("↺");
+        }
     }
     /**
      * Updates the time counter label and recalculates the progress bar percentage ratio
