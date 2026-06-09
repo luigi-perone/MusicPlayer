@@ -137,6 +137,95 @@ class PlaybackTest {
             assertNull(playbackList.getPreviousTrack(unknown));
         }
     }
+    
+    @Nested
+    class WhenReadingUpNextQueue {
+
+        @BeforeEach
+        void load() {
+            playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+        }
+
+        @Test
+        void getUpNextQueueFromFirstReturnsFollowingTracks() {
+            assertEquals(
+                Arrays.asList(trk2, trk3),
+                playbackList.getUpNextQueue(trk1)
+            );
+        }
+
+        @Test
+        void getUpNextQueueFromLastReturnsEmptyList() {
+            assertTrue(playbackList.getUpNextQueue(trk3).isEmpty());
+        }
+
+        @Test
+        void getUpNextQueueFromUnknownTrackReturnsEmptyList() {
+            Track unknown = new Track("Unknown", "Unknown", 100, "Pop", Year.of(2000));
+            assertTrue(playbackList.getUpNextQueue(unknown).isEmpty());
+        }
+
+        @Test
+        void getUpNextQueueFromNullTrackReturnsEmptyList() {
+            assertTrue(playbackList.getUpNextQueue(null).isEmpty());
+        }
+    }
+
+    @Nested
+    class WhenShufflingQueue {
+
+        @BeforeEach
+        void load() {
+            playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+        }
+
+        @Test
+        void shuffleIsInactiveByDefault() {
+            assertFalse(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void setShuffleTrueActivatesShuffleMode() {
+            playbackList.setShuffle(true, trk1);
+
+            assertTrue(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void setShuffleFalseDeactivatesShuffleMode() {
+            playbackList.setShuffle(true, trk1);
+            playbackList.setShuffle(false, trk1);
+
+            assertFalse(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void enablingShuffleKeepsCurrentTrackAtQueueHead() {
+            playbackList.setShuffle(true, trk2);
+
+            assertNull(playbackList.getPreviousTrack(trk2));
+        }
+
+        @Test
+        void shuffledUpNextQueueExcludesCurrentTrackAndKeepsRemainingTracks() {
+            playbackList.setShuffle(true, trk2);
+
+            ArrayList<Track> upNext = new ArrayList<>(playbackList.getUpNextQueue(trk2));
+
+            assertEquals(2, upNext.size());
+            assertFalse(upNext.contains(trk2));
+            assertTrue(upNext.contains(trk1));
+            assertTrue(upNext.contains(trk3));
+        }
+
+        @Test
+        void disablingShuffleRestoresOriginalQueueOrderForNavigation() {
+            playbackList.setShuffle(true, trk2);
+            playbackList.setShuffle(false, trk2);
+
+            assertEquals(trk3, playbackList.getNextTrack(trk2));
+        }
+    }
 
     @Nested
     class WhenSkippingInPlaybackService {

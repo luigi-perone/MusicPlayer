@@ -28,6 +28,7 @@ import java.time.Year;
  * @author Francesco Lemmo
  */
 public class PlaybackController implements PlaybackObserver {
+    private static final String SHUFFLE_ACTIVE_CLASS = "player-button-active";
 
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
@@ -81,6 +82,7 @@ public class PlaybackController implements PlaybackObserver {
             musicPlayer.getPlaybackService().getQueue().getTracks()
         );
         queueListView.setItems(items);
+        updateShuffleButtonState();
     }
 
     /**
@@ -160,7 +162,7 @@ public class PlaybackController implements PlaybackObserver {
 
         // queue view update
         queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
-
+        updateShuffleButtonState();
     }
 
     @FXML
@@ -168,6 +170,17 @@ public class PlaybackController implements PlaybackObserver {
 
     }
 
+
+    private void updateShuffleButtonState() {
+
+        boolean isActive = musicPlayer.isShuffleActive();
+        shuffleButton.setText("⇄");
+        shuffleButton.getStyleClass().remove(SHUFFLE_ACTIVE_CLASS);
+        if (isActive) {
+            shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
+        }
+
+    }
     /**
      * Updates the time counter label and recalculates the progress bar percentage ratio
      * at periodic simulated time increments.
