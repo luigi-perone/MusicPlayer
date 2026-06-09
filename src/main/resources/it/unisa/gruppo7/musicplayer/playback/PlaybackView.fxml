@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="rootContainer" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackController">
+<VBox fx:id="rootContainer" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackController">
    
    <VBox fx:id="queuePanel" managed="false" prefHeight="300.0" prefWidth="850.0" styleClass="queue-container" visible="false">
       <children>
@@ -46,7 +46,7 @@
                <Button fx:id="prevButton" onAction="#onPreviousTrack" styleClass="control-btn" text="⏮" />
                <Button fx:id="playPauseButton" onAction="#onPlayPause" styleClass="play-btn-graphic" text="▶" />
                <Button fx:id="nextButton" onAction="#onNextTrack" styleClass="control-btn" text="⏭" />
-               <Button fx:id="loopButton" onAction="#onLoop" text="↺">
+               <Button fx:id="repeatButton" onAction="#onRepeat" text="↺">
                   <styleClass>
                      <String fx:value="control-btn" />
                      <String fx:value="player-button-secondary" />
