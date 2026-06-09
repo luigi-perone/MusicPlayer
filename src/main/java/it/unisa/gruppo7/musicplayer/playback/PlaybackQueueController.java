@@ -61,7 +61,7 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
             if (currentTrack != null) {
                 queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
             } else {
-                queueListView.setItems(FXCollections.observableArrayList(musicPlayer.getUpNextQueueFrom(currentTrack)));
+                queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
             }
         });
     }

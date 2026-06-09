@@ -182,8 +182,10 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
             } else {
                 trackTitleLabel.setText("Nessun brano");
+                trackAuthorLabel.setText("Autore");
                 progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
+                trackYearLabel.setText("Anno");
             }
         });
     }
@@ -217,10 +219,10 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         Platform.runLater(() -> {
             if (musicPlayer.getUpNextQueueFrom(currentTrack).isEmpty()) {
                 trackTitleLabel.setText("Nessun brano");
-                trackAuthorLabel.setText("");
+                trackAuthorLabel.setText("Autore");
                 progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
-                trackYearLabel.setText("");
+                trackYearLabel.setText("Anno");
             }
         });
     }

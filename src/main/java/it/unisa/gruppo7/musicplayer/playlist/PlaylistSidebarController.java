@@ -7,6 +7,7 @@ import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
@@ -120,6 +121,11 @@ public class PlaylistSidebarController {
             if (mainController != null) {
                 mainController.refreshQueueView();
             }
+
+            if (MusicPlayerFacade.getInstance().getPlaybackState() == PlaybackState.STOPPED) {
+                MusicPlayerFacade.getInstance().playFromQueue(playlist.getPlaylist().get(0));
+            }
+
         });
 
         contextMenu.getItems().addAll(playItem, appendItem);
