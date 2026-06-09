@@ -34,8 +34,6 @@ public class PlaybackService implements TrackObserver{
     // observer list
     private final List<PlaybackObserver> observers;
 
-    // shuffle mode state
-    private boolean isShuffleActive = false;
 
     /**
      * Constructs a new PlaybackService and allocates resource executors
@@ -328,22 +326,6 @@ public class PlaybackService implements TrackObserver{
      */
     public void setTimerHandle(ScheduledFuture<?> timerHandle) {
         this.timerHandle = timerHandle;
-    }
-
-    /**
-     * Returns the current shuffle mode state.
-     */
-    public boolean isShuffleActive() {
-        return isShuffleActive;
-    }
-
-    /**
-     * Sets a new shuffle mode state.
-     *
-     * @param shuffleState The new shuffle state.
-     */
-    public void setShuffleActive(boolean shuffleState) {
-        isShuffleActive = shuffleState;
     }
 
     @Override

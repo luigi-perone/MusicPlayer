@@ -41,6 +41,9 @@ public class PlaybackController implements PlaybackObserver {
     @FXML private Label trackYearLabel;
     @FXML private ListView<Track> queueListView;
     @FXML private VBox queuePanel;
+    @FXML private Button shuffleButton;
+    @FXML private Button loopButton;
+
 
     private Track currentTrack;
     private MusicPlayerFacade musicPlayer;
@@ -145,6 +148,24 @@ public class PlaybackController implements PlaybackObserver {
         } else {
             System.out.println("ERRORE CRITICO: queuePanel è NULL. L'fx:id nell'FXML non corrisponde!");
         }
+    }
+
+    @FXML
+    void onShuffle(ActionEvent event) {
+        boolean shuffleState = false;
+        if (!musicPlayer.isShuffleActive()) {
+            shuffleState = true;
+        }
+        musicPlayer.shuffleQueue(shuffleState, currentTrack);
+
+        // queue view update
+        queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
+
+    }
+
+    @FXML
+    void onLoop(ActionEvent event) {
+
     }
 
     /**

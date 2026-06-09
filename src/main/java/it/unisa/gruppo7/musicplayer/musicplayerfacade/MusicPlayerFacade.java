@@ -332,6 +332,16 @@ public class MusicPlayerFacade {
         return playbackService.getQueue().getUpNextQueue(track);
     }
 
+    // Playback mode methods
+
+    public void shuffleQueue(boolean shuffleState, Track track) {
+        playbackService.getQueue().setShuffle(shuffleState, track);
+    }
+
+    public boolean isShuffleActive() {
+        return playbackService.getQueue().isShuffleActive();
+    }
+
     /**
      * Returns the structural subsystem instance managing low-level audio tracking streams.
      *
