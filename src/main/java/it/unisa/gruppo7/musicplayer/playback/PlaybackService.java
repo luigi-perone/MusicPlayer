@@ -34,6 +34,9 @@ public class PlaybackService implements TrackObserver{
     // observer list
     private final List<PlaybackObserver> observers;
 
+    // repeat mode default = off
+    private RepeatMode repeatMode;
+
 
     /**
      * Constructs a new PlaybackService and allocates resource executors
@@ -45,6 +48,7 @@ public class PlaybackService implements TrackObserver{
         this.timer = Executors.newScheduledThreadPool(1);
         this.queue = new PlaybackList();
         this.observers = new ArrayList<>();
+        this.repeatMode = RepeatMode.OFF;
     }
 
     // -- observer methods --
@@ -144,9 +148,18 @@ public class PlaybackService implements TrackObserver{
         Track nextTrack = this.queue.getNextTrack(this.currentTrack); 
 
         if (nextTrack != null) {
-            this.play(nextTrack);
+            if (repeatMode == RepeatMode.REPEAT_ONE) {
+                this.play(this.currentTrack);
+            } else {
+                this.play(nextTrack);
+            }
         } else {
-            this.stop();
+            if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
+                Track firstTrack = this.queue.getFirstTrack();
+                this.play(firstTrack);
+            } else {
+                this.stop();
+            }
         }
     }
 
@@ -206,7 +219,11 @@ public class PlaybackService implements TrackObserver{
             notifyTimeTick(currentTime);
 
             if (currentTime >= currentTrack.getDuration()) {
-                this.playNext();
+                if (repeatMode == RepeatMode.REPEAT_ONE) {
+                    this.play(currentTrack);
+                } else {
+                    this.playNext();
+                }
             }
         }, 1, 1, TimeUnit.SECONDS);
     }
@@ -326,6 +343,14 @@ public class PlaybackService implements TrackObserver{
      */
     public void setTimerHandle(ScheduledFuture<?> timerHandle) {
         this.timerHandle = timerHandle;
+    }
+
+    public RepeatMode getRepeatMode() {
+        return repeatMode;
+    }
+
+    public void setRepeatMode(RepeatMode repeatMode) {
+        this.repeatMode = repeatMode;
     }
 
     @Override
