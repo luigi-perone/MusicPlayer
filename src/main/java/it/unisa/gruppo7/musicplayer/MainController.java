@@ -51,10 +51,15 @@ public class MainController {
         if (playlistSidebarController != null) {
             playlistSidebarController.setOnPlaylistSelected(this::showPlaylistDetail);
             playlistSidebarController.setPlaylistService(playlistService);
+            playlistSidebarController.setMainController(this);
         }
 
         if (playbackController != null) {
             playbackController.setMainController(this);
+        }
+
+        if (libraryController != null) {
+            libraryController.setMainController(this);
         }
     }
 

@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.library;
 
+import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
@@ -41,6 +42,10 @@ public class LibraryController implements PlaybackObserver {
     private MusicPlayerFacade     musicPlayer;
     private ObservableList<Track> observableTracks;
     private Track playingTrack = null;
+
+    private MainController mainController;
+
+
 
     /**
      * Initializes the controller class. Configures table cell value factories,
@@ -88,6 +93,7 @@ public class LibraryController implements PlaybackObserver {
             Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
             if (selectedTrack != null) {
                 musicPlayer.appendTrackToQueue(selectedTrack);
+                mainController.refreshQueueView();
             }
         });
 
@@ -339,5 +345,9 @@ public class LibraryController implements PlaybackObserver {
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
         alert.showAndWait();
+    }
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
     }
 }
