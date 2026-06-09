@@ -89,6 +89,17 @@ public class PlaybackList extends TrackCollection implements TrackObserver{
         this.shuffledTracks.clear();
     }
 
+    public Track getFirstTrack() {
+        List<Track> trackList = getActiveList();
+
+        if (trackList == null || trackList.isEmpty()) {
+            return null;
+        }
+
+        return trackList.get(0);
+
+    }
+
 
     public List<Track> getUpNextQueue(Track current) {
         List<Track> trackList = getActiveList();
@@ -128,6 +139,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver{
             shuffleTracks(currentTrack);
         } else {
             shuffledTracks.clear();
+
         }
     }
 

@@ -166,8 +166,8 @@ public class PlaybackController implements PlaybackObserver {
     }
 
     @FXML
-    void onLoop(ActionEvent event) {
-
+    void onRepeat(ActionEvent event) {
+        musicPlayer.changeRepeatMode();
     }
 
 
