@@ -2,6 +2,8 @@ package it.unisa.gruppo7.musicplayer;
 
 import it.unisa.gruppo7.musicplayer.library.LibraryController;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackController;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackQueueController;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistDetailController;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistSidebarController;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
@@ -12,6 +14,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+
 import java.io.IOException;
 
 /**
@@ -24,7 +28,11 @@ public class MainController {
 
     @FXML private PlaylistSidebarController playlistSidebarController;
     @FXML private LibraryController libraryController;
+    @FXML private PlaybackController playbackController;
     @FXML private BorderPane contentArea;
+
+    @FXML private VBox queue;
+    @FXML private PlaybackQueueController queueController;
 
     private Node libraryView;
 
@@ -43,6 +51,10 @@ public class MainController {
         if (playlistSidebarController != null) {
             playlistSidebarController.setOnPlaylistSelected(this::showPlaylistDetail);
             playlistSidebarController.setPlaylistService(playlistService);
+        }
+
+        if (playbackController != null) {
+            playbackController.setMainController(this);
         }
     }
 
@@ -98,4 +110,31 @@ public class MainController {
             contentArea.setCenter(libraryView);
         }
     }
+
+    /**
+     * Mostra o nasconde il pannello laterale della coda.
+     */
+    public void toggleQueueVisibility() {
+        if (queue != null) {
+            boolean isNowVisible = !queue.isVisible();
+            queue.setVisible(isNowVisible);
+            queue.setManaged(isNowVisible);
+
+            // Se la coda diventa visibile, aggiorniamola per sicurezza
+            if (isNowVisible && queueController != null) {
+                queueController.refreshQueue();
+            }
+        }
+    }
+
+    /**
+     * Forza l'aggiornamento grafico della lista dei brani in coda.
+     */
+    public void refreshQueueView() {
+        if (queueController != null && queue != null && queue.isVisible()) {
+            queueController.refreshQueue();
+        }
+    }
+
+
 }
