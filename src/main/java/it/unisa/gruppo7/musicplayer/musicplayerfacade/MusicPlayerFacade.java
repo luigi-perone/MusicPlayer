@@ -313,6 +313,12 @@ public class MusicPlayerFacade {
         playbackService.appendSource(tracks);
     }
 
+    public void appendTrackToQueue(Track track) {
+        List<Track> tracks = new ArrayList<>();
+        tracks.add(track);
+        playbackService.appendSource(tracks);
+    }
+
     public void playFromLibraryFrom(Track track) {
         List<Track> tracks = new ArrayList<>(library.getTracks());
         System.out.println("Tracks from library: " + tracks.size());
