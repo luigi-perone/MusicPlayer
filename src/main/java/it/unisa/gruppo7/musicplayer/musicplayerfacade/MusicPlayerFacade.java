@@ -328,6 +328,10 @@ public class MusicPlayerFacade {
         playbackService.playFromQueue(track);
     }
 
+    public List<Track> getUpNextQueueFrom(Track track) {
+        return playbackService.getQueue().getUpNextQueue(track);
+    }
+
     /**
      * Returns the structural subsystem instance managing low-level audio tracking streams.
      *

@@ -61,6 +61,26 @@ public class PlaybackList extends TrackCollection implements TrackObserver{
         this.tracks.clear();
     }
 
+
+    public List<Track> getUpNextQueue(Track current) {
+        List<Track> trackList = (List<Track>) this.tracks;
+        if (trackList == null || trackList.isEmpty() || current == null) {
+            return new ArrayList<>();
+        }
+
+        // get the index of the current track
+        int currentIndex = trackList.indexOf(current);
+
+        // if the track is not in the list, or it is in the last position, return an empty list
+        if (currentIndex == -1 || currentIndex >= trackList.size() - 1) {
+            return new ArrayList<>();
+        }
+
+        // return a list with only the up next tracks
+        return new ArrayList<>(trackList.subList(currentIndex + 1, trackList.size()));
+    }
+
+
     @Override
     public void onTrackDeleted(Track track){
         if(this.tracks != null){

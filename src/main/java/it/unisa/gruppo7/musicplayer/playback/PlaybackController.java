@@ -96,7 +96,7 @@ public class PlaybackController implements PlaybackObserver {
         } else {
             Track trackToPlay = musicPlayer.getSelectedTrack();
             if (trackToPlay != null) {
-                musicPlayer.playTrack(trackToPlay);
+                musicPlayer.playFromLibraryFrom(trackToPlay);
             }
         }
     }
@@ -140,7 +140,7 @@ public class PlaybackController implements PlaybackObserver {
             
             if (isNowVisible) {
                 System.out.println("Aggiorno la lista dei brani...");
-                queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
+                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
             }
         } else {
             System.out.println("ERRORE CRITICO: queuePanel è NULL. L'fx:id nell'FXML non corrisponde!");
@@ -187,6 +187,10 @@ public class PlaybackController implements PlaybackObserver {
                 }
 
                 trackDurationLabel.setText(musicPlayer.formatDuration(newTrack.getDuration()));
+
+                // queue update
+                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
+
             } else {
                 trackTitleLabel.setText("Nessun brano");
                 progressBar.setProgress(0.0);
