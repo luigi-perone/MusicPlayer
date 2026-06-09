@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.function.BiConsumer;
+import java.util.function.Supplier; // Aggiunto import
 
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
@@ -28,16 +29,6 @@ public class PlaylistTableConfigurator {
     private final TableColumn<Track, Void>   indexColumn;
     private final MusicPlayerFacade          facade;
 
-    /**
-     * Constructs a new PlaylistTableConfigurator.
-     *
-     * @param table          The TableView representing the playlist.
-     * @param titleColumn    The column displaying the track titles.
-     * @param authorColumn   The column displaying the track authors.
-     * @param durationColumn The column displaying the track durations.
-     * @param indexColumn    The column displaying the row numbers (1-based index).
-     * @param facade         The application facade used for data formatting and logic (e.g., duration formatting).
-     */
     public PlaylistTableConfigurator(TableView<Track> table,
                                      TableColumn<Track, String> titleColumn,
                                      TableColumn<Track, String> authorColumn,
@@ -55,11 +46,10 @@ public class PlaylistTableConfigurator {
     /**
      * Configures the columns, selection mode, and row factories of the table.
      *
-     * @param playingTrack  The track currently playing, used to highlight its corresponding row.
-     * @param onDoubleClick A callback executed when a row is double-clicked.
-     * Provides the click count (hardcoded to 0 in this context) and the selected Track.
+     * @param playingTrackSupplier A supplier providing the track currently playing in real-time.
+     * @param onDoubleClick        A callback executed when a row is double-clicked.
      */
-    public void configure(Track playingTrack, BiConsumer<Integer, Track> onDoubleClick) {
+    public void configure(Supplier<Track> playingTrackSupplier, BiConsumer<Integer, Track> onDoubleClick) {
         indexColumn.setCellFactory(col -> new TableCell<Track, Void>() {
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -82,25 +72,28 @@ public class PlaylistTableConfigurator {
         });
 
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        table.setRowFactory(tv -> buildRow(playingTrack, onDoubleClick));
+        // Passa il supplier a buildRow
+        table.setRowFactory(tv -> buildRow(playingTrackSupplier, onDoubleClick));
     }
 
     /**
      * Builds a custom TableRow to handle specific styling and mouse events.
-     * Highlights the row if it matches the currently playing track and attaches a double-click listener.
      *
-     * @param playingTrack  The track currently playing.
-     * @param onDoubleClick The callback to execute when the row is double-clicked.
+     * @param playingTrackSupplier The supplier for the track currently playing.
+     * @param onDoubleClick        The callback to execute when the row is double-clicked.
      * @return A configured TableRow for the track.
      */
-    private TableRow<Track> buildRow(Track playingTrack,
+    private TableRow<Track> buildRow(Supplier<Track> playingTrackSupplier,
                                      BiConsumer<Integer, Track> onDoubleClick) {
         TableRow<Track> row = new TableRow<Track>() {
             @Override
             protected void updateItem(Track item, boolean empty) {
                 super.updateItem(item, empty);
+
+                Track currentPlaying = playingTrackSupplier.get();
+
                 setStyle((empty || item == null) ? "" :
-                        item.equals(playingTrack)
+                        item.equals(currentPlaying)
                         ? "-fx-background-color: #6498CCFF; -fx-font-weight: bold;"
                         : "");
             }
