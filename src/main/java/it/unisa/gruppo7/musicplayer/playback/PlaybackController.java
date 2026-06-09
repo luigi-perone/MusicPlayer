@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
+import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
@@ -39,8 +40,10 @@ public class PlaybackController implements PlaybackObserver {
     @FXML private Label trackDurationLabel;
     @FXML private Label trackTitleLabel;
     @FXML private Label trackYearLabel;
-    @FXML private ListView<Track> queueListView;
-    @FXML private VBox queuePanel;
+    @FXML private Button shuffleButton;
+    @FXML private Button loopButton;
+
+    private MainController mainController;
 
     private Track currentTrack;
     private MusicPlayerFacade musicPlayer;
@@ -53,31 +56,10 @@ public class PlaybackController implements PlaybackObserver {
     public void initialize() {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
-        queueListView.setCellFactory(param -> new ListCell<Track>() {
-            @Override
-            protected void updateItem(Track item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getTitle() + " - " + item.getAuthor());
-                }
-            }
-        });
-
-        queueListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                Track selectedTrack = queueListView.getSelectionModel().getSelectedItem();
-                if (selectedTrack != null) {
-                    musicPlayer.playFromQueue(selectedTrack);
-                }
-            }
-        });
 
         ObservableList<Track> items = FXCollections.observableArrayList(
             musicPlayer.getPlaybackService().getQueue().getTracks()
         );
-        queueListView.setItems(items);
     }
 
     /**
@@ -96,7 +78,7 @@ public class PlaybackController implements PlaybackObserver {
         } else {
             Track trackToPlay = musicPlayer.getSelectedTrack();
             if (trackToPlay != null) {
-                musicPlayer.playTrack(trackToPlay);
+                musicPlayer.playFromLibraryFrom(trackToPlay);
             }
         }
     }
@@ -131,20 +113,27 @@ public class PlaybackController implements PlaybackObserver {
      */
     @FXML
     void onToggleQueue(ActionEvent event) {
-        System.out.println("Bottone coda cliccato!");
-        
-        if (queuePanel != null) {
-            boolean isNowVisible = !queuePanel.isVisible();
-            queuePanel.setVisible(isNowVisible);
-            queuePanel.setManaged(isNowVisible);
-            
-            if (isNowVisible) {
-                System.out.println("Aggiorno la lista dei brani...");
-                queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
-            }
-        } else {
-            System.out.println("ERRORE CRITICO: queuePanel è NULL. L'fx:id nell'FXML non corrisponde!");
+        if (mainController != null) {
+            // calls the method in the main controller
+            mainController.toggleQueueVisibility();
         }
+    }
+
+    @FXML
+    void onShuffle(ActionEvent event) {
+        // toggles the shuffle state
+        boolean shuffleState = !musicPlayer.isShuffleActive();
+        musicPlayer.shuffleQueue(shuffleState, currentTrack);
+
+        if (mainController != null) {
+            // calls the mainController to refresh the QueueView
+            mainController.refreshQueueView();
+        }
+    }
+
+    @FXML
+    void onRepeat(ActionEvent event) {
+        musicPlayer.changeRepeatMode();
     }
 
     /**
@@ -187,6 +176,8 @@ public class PlaybackController implements PlaybackObserver {
                 }
 
                 trackDurationLabel.setText(musicPlayer.formatDuration(newTrack.getDuration()));
+
+
             } else {
                 trackTitleLabel.setText("Nessun brano");
                 progressBar.setProgress(0.0);
@@ -213,4 +204,10 @@ public class PlaybackController implements PlaybackObserver {
             }
         });
     }
+
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+    }
+
 }

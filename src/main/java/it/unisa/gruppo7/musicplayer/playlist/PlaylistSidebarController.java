@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.function.Consumer;
 
+import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
@@ -34,6 +35,9 @@ public class PlaylistSidebarController {
     private PlaylistService service;
     private HBox editRow;
     private Consumer<Playlist> onPlaylistSelected;
+
+    /// reference to the mainController, in order to use its methods (UI refresh)
+    private MainController mainController;
 
     /**
      * Flag used to avoid the premature close of the edit module. It is set true when the user
@@ -108,7 +112,15 @@ public class PlaylistSidebarController {
         });
 
         MenuItem appendItem = new MenuItem("Aggiungi a coda");
-        appendItem.setOnAction(e -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist));
+        appendItem.setOnAction(e -> {
+            // Add the playlist to the queue
+            MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist);
+
+            // Update the queue UI
+            if (mainController != null) {
+                mainController.refreshQueueView();
+            }
+        });
 
         contextMenu.getItems().addAll(playItem, appendItem);
 
@@ -274,4 +286,9 @@ public class PlaylistSidebarController {
         b.setOnAction(e -> { confirm(field, tip); committing = false; });
         return b;
     }
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+    }
+
 }

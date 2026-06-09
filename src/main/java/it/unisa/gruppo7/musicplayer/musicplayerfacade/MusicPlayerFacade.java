@@ -4,6 +4,7 @@ import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
@@ -340,6 +341,12 @@ public class MusicPlayerFacade {
         playbackService.appendSource(tracks);
     }
 
+    public void appendTrackToQueue(Track track) {
+        List<Track> tracks = new ArrayList<>();
+        tracks.add(track);
+        playbackService.appendSource(tracks);
+    }
+
     /**
      * Initiates playback from the global library starting at a specific track,
      * clearing any active playlist context.
@@ -374,6 +381,35 @@ public class MusicPlayerFacade {
      */
     public void playFromQueue(Track track) {
         playbackService.playFromQueue(track);
+    }
+
+    public List<Track> getUpNextQueueFrom(Track track) {
+        return playbackService.getQueue().getUpNextQueue(track);
+    }
+
+    // Playback mode methods
+
+    public void shuffleQueue(boolean shuffleState, Track track) {
+        playbackService.getQueue().setShuffle(shuffleState, track);
+    }
+
+    public boolean isShuffleActive() {
+        return playbackService.getQueue().isShuffleActive();
+    }
+
+    public RepeatMode getCurrentRepeatMode() {
+        return playbackService.getRepeatMode();
+    }
+
+    public void changeRepeatMode() {
+        RepeatMode currentRepeatMode = playbackService.getRepeatMode();
+        if (currentRepeatMode == RepeatMode.OFF) {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+        } else if (currentRepeatMode == RepeatMode.REPEAT_PLAYLIST) {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+        } else if (currentRepeatMode == RepeatMode.REPEAT_ONE) {
+            playbackService.setRepeatMode(RepeatMode.OFF);
+        }
     }
 
     /**
