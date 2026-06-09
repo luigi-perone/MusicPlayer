@@ -43,7 +43,7 @@ public class PlaybackService implements TrackObserver{
      * required for multi-threaded time tracking simulation.
      */
     public PlaybackService() {
-        this.currentState = PlaybackState.STOPPED;
+        this.currentState = PlaybackState.START_UP;
         this.simulatedTimeSeconds = new AtomicInteger(0);
         this.timer = Executors.newScheduledThreadPool(1);
         this.queue = new PlaybackList();
@@ -163,6 +163,7 @@ public class PlaybackService implements TrackObserver{
                 this.play(firstTrack);
             } else {
                 this.stop();
+                notifyTrackChanged(null);
             }
         }
     }

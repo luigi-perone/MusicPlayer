@@ -94,7 +94,8 @@ public class LibraryController implements PlaybackObserver {
             if (selectedTrack != null) {
                 musicPlayer.appendTrackToQueue(selectedTrack);
                 mainController.refreshQueueView();
-                if (musicPlayer.getPlaybackState() == PlaybackState.STOPPED) {
+                PlaybackState playbackState = musicPlayer.getPlaybackState();
+                if (playbackState == PlaybackState.STOPPED || playbackState == PlaybackState.START_UP){
                     musicPlayer.playFromQueue(selectedTrack);
                 }
             }

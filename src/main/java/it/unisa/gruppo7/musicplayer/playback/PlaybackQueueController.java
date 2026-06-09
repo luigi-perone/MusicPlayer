@@ -11,6 +11,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
+import java.util.ArrayList;
+
 /**
  * @author francescoLemmo
  */
@@ -58,10 +60,10 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
      */
     public void refreshQueue() {
         Platform.runLater(() -> {
-            if (currentTrack != null) {
-                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
-            } else {
+            if (currentTrack == null && musicPlayer.getPlaybackState() == PlaybackState.START_UP) {
                 queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
+            } else {
+                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
             }
         });
     }

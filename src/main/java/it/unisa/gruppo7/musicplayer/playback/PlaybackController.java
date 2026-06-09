@@ -186,6 +186,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
                 progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
                 trackYearLabel.setText("Anno");
+                trackDurationLabel.setText(musicPlayer.formatDuration(0));
             }
         });
     }
@@ -223,6 +224,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
                 progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
                 trackYearLabel.setText("Anno");
+                trackDurationLabel.setText(musicPlayer.formatDuration(0));
             }
         });
     }

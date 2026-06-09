@@ -122,7 +122,8 @@ public class PlaylistSidebarController {
                 mainController.refreshQueueView();
             }
 
-            if (MusicPlayerFacade.getInstance().getPlaybackState() == PlaybackState.STOPPED) {
+            PlaybackState playbackState = MusicPlayerFacade.getInstance().getPlaybackState();
+            if (playbackState == PlaybackState.STOPPED || playbackState == PlaybackState.START_UP) {
                 MusicPlayerFacade.getInstance().playFromQueue(playlist.getPlaylist().get(0));
             }
 
