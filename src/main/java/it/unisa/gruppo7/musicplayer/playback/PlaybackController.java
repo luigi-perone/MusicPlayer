@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
 import it.unisa.gruppo7.musicplayer.MainController;
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
@@ -28,7 +29,7 @@ import java.time.Year;
  *
  * @author Francesco Lemmo
  */
-public class PlaybackController implements PlaybackObserver {
+public class PlaybackController implements PlaybackObserver, TrackObserver {
 
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
@@ -56,6 +57,7 @@ public class PlaybackController implements PlaybackObserver {
     public void initialize() {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addObserver(this);
 
         ObservableList<Track> items = FXCollections.observableArrayList(
             musicPlayer.getPlaybackService().getQueue().getTracks()
@@ -210,4 +212,32 @@ public class PlaybackController implements PlaybackObserver {
         this.mainController = mainController;
     }
 
+    @Override
+    public void onTrackDeleted(Track track) {
+        Platform.runLater(() -> {
+            if (musicPlayer.getUpNextQueueFrom(currentTrack).isEmpty()) {
+                trackTitleLabel.setText("Nessun brano");
+                trackAuthorLabel.setText("");
+                progressBar.setProgress(0.0);
+                timeLabel.setText("00:00");
+                trackYearLabel.setText("");
+            }
+        });
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+        Platform.runLater(() -> {
+            if (track.equals(currentTrack)) {
+                trackTitleLabel.setText(track.getTitle());
+                trackAuthorLabel.setText(track.getAuthor());
+                Year trackYear = track.getPublicationYear();
+                if (trackYear == null) {
+                    trackYearLabel.setText("");
+                } else {
+                    trackYearLabel.setText(trackYear.toString());
+                }
+            }
+        });
+    }
 }

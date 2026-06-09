@@ -172,6 +172,7 @@ public class MusicPlayerFacade {
         boolean success = library.modifyTrackInLibrary(track, newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
         if (success) {
             library.save();
+            notifyTrackEdit(track);
         }
         return success;
     }
@@ -478,4 +479,11 @@ public class MusicPlayerFacade {
             observer.onTrackDeleted(track);
         }
     }
+
+    private void notifyTrackEdit(Track track) {
+        for (TrackObserver observer : observers) {
+            observer.onTrackEdit(track);
+        }
+    }
+
 }

@@ -399,9 +399,14 @@ public class PlaybackService implements TrackObserver{
     @Override
     public void onTrackDeleted(Track track) {
         if(this.currentTrack != null && this.currentTrack.equals(track)){
-            this.stop();
+            this.playNext();
         }
 
         this.queue.removeTrack(track);
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+
     }
 }

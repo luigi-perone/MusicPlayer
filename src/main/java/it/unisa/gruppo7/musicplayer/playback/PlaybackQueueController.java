@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
@@ -13,7 +14,7 @@ import javafx.scene.control.ListView;
 /**
  * @author francescoLemmo
  */
-public class PlaybackQueueController implements PlaybackObserver {
+public class PlaybackQueueController implements PlaybackObserver, TrackObserver {
 
     @FXML private ListView<Track> queueListView;
 
@@ -24,6 +25,7 @@ public class PlaybackQueueController implements PlaybackObserver {
     public void initialize() {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addObserver(this);
 
 
         queueListView.setCellFactory(param -> new ListCell<Track>() {
@@ -73,4 +75,14 @@ public class PlaybackQueueController implements PlaybackObserver {
 
     @Override public void onTimeTick(int simulatedSeconds) {}
     @Override public void onStateChanged(PlaybackState newState) {}
+
+    @Override
+    public void onTrackDeleted(Track track) {
+        refreshQueue();
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+        refreshQueue();
+    }
 }

@@ -1,8 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
@@ -200,5 +198,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         if (this.tracks != null) {
             this.tracks.remove(track);
         }
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+
     }
 }

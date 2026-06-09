@@ -280,7 +280,7 @@ public class LibraryController implements PlaybackObserver {
         try {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
-                            "/it/unisa.gruppo7.musicplayer/TrackFormView.fxml"));
+                            "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             TrackFormController controller = fxmlLoader.getController();
