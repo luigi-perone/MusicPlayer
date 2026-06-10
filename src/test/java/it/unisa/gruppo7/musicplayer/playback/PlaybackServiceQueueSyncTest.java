@@ -166,4 +166,91 @@ class PlaybackServiceQueueSyncTest {
                     "Player should still be in PLAYING state after advancing");
         }
     }
+
+    @Nested
+	class WhenEnqueuingTracks {
+		/**
+		 * Verifies that adding a single track to a non-empty queue
+		 * appends it in last position without altering the existing entries.
+		 */
+		@Test
+		void addSingleTrack_nonEmptyQueue_appendedAtLastPosition() {
+			// Queue is A -> B -> C (loaded in setUp), trackA is playing
+			service.addTrackToQueue(trackNew);
+
+			List<Track> queue = (List<Track>) service.getQueue().getTracks();
+			assertEquals(4, queue.size(),
+					"Queue must contain 4 tracks after enqueueing one more");
+			assertSame(trackNew, queue.get(3),
+					"New track must occupy the last position");
+			// Existing order must be untouched
+			assertSame(trackA, queue.get(0));
+			assertSame(trackB, queue.get(1));
+			assertSame(trackC, queue.get(2));
+		}
+
+		/**
+		 * Verifies that adding a playlist in bulk appends all its tracks
+		 * at the end of the queue, preserving the original playlist order.
+		 */
+		@Test
+		void addPlaylist_nonEmptyQueue_appendsAllTracksInOriginalOrder() {
+			// Queue is A -> B -> C; we enqueue [trackNew, trackB] as a "playlist block"
+			Track extraTrack = new Track("Extra Song", "Artist", 90);
+			List<Track> playlistBlock = Arrays.asList(trackNew, extraTrack);
+
+			service.appendSource(playlistBlock);
+
+			List<Track> queue = (List<Track>) service.getQueue().getTracks();
+			assertEquals(5, queue.size(),
+					"Queue must contain 5 tracks after bulk enqueue");
+			assertSame(trackNew,   queue.get(3),
+					"First playlist track must be in position 3");
+			assertSame(extraTrack, queue.get(4),
+					"Second playlist track must be in position 4, order preserved");
+		}
+
+		/**
+		 * Verifies that adding a single track to an empty queue
+		 * automatically starts playback on that track.
+		 */
+		@Test
+		void addSingleTrack_emptyQueue_autoStartsPlayback() {
+			PlaybackService emptyService = new PlaybackService();
+
+			emptyService.addTrackToQueue(trackA);
+
+			assertEquals(PlaybackState.PLAYING, emptyService.getCurrentState(),
+					"Adding a track to an empty queue must start playback automatically");
+			assertSame(trackA, emptyService.getCurrentTrack(),
+					"The enqueued track must become the current playing track");
+
+			emptyService.shutdownTimer();
+		}
+
+		/**
+		 * Verifies that adding a playlist to an empty queue
+		 * automatically starts playback from the first track of the playlist,
+		 * respecting the original order for subsequent tracks.
+		 */
+		@Test
+		void addPlaylist_emptyQueue_autoStartsFromFirstTrack() {
+			PlaybackService emptyService = new PlaybackService();
+			List<Track> playlistBlock = Arrays.asList(trackA, trackB, trackC);
+
+			emptyService.appendSource(playlistBlock);
+
+			assertEquals(PlaybackState.PLAYING, emptyService.getCurrentState(),
+					"Adding a playlist to an empty queue must start playback automatically");
+			assertSame(trackA, emptyService.getCurrentTrack(),
+					"Playback must start from the first track of the enqueued playlist");
+
+			List<Track> queue = (List<Track>) emptyService.getQueue().getTracks();
+			assertEquals(3, queue.size());
+			assertSame(trackB, queue.get(1), "Second slot must be B");
+			assertSame(trackC, queue.get(2), "Third slot must be C");
+
+			emptyService.shutdownTimer();
+		}
+	}
 }

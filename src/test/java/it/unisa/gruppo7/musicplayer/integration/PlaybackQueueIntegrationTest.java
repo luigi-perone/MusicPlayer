@@ -190,6 +190,95 @@ class PlaybackQueueIntegrationTest {
         }
     }
 
+    /**
+     * validation of enqueue operations
+     * through MusicPlayerFacade -> PlaylistService -> PlaybackService.
+     * Covers single-track enqueue, bulk playlist enqueue, and auto-start on empty queue.
+     */
+    @Nested
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class WhenEnqueuingTracks {
+
+        /**
+         * Verifies that enqueuing a single track via the facade
+         * appends it at the end of the active queue without interrupting playback.
+         */
+        @Test
+        @Order(1)
+        void singleTrack_appendedAtEndOfQueue_playbackUninterrupted() {
+            // Precondition: playing trackA, queue is A -> B -> C
+            assertSame(trackA, facade.getCurrentPlayingTrack());
+
+            facade.appendTrackToQueue(trackNew);
+
+            List<Track> queue = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
+            assertEquals(4, queue.size(),
+                    "Queue must contain 4 tracks after enqueue");
+            assertSame(trackNew, queue.get(3),
+                    "New track must be last in the queue");
+
+            // Playback must continue uninterrupted
+            assertSame(trackA, facade.getCurrentPlayingTrack(),
+                    "Current track must still be A after enqueue");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must remain in PLAYING state");
+        }
+
+        /**
+         * Verifies that enqueuing a full playlist via the facade
+         * appends all its tracks at the end of the queue, preserving playlist order.
+         */
+        @Test
+        @Order(2)
+        void playlist_appendsAllTracksInOrder_playbackUninterrupted() {
+            // Create a secondary playlist to enqueue
+            Playlist toEnqueue = playlistService.createPlaylist("EnqueueTarget-IT");
+            Track extraA = addToLibrary("Extra A", "Artist", 60);
+            Track extraB = addToLibrary("Extra B", "Artist", 60);
+            playlistService.addTracksToPlaylist(toEnqueue, Arrays.asList(extraA, extraB));
+
+            facade.appendPlaylistToQueue(toEnqueue);
+
+            List<Track> queue = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
+            assertEquals(5, queue.size(),
+                    "Queue must contain 5 tracks after bulk playlist enqueue");
+            assertSame(extraA, queue.get(3),
+                    "First playlist track must be in position 3");
+            assertSame(extraB, queue.get(4),
+                    "Second playlist track must be in position 4, order preserved");
+
+            assertSame(trackA, facade.getCurrentPlayingTrack(),
+                    "Current track must still be A after playlist enqueue");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must remain in PLAYING state");
+        }
+
+        /**
+         * Verifies that enqueuing a track when the player is stopped
+         * (empty queue) automatically starts playback on the enqueued track.
+         */
+        @Test
+        @Order(3)
+        void singleTrack_emptyQueue_autoStartsPlayback() throws Exception {
+            facade.shutdownPlayback();
+            resetSingletons();
+
+            PlaylistService freshPs = new PlaylistService(TEST_PLAYLIST_PATH);
+            MusicPlayerFacade freshFacade = buildFacade(freshPs);
+
+            // No loadSource -> queue is empty, player in START_UP
+            freshFacade.appendTrackToQueue(trackNew);
+            freshFacade.getPlaybackService().stopTimer();
+
+            assertEquals(PlaybackState.PLAYING, freshFacade.getPlaybackState(),
+                    "Enqueuing into an empty queue must start playback automatically");
+            assertSame(trackNew, freshFacade.getCurrentPlayingTrack(),
+                    "The enqueued track must be the current playing track");
+
+            freshFacade.shutdownPlayback();
+        }
+    }
+
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------

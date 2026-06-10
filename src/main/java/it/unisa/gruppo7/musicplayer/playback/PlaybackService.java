@@ -238,7 +238,12 @@ public class PlaybackService implements TrackObserver{
      * @param tracks The sequence of tracks to add.
      */
     public void appendSource(List<Track> tracks) {
-        this.queue.appendTracks(tracks);
+        boolean wasEmpty = queue.getTrackCount() == 0;
+        queue.appendTracks(tracks);
+        if (wasEmpty && !tracks.isEmpty()) {
+            queue.setCurrentIndex(0);
+            play(tracks.get(0));
+        }
     }
 
     // -- timer methods --
@@ -431,11 +436,17 @@ public class PlaybackService implements TrackObserver{
      * @param track The track to add.
      */
     public void addTrackToQueue(Track track) {
+        boolean wasEmpty = queue.getTrackCount() == 0;
         queue.addToCanonicalList(track);
         if (queue.isShuffleActive()) {
             queue.insertTrackAtRandom(track);
         }
-        notifyQueueChanged();
+        if (wasEmpty) {
+            queue.setCurrentIndex(0);
+            play(track);
+        } else {
+            notifyQueueChanged();
+        }
     }
 
 

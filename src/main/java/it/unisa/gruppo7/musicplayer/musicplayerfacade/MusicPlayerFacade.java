@@ -359,9 +359,7 @@ public class MusicPlayerFacade {
      * @param track The track to append.
      */
     public void appendTrackToQueue(Track track) {
-        List<Track> tracks = new ArrayList<>();
-        tracks.add(track);
-        playbackService.appendSource(tracks);
+        playbackService.addTrackToQueue(track);
     }
 
     /**
