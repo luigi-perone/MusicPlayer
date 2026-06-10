@@ -201,13 +201,41 @@
     -fx-text-fill: #6e6e73;
     -fx-font-size: 18px;
     -fx-cursor: hand;
-    -fx-padding: 4;
+    -fx-background-radius: 16;
+    -fx-padding: 5 8 5 8;
 }
 
 .control-btn:hover {
     -fx-text-fill: #1c1c1e;
+    -fx-background-color: #f6f5f3;
 }
 
+.player-button-secondary {
+    -fx-border-color: #ececeb;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-min-width: 36;
+    -fx-min-height: 32;
+    -fx-padding: 5 10 5 10;
+}
+
+.player-button-secondary:hover {
+    -fx-border-color: #dedddb;
+}
+
+.player-button-active {
+    -fx-background-color: #fdeee7;
+    -fx-border-color: #f2b296;
+    -fx-text-fill: #e0592b;
+}
+
+.player-button-active:hover {
+    -fx-background-color: #fce2d6;
+    -fx-border-color: #e98d66;
+    -fx-text-fill: #c9461c;
+}
 /* Nuovo Bottone Play/Pause Grafico (Circolare) */
 .play-btn-graphic {
     -fx-background-color: #e0592b;

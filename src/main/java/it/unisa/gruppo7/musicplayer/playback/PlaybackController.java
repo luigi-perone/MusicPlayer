@@ -30,7 +30,9 @@ import java.time.Year;
  * @author Francesco Lemmo
  */
 public class PlaybackController implements PlaybackObserver, TrackObserver {
-
+    private static final String SHUFFLE_ACTIVE_CLASS = "player-button-active";
+    private static final String LOOP_ACTIVE_CLASS = "player-button-active";
+    
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
     @FXML private Button prevButton;
@@ -42,7 +44,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @FXML private Label trackTitleLabel;
     @FXML private Label trackYearLabel;
     @FXML private Button shuffleButton;
-    @FXML private Button loopButton;
+    @FXML private Button repeatButton;
 
     private MainController mainController;
 
@@ -62,6 +64,9 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         ObservableList<Track> items = FXCollections.observableArrayList(
             musicPlayer.getPlaybackService().getQueue().getTracks()
         );
+        
+        updateShuffleButtonState();
+        updateRepeatButtonState();
     }
 
     /**
@@ -130,14 +135,43 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         if (mainController != null) {
             // calls the mainController to refresh the QueueView
             mainController.refreshQueueView();
-        }
+        }        
+        updateShuffleButtonState();
+        
     }
 
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
+        updateRepeatButtonState();
     }
 
+
+    private void updateShuffleButtonState() {
+
+        boolean isActive = musicPlayer.isShuffleActive();
+        shuffleButton.setText("⇄");
+        shuffleButton.getStyleClass().remove(SHUFFLE_ACTIVE_CLASS);
+        if (isActive) {
+            shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
+        }
+
+    }
+
+    private void updateRepeatButtonState() {
+        RepeatMode repeatMode = musicPlayer.getCurrentRepeatMode();
+        repeatButton.getStyleClass().remove(LOOP_ACTIVE_CLASS);
+
+        if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
+            repeatButton.setText("↻");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else if (repeatMode == RepeatMode.REPEAT_ONE) {
+            repeatButton.setText("↻1");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else {
+            repeatButton.setText("↺");
+        }
+    }
     /**
      * Updates the time counter label and recalculates the progress bar percentage ratio
      * at periodic simulated time increments.
