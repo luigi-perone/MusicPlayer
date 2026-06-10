@@ -14,7 +14,6 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     private static final String DEFAULT_PATH = null;
 
 
-    // shuffled list and mode state
     private List<Track> shuffledTracks;
     private boolean isShuffleActive;
 
