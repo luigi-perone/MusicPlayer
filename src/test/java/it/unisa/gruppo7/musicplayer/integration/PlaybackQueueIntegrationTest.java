@@ -120,7 +120,7 @@ class PlaybackQueueIntegrationTest {
         playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackNew));
         facade.onTrackAddedToPlaylist(testPlaylist, trackNew);
 
-        List<Track> upNext = facade.getUpNextQueueFrom(trackA);
+        List<Track> upNext = facade.getUpNextQueueFrom();
         assertTrue(upNext.contains(trackNew),
                 "New track must appear in the up-next queue when shuffle is on");
 
@@ -148,7 +148,7 @@ class PlaybackQueueIntegrationTest {
         assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
                 "Playback must continue uninterrupted");
 
-        List<Track> upNext = facade.getUpNextQueueFrom(trackA);
+        List<Track> upNext = facade.getUpNextQueueFrom();
         assertFalse(upNext.contains(trackB),
                 "Removed track B must no longer be in the up-next queue");
         assertTrue(upNext.contains(trackC),
@@ -184,7 +184,7 @@ class PlaybackQueueIntegrationTest {
         assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
                 "Player must still be in PLAYING state after the auto-skip");
 
-        List<Track> upNext = facade.getUpNextQueueFrom(trackB);
+        List<Track> upNext = facade.getUpNextQueueFrom();
         assertFalse(upNext.contains(trackA),
                 "Removed track A must not appear anywhere in the queue");
 

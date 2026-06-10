@@ -5,19 +5,11 @@ import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Side;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.layout.VBox;
 
 import java.time.Year;
 
@@ -58,10 +50,6 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
         musicPlayer.addObserver(this);
-
-        ObservableList<Track> items = FXCollections.observableArrayList(
-            musicPlayer.getPlaybackService().getQueue().getTracks()
-        );
     }
 
     /**
@@ -218,7 +206,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @Override
     public void onTrackDeleted(Track track) {
         Platform.runLater(() -> {
-            if (musicPlayer.getUpNextQueueFrom(currentTrack).isEmpty()) {
+            if (musicPlayer.getUpNextQueueFrom().isEmpty()) {
                 trackTitleLabel.setText("Nessun brano");
                 trackAuthorLabel.setText("Autore");
                 progressBar.setProgress(0.0);

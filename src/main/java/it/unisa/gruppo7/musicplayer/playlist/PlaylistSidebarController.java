@@ -115,6 +115,14 @@ public class PlaylistSidebarController {
         MenuItem appendItem = new MenuItem("Aggiungi a coda");
         appendItem.setOnAction(e -> {
             // Add the playlist to the queue
+            if (playlist.getTracks().isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Errore");
+                alert.setHeaderText(null);
+                alert.setContentText("La playlist non contiene brani.");
+                alert.showAndWait();
+                return;
+            }
             MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist);
 
             // Update the queue UI

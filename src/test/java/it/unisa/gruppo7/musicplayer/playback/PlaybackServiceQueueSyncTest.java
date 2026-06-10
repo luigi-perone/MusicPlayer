@@ -87,7 +87,7 @@ class PlaybackServiceQueueSyncTest {
 
             s.addTrackToQueue(n);
 
-            List<Track> shuffled = s.getQueue().getUpNextQueue(a);
+            List<Track> shuffled = s.getQueue().getUpNextQueue();
             // shuffled is the "up next" slice, so n must be somewhere in it
             assertTrue(shuffled.contains(n),
                     "New track must appear in the up-next queue when shuffle is on");
@@ -116,7 +116,7 @@ class PlaybackServiceQueueSyncTest {
         assertSame(trackA, service.getCurrentTrack(),
                 "Current track should still be A");
 
-        List<Track> upNext = service.getQueue().getUpNextQueue(trackA);
+        List<Track> upNext = service.getQueue().getUpNextQueue();
         assertFalse(upNext.contains(trackB),
                 "Removed track must no longer appear in the up-next queue");
         assertTrue(upNext.contains(trackC),

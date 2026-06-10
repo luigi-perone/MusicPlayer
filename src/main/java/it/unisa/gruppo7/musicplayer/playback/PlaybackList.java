@@ -18,6 +18,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /** Flag indicating whether the playback queue is currently operating in shuffle mode. */
     private boolean isShuffleActive;
+    private int currentIndex = -1;
 
 
     /**
@@ -42,53 +43,30 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         }
     }
 
-    /**
-     * Returns the next track relative to the current one.
-     *
-     * @param current The track currently playing.
-     * @return The next track, or null if the list is empty, the track is not present, or it is the last one.
-     */
-    public Track getNextTrack(Track current){
-        List<Track> trackList = getActiveList();
-
-        if (trackList == null || trackList.isEmpty()) return null;
-
-        Iterator<Track> iterator = trackList.iterator();
-
-        while (iterator.hasNext()) {
-            Track t = iterator.next();
-
-            if (t.equals(current)) {
-                if (iterator.hasNext()) {
-                    return iterator.next();
-                } else {
-                    return null;
-                }
-            }
-        }
-
-        return null;
+    public void setCurrentIndex(int index) {
+        this.currentIndex = index;
     }
 
-    /**
-     * Returns the previous track relative to the current one.
-     *
-     * @param current The track currently playing.
-     * @return The previous track, or null if the list is empty, the track is not present, or it is the first one.
-     */
-    public Track getPreviousTrack(Track current) {
+    public int getCurrentIndex() {
+        return currentIndex;
+    }
+
+    public Track getNextTrack(){
         List<Track> trackList = getActiveList();
-
         if (trackList == null || trackList.isEmpty()) return null;
+        if (currentIndex < 0 || currentIndex >= trackList.size() - 1) return null;
+        System.out.println(currentIndex);
+        this.setCurrentIndex(currentIndex + 1);
+        return trackList.get(currentIndex);
+    }
 
-        Track previous = null;
-        for (Track t : trackList) {
-            if (t.equals(current)) {
-                return previous;
-            }
-            previous = t;
-        }
-        return null;
+    public Track getPreviousTrack() {
+        List<Track> trackList = getActiveList();
+        if (trackList == null || trackList.isEmpty()) return null;
+        if (currentIndex <= 0) return null;
+        System.out.println(currentIndex);
+        this.setCurrentIndex(currentIndex - 1);
+        return trackList.get(currentIndex - 1);
     }
 
     /**
@@ -113,6 +91,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public void appendTracks(List<Track> tracks) {
         this.tracks.addAll(tracks);
 
+        System.out.println(this.tracks.size());
         // if the playback is in shuffle mode, append to the shuffled track list
         if (isShuffleActive) {
             shuffledTracks.addAll(tracks);
@@ -125,6 +104,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public void clear() {
         this.tracks.clear();
         this.shuffledTracks.clear();
+        this.currentIndex = -1;
     }
 
     /**
@@ -142,20 +122,13 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     }
 
-    /**
-     * Retrieves a sublist of tracks scheduled to play after the specified current track.
-     * * @param current The reference track currently playing.
-     * @return A list containing the upcoming tracks, or an empty list if there are none.
-     */
-    public List<Track> getUpNextQueue(Track current) {
+
+    public List<Track> getUpNextQueue() {
         List<Track> trackList = getActiveList();
 
-        if (trackList == null || trackList.isEmpty() || current == null) {
+        if (trackList == null || trackList.isEmpty() || currentIndex == -1) {
             return new ArrayList<>();
         }
-
-        // get the index of the current track
-        int currentIndex = trackList.indexOf(current);
 
         // if the track is not in the list, or it is in the last position, return an empty list
         if (currentIndex == -1 || currentIndex >= trackList.size() - 1) {

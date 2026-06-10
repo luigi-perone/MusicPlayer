@@ -2,16 +2,11 @@ package it.unisa.gruppo7.musicplayer.playback;
 
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-
-import java.util.ArrayList;
 
 /**
  * JavaFX controller responsible for managing and displaying the active playback queue.
@@ -56,7 +51,7 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
         queueListView.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 Track selectedTrack = queueListView.getSelectionModel().getSelectedItem();
-                if (selectedTrack != null) {
+                if (selectedTrack != null && !selectedTrack.equals(currentTrack)) {
                     musicPlayer.playFromQueue(selectedTrack);
                 }
             }
@@ -72,10 +67,10 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
      */
     public void refreshQueue() {
         Platform.runLater(() -> {
-            if (currentTrack == null && musicPlayer.getPlaybackState() == PlaybackState.START_UP) {
+            if (currentTrack == null) {
                 queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
             } else {
-                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom(currentTrack));
+                queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom());
             }
         });
     }
@@ -88,8 +83,10 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
      */
     @Override
     public void onTrackChanged(Track newTrack) {
-        this.currentTrack = newTrack;
-        refreshQueue();
+        Platform.runLater(()->{
+            this.currentTrack = newTrack;
+            refreshQueue();
+        });
     }
 
     /**
@@ -118,6 +115,9 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
      */
     @Override
     public void onTrackDeleted(Track track) {
+        if (track != null && track.equals(currentTrack)) {
+            currentTrack = null;
+        }
         refreshQueue();
     }
 

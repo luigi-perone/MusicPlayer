@@ -107,7 +107,7 @@ public class PlaybackService implements TrackObserver{
         if (track == null) {
             return;
         }
-        this.stop();
+        this.stopTimer();
 
         this.currentTrack = track;
         this.currentState = PlaybackState.PLAYING;
@@ -116,7 +116,6 @@ public class PlaybackService implements TrackObserver{
         notifyTrackChanged(track);
         this.startTimer();
     }
-
     /**
      * Suspends the playback stream loop, preserving current execution index points.
      */
@@ -156,22 +155,11 @@ public class PlaybackService implements TrackObserver{
      * Stops playback entirely if there are no remaining tracks.
      */
     public void playNext() {
-        Track nextTrack = this.queue.getNextTrack(this.currentTrack);
-
+        Track nextTrack = this.queue.getNextTrack();
         if (nextTrack != null) {
-            if (repeatMode == RepeatMode.REPEAT_ONE) {
-                this.play(this.currentTrack);
-            } else {
-                this.play(nextTrack);
-            }
+            this.play(nextTrack);
         } else {
-            if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
-                Track firstTrack = this.queue.getFirstTrack();
-                this.play(firstTrack);
-            } else {
-                this.stop();
-                notifyTrackChanged(null);
-            }
+            this.stop();
         }
     }
 
@@ -181,21 +169,9 @@ public class PlaybackService implements TrackObserver{
      * if the engine is currently stopped but the queue is populated.
      */
     public void playPrevious() {
-        if (this.queue == null || this.queue.getTracks().isEmpty()) {
-            return;
-        }
-        if (this.currentTrack == null) {
-            List<Track> tracks = new ArrayList<>(this.queue.getTracks());
-            Track lastTrack = tracks.get(tracks.size() - 1);
-            this.play(lastTrack);
-            return;
-        }
-        Track previousTrack = this.queue.getPreviousTrack(this.currentTrack);
-
+        Track previousTrack = this.queue.getPreviousTrack();
         if (previousTrack != null) {
             this.play(previousTrack);
-        } else {
-            this.play(this.currentTrack);
         }
     }
 
@@ -205,6 +181,7 @@ public class PlaybackService implements TrackObserver{
      * @param track The target track to play.
      */
     public void playFromQueue(Track track) {
+        this.queue.setCurrentIndex(0);
         this.play(track);
     }
 
@@ -217,6 +194,7 @@ public class PlaybackService implements TrackObserver{
     public void loadSource(List<Track> tracks) {
         this.queue.loadTracks(tracks);
         if (!tracks.isEmpty()) {
+            this.queue.setCurrentIndex(0);
             this.play(tracks.get(0));
         }
     }
@@ -230,6 +208,7 @@ public class PlaybackService implements TrackObserver{
      */
     public void loadSourceFrom(List<Track> tracks, Track startFrom) {
         this.queue.loadTracks(tracks);
+        this.queue.setCurrentIndex(0);
         this.play(startFrom);
     }
 
@@ -449,7 +428,7 @@ public class PlaybackService implements TrackObserver{
     public void removeTrackFromQueue(Track track) {
         boolean isCurrentTrack = track.equals(this.currentTrack);
         if (isCurrentTrack) {
-            Track next = queue.getNextTrack(track);
+            Track next = queue.getNextTrack();
             queue.removeTrack(track);
             if (next != null) {
                 play(next);

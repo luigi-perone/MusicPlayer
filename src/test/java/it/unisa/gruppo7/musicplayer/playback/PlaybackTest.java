@@ -1,6 +1,5 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
-import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +17,6 @@ class PlaybackTest {
     private PlaybackList playbackList;
     private PlaybackService playbackService;
     private Playlist playlist;
-    private Playlist emptyPlaylist;
-    private MusicPlayerFacade musicPlayer;
     private Track trk1;
     private Track trk2;
     private Track trk3;
@@ -36,8 +33,6 @@ class PlaybackTest {
         playlist.addTrack(trk1);
         playlist.addTrack(trk2);
         playlist.addTrack(trk3);
-        musicPlayer = MusicPlayerFacade.getInstance();
-        emptyPlaylist = new Playlist("Empty Playlist", new ArrayList<>());
     }
 
     @Nested
@@ -45,12 +40,12 @@ class PlaybackTest {
 
         @Test
         void getNextTrackReturnsNull() {
-            assertNull(playbackList.getNextTrack(trk1));
+            assertNull(playbackList.getNextTrack());
         }
 
         @Test
         void getPreviousTrackReturnsNull() {
-            assertNull(playbackList.getPreviousTrack(trk1));
+            assertNull(playbackList.getPreviousTrack());
         }
     }
 
@@ -84,27 +79,30 @@ class PlaybackTest {
         @BeforeEach
         void load() {
             playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+            playbackList.setCurrentIndex(0);
         }
 
         @Test
         void getNextTrackFromFirstReturnsSecond() {
-            assertEquals(trk2, playbackList.getNextTrack(trk1));
+            assertEquals(trk2, playbackList.getNextTrack());
         }
 
         @Test
         void getNextTrackFromMiddleReturnsThird() {
-            assertEquals(trk3, playbackList.getNextTrack(trk2));
+            playbackList.setCurrentIndex(1);
+            assertEquals(trk3, playbackList.getNextTrack());
         }
 
         @Test
         void getNextTrackFromLastReturnsNull() {
-            assertNull(playbackList.getNextTrack(trk3));
+            playbackList.setCurrentIndex(2);
+            assertNull(playbackList.getNextTrack());
         }
 
         @Test
         void getNextTrackFromUnknownTrackReturnsNull() {
-            Track unknown = new Track("Unknown", "Unknown", 100, "Pop", Year.of(2000));
-            assertNull(playbackList.getNextTrack(unknown));
+            playbackList.setCurrentIndex(2);
+            assertNull(playbackList.getNextTrack());
         }
     }
 
@@ -114,27 +112,30 @@ class PlaybackTest {
         @BeforeEach
         void load() {
             playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+            playbackList.setCurrentIndex(2);
         }
 
         @Test
         void getPreviousTrackFromLastReturnsSecond() {
-            assertEquals(trk2, playbackList.getPreviousTrack(trk3));
+            assertEquals(trk2, playbackList.getPreviousTrack());
         }
 
         @Test
         void getPreviousTrackFromMiddleReturnsFirst() {
-            assertEquals(trk1, playbackList.getPreviousTrack(trk2));
+            playbackList.setCurrentIndex(1);
+            assertEquals(trk1, playbackList.getPreviousTrack());
         }
 
         @Test
         void getPreviousTrackFromFirstReturnsNull() {
-            assertNull(playbackList.getPreviousTrack(trk1));
+            playbackList.setCurrentIndex(0);
+            assertNull(playbackList.getPreviousTrack());
         }
 
         @Test
         void getPreviousTrackFromUnknownTrackReturnsNull() {
-            Track unknown = new Track("Unknown", "Unknown", 100, "Pop", Year.of(2000));
-            assertNull(playbackList.getPreviousTrack(unknown));
+            playbackList.setCurrentIndex(0);
+            assertNull(playbackList.getPreviousTrack());
         }
     }
 

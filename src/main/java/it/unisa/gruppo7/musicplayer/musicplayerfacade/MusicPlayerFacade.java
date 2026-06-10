@@ -400,14 +400,8 @@ public class MusicPlayerFacade {
         playbackService.playFromQueue(track);
     }
 
-    /**
-     * Retrieves the list of tracks scheduled to play after the specified track.
-     *
-     * @param track The reference track.
-     * @return A list of upcoming tracks in the queue.
-     */
-    public List<Track> getUpNextQueueFrom(Track track) {
-        return playbackService.getQueue().getUpNextQueue(track);
+    public List<Track> getUpNextQueueFrom() {
+        return playbackService.getQueue().getUpNextQueue();
     }
 
     // --- Playback mode methods ---
