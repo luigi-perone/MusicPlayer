@@ -227,6 +227,9 @@ class PlaybackTest {
         }
     }
 
+    
+
+
     @Nested
     class WhenSkippingInPlaybackService {
 
@@ -305,7 +308,7 @@ class PlaybackTest {
         void emptyPlaylistDoesNotChangeCurrentTrack() {
             playbackService.loadSource(new ArrayList<>(playlist.getTracks()));
             assertEquals(trk1, playbackService.getCurrentTrack());
-            // la validazione della playlist vuota è responsabilità del facade, non del service
+           
         }
     }
 

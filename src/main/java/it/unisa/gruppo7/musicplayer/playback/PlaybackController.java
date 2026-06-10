@@ -32,6 +32,7 @@ import java.time.Year;
 public class PlaybackController implements PlaybackObserver, TrackObserver {
     private static final String SHUFFLE_ACTIVE_CLASS = "player-button-active";
     private static final String LOOP_ACTIVE_CLASS = "player-button-active";
+    
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
     @FXML private Button prevButton;
