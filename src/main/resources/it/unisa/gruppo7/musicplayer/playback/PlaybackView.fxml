@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Slider?>
 <VBox fx:id="rootContainer" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackController">
 
    <HBox fx:id="playbackPanel" alignment="CENTER_LEFT" prefHeight="90.0" prefWidth="850.0" styleClass="playback-panel">
@@ -53,7 +54,7 @@
                   </columnConstraints>
                   <rowConstraints><RowConstraints minHeight="10.0" vgrow="SOMETIMES" /></rowConstraints>
                   <Label fx:id="timeLabel" styleClass="time-text" text="00:00" GridPane.halignment="LEFT" />
-                  <ProgressBar fx:id="progressBar" maxHeight="5.0" minHeight="5.0" prefHeight="5.0" prefWidth="340.0" progress="0.0" styleClass="custom-progress" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                  <Slider fx:id="progressSlider" maxHeight="15.0" prefWidth="340.0" styleClass="custom-slider" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
                   <Label fx:id="trackDurationLabel" styleClass="time-text" text="00:00" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
                </GridPane>
             </HBox>

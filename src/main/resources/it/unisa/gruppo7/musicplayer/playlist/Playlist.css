@@ -178,21 +178,15 @@
     -fx-text-fill: #a3a3a8;
 }
 
-.custom-progress {
-    -fx-padding: 0;
+.custom-slider .track {
+    -fx-pref-height: 4px;
+    -fx-background-color: #d1d1d6;  /*Bar color */
 }
 
-.custom-progress .track {
-    -fx-background-color: #f6f5f3;
-    -fx-background-radius: 3;
-    -fx-background-insets: 0;
-}
-
-.custom-progress .bar {
-    -fx-background-color: #e0592b;
-    -fx-background-radius: 3;
-    -fx-background-insets: 0;
-    -fx-padding: 0;
+.custom-slider .thumb {
+    -fx-pref-height: 12px;
+    -fx-pref-width: 12px;
+    -fx-background-color: #e0592b; /* Orange */
 }
 
 /* Bottoni Skip Avanti/Indietro */

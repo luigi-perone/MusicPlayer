@@ -441,6 +441,18 @@ public class MusicPlayerFacade {
     }
 
     /**
+     * Allows skipping to a specific point in the currently playing track,
+     * delegating the operation to the PlaybackService.
+     *
+     * @param seconds The target time in seconds to skip to
+     */
+    public void seekTo(int seconds) {
+        if (playbackService != null) {
+            playbackService.seekTo(seconds);
+        }
+    }
+
+    /**
      * Safely triggers hardware timer sequence destruction tasks on application exit boundaries.
      */
     public void shutdownPlayback() {

@@ -410,4 +410,26 @@ public class PlaybackService implements TrackObserver{
     public void onTrackEdit(Track track) {
 
     }
+
+    /**
+     * Jumps to a specified time during the playback.
+     *
+     * @param targetSeconds The exact second to jump.
+     */
+    public void seekTo(int targetSeconds) {
+        if (this.currentTrack == null) {
+            return;
+        }
+
+        // Security Check: The user must not jump over the track boundaries
+        if (targetSeconds < 0) {
+            targetSeconds = 0;
+        } else if (targetSeconds > currentTrack.getDuration()) {
+            targetSeconds = currentTrack.getDuration();
+        }
+
+        this.simulatedTimeSeconds.set(targetSeconds);
+
+        notifyTimeTick(targetSeconds);
+    }
 }
