@@ -43,7 +43,7 @@ public class PlaybackService implements TrackObserver{
      * required for multi-threaded time tracking simulation.
      */
     public PlaybackService() {
-        this.currentState = PlaybackState.STOPPED;
+        this.currentState = PlaybackState.START_UP;
         this.simulatedTimeSeconds = new AtomicInteger(0);
         this.timer = Executors.newScheduledThreadPool(1);
         this.queue = new PlaybackList();
@@ -144,8 +144,12 @@ public class PlaybackService implements TrackObserver{
         this.currentTrack = null;
     }
 
+    /**
+     * Advances playback to the next track in the current queue.
+     * Stops playback entirely if there are no remaining tracks.
+     */
     public void playNext() {
-        Track nextTrack = this.queue.getNextTrack(this.currentTrack); 
+        Track nextTrack = this.queue.getNextTrack(this.currentTrack);
 
         if (nextTrack != null) {
             if (repeatMode == RepeatMode.REPEAT_ONE) {
@@ -159,10 +163,16 @@ public class PlaybackService implements TrackObserver{
                 this.play(firstTrack);
             } else {
                 this.stop();
+                notifyTrackChanged(null);
             }
         }
     }
 
+    /**
+     * Reverts playback to the previous track in the queue.
+     * Restarts the current track if it is the first one, or plays the last track
+     * if the engine is currently stopped but the queue is populated.
+     */
     public void playPrevious() {
         if (this.queue == null || this.queue.getTracks().isEmpty()) {
             return;
@@ -174,7 +184,7 @@ public class PlaybackService implements TrackObserver{
             return;
         }
         Track previousTrack = this.queue.getPreviousTrack(this.currentTrack);
-        
+
         if (previousTrack != null) {
             this.play(previousTrack);
         } else {
@@ -182,10 +192,21 @@ public class PlaybackService implements TrackObserver{
         }
     }
 
+    /**
+     * Plays a specific track directly from the existing queue context.
+     *
+     * @param track The target track to play.
+     */
     public void playFromQueue(Track track) {
         this.play(track);
-    }   
+    }
 
+    /**
+     * Overwrites the current queue with a new list of tracks and immediately begins
+     * playing the first track in the provided list.
+     *
+     * @param tracks The new data source to load.
+     */
     public void loadSource(List<Track> tracks) {
         this.queue.loadTracks(tracks);
         if (!tracks.isEmpty()) {
@@ -193,14 +214,26 @@ public class PlaybackService implements TrackObserver{
         }
     }
 
+    /**
+     * Overwrites the current queue with a new list of tracks and begins playback
+     * starting from the specified track.
+     *
+     * @param tracks    The new data source to load.
+     * @param startFrom The specific track to begin playing initially.
+     */
     public void loadSourceFrom(List<Track> tracks, Track startFrom) {
         this.queue.loadTracks(tracks);
         this.play(startFrom);
     }
 
+    /**
+     * Appends a new list of tracks to the end of the existing active queue.
+     *
+     * @param tracks The sequence of tracks to add.
+     */
     public void appendSource(List<Track> tracks) {
         this.queue.appendTracks(tracks);
-    }   
+    }
 
     // -- timer methods --
 
@@ -251,6 +284,11 @@ public class PlaybackService implements TrackObserver{
 
     // --- getter & setter ---
 
+    /**
+     * Returns the active playback list acting as the service queue.
+     *
+     * @return The PlaybackList object governing sequential progression.
+     */
     public PlaybackList getQueue() {
         return this.queue;
     }
@@ -353,12 +391,23 @@ public class PlaybackService implements TrackObserver{
         this.repeatMode = repeatMode;
     }
 
+    /**
+     * Observes external deletion events to maintain engine safety and queue integrity.
+     * If the deleted track is currently playing, execution halts safely.
+     *
+     * @param track The tracked entity actively removed from source contexts.
+     */
     @Override
     public void onTrackDeleted(Track track) {
         if(this.currentTrack != null && this.currentTrack.equals(track)){
-            this.stop();
+            this.playNext();
         }
 
         this.queue.removeTrack(track);
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+
     }
 }

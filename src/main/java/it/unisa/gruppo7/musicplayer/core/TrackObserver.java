@@ -16,4 +16,11 @@ public interface TrackObserver {
      * @param track The track database model profile that was deleted.
      */
     void onTrackDeleted(Track track);
+
+    /**
+     * Invoked automatically when a specific track is edited.
+     *
+     * @param track The track database model profile that was modified.
+     */
+    void onTrackEdit(Track track);
 }

@@ -7,6 +7,11 @@ package it.unisa.gruppo7.musicplayer.playback;
  */
 public enum PlaybackState {
     /**
+     * Indicates that the system has now been started up.
+     */
+    START_UP,
+
+    /**
      * Indicates that a track is actively playing and the time counter is advancing.
      */
     PLAYING,

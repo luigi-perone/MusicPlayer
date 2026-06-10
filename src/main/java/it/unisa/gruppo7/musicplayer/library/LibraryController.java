@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.library;
 
+import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
@@ -13,14 +14,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.Year;
@@ -48,6 +42,10 @@ public class LibraryController implements PlaybackObserver {
     private MusicPlayerFacade     musicPlayer;
     private ObservableList<Track> observableTracks;
     private Track playingTrack = null;
+
+    private MainController mainController;
+
+
 
     /**
      * Initializes the controller class. Configures table cell value factories,
@@ -87,6 +85,31 @@ public class LibraryController implements PlaybackObserver {
                     }
                 }
         );
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem addToQueueItem = new MenuItem("Aggiungi a coda");
+
+        addToQueueItem.setOnAction(event -> {
+            Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
+            if (selectedTrack != null) {
+                musicPlayer.appendTrackToQueue(selectedTrack);
+                mainController.refreshQueueView();
+                PlaybackState playbackState = musicPlayer.getPlaybackState();
+                if (playbackState == PlaybackState.STOPPED || playbackState == PlaybackState.START_UP){
+                    musicPlayer.playFromQueue(selectedTrack);
+                }
+            }
+        });
+
+        contextMenu.getItems().add(addToQueueItem);
+
+        trackTable.setContextMenu(contextMenu);
+
+        trackTable.setOnContextMenuRequested(event -> {
+            if (trackTable.getSelectionModel().getSelectedItem() == null) {
+                contextMenu.hide();
+            }
+        });
 
         trackTable.setRowFactory(tv -> {
             TableRow<Track> row = new TableRow<Track>() {
@@ -261,7 +284,7 @@ public class LibraryController implements PlaybackObserver {
         try {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
-                            "/it/unisa.gruppo7.musicplayer/TrackFormView.fxml"));
+                            "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
 
             TrackFormController controller = fxmlLoader.getController();
@@ -326,5 +349,9 @@ public class LibraryController implements PlaybackObserver {
         alert.setHeaderText(null);
         alert.setContentText(messaggio);
         alert.showAndWait();
+    }
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
     }
 }

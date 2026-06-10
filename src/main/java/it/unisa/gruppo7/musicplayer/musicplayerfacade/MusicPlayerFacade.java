@@ -28,6 +28,7 @@ public class MusicPlayerFacade {
     private final PlaybackService playbackService;
 
     private Track selectedTrack;
+    private Playlist activePlaylist; // Traccia la playlist attualmente in riproduzione
     private final List<TrackObserver> observers = new ArrayList<>();
 
     /**
@@ -103,6 +104,15 @@ public class MusicPlayerFacade {
         return this.selectedTrack;
     }
 
+    /**
+     * Retrieves the playlist currently providing the playback context.
+     *
+     * @return The active playlist, or null if playback was started from the general library.
+     */
+    public Playlist getActivePlaylist() {
+        return this.activePlaylist;
+    }
+
     // --- Library Methods ---
 
     /**
@@ -162,6 +172,7 @@ public class MusicPlayerFacade {
         boolean success = library.modifyTrackInLibrary(track, newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
         if (success) {
             library.save();
+            notifyTrackEdit(track);
         }
         return success;
     }
@@ -295,36 +306,80 @@ public class MusicPlayerFacade {
         playbackService.resume();
     }
 
+    /**
+     * Initiates playback using the entire global library as the source,
+     * clearing any active playlist context.
+     */
     public void playFromLibrary() {
+        this.activePlaylist = null;
         List<Track> tracks = new ArrayList<>(library.getTracks());
         playbackService.loadSource(tracks);
     }
 
+    /**
+     * Initiates playback using a specific playlist as the source,
+     * setting it as the active playlist context.
+     *
+     * @param playlist The playlist to play.
+     * @throws IllegalArgumentException If the playlist is empty.
+     */
     public void playFromPlaylist(Playlist playlist) {
         if (playlist.getTracks().isEmpty()) {
             throw new IllegalArgumentException("La playlist \"" + playlist.getName() + "\" non contiene brani.");
         }
+        this.activePlaylist = playlist;
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
         playbackService.loadSource(tracks);
     }
 
+    /**
+     * Appends all tracks from the specified playlist to the end of the current playback queue.
+     *
+     * @param playlist The playlist containing tracks to append.
+     */
     public void appendPlaylistToQueue(Playlist playlist) {
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
         playbackService.appendSource(tracks);
     }
 
+    public void appendTrackToQueue(Track track) {
+        List<Track> tracks = new ArrayList<>();
+        tracks.add(track);
+        playbackService.appendSource(tracks);
+    }
+
+    /**
+     * Initiates playback from the global library starting at a specific track,
+     * clearing any active playlist context.
+     *
+     * @param track The track to start playback from.
+     */
     public void playFromLibraryFrom(Track track) {
+        this.activePlaylist = null;
         List<Track> tracks = new ArrayList<>(library.getTracks());
         System.out.println("Tracks from library: " + tracks.size());
         playbackService.loadSourceFrom(tracks, track);
         System.out.println("Queue after load: " + playbackService.getQueue().getTrackCount());
     }
 
+    /**
+     * Initiates playback from a specific playlist starting at a given track,
+     * setting it as the active playlist context.
+     *
+     * @param playlist The playlist providing the context.
+     * @param track    The track to start playback from.
+     */
     public void playFromPlaylistFrom(Playlist playlist, Track track) {
+        this.activePlaylist = playlist;
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
         playbackService.loadSourceFrom(tracks, track);
     }
 
+    /**
+     * Jumps to a specific track currently loaded within the playback queue.
+     *
+     * @param track The target track to play.
+     */
     public void playFromQueue(Track track) {
         playbackService.playFromQueue(track);
     }
@@ -377,6 +432,15 @@ public class MusicPlayerFacade {
     }
 
     /**
+     * Retrieves the track currently being processed by the playback engine.
+     *
+     * @return The active playing track, or null if no track is currently loaded or playing.
+     */
+    public Track getCurrentPlayingTrack() {
+        return playbackService.getCurrentTrack();
+    }
+
+    /**
      * Safely triggers hardware timer sequence destruction tasks on application exit boundaries.
      */
     public void shutdownPlayback() {
@@ -415,4 +479,11 @@ public class MusicPlayerFacade {
             observer.onTrackDeleted(track);
         }
     }
+
+    private void notifyTrackEdit(Track track) {
+        for (TrackObserver observer : observers) {
+            observer.onTrackEdit(track);
+        }
+    }
+
 }

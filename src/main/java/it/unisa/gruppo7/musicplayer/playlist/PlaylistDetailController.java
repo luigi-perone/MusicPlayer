@@ -64,7 +64,10 @@ public class PlaylistDetailController implements PlaybackObserver {
     @Override
     public void onTrackChanged(Track newTrack) {
         this.playingTrack = newTrack;
-        Platform.runLater(() -> playlistTrackTable.refresh());
+        Platform.runLater(() -> {
+            playlistTrackTable.getSelectionModel().clearSelection();
+            playlistTrackTable.refresh();
+        });
     }
 
     /**
@@ -136,13 +139,24 @@ public class PlaylistDetailController implements PlaybackObserver {
     public void setMusicPlayer(MusicPlayerFacade facade) {
         this.facade = facade;
         facade.getPlaybackService().addObserver(this);
+
+        // 1. SINCRONIZZA SUBITO LA VARIABILE LOCALE ALL'AVVIO
+        this.playingTrack = facade.getCurrentPlayingTrack();
+
         PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
                 playlistTrackTable, titleColumn, authorColumn,
                 durationColumn, indexColumn, facade
         );
+
         configurator.configure(
-            playingTrack,
-            (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade,currentPlaylist, track))
+                () -> {
+                    if (facade.getActivePlaylist() != null && facade.getActivePlaylist().equals(this.currentPlaylist)) {
+                        // 2. LEGGI DIRETTAMENTE DAL FACADE (oppure usa this.playingTrack ora che è aggiornata)
+                        return facade.getCurrentPlayingTrack();
+                    }
+                    return null;
+                },
+                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade,currentPlaylist, track))
         );
 
         RenameHandler renameHandler = new RenameHandler(
@@ -314,7 +328,15 @@ public class PlaylistDetailController implements PlaybackObserver {
      * Starts the sequential playback of all tracks in the playlist.
      * Method called by pressing the "Play" button in the FXML interface.
      */
-    public void onPlayPlaylistClick(ActionEvent actionEvent) {
-
+    public void onPlayPlaylistClick() {
+        try{
+            MusicPlayerFacade.getInstance().playFromPlaylist(currentPlaylist);
+        } catch (IllegalArgumentException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Errore");
+            alert.setHeaderText(null);
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
     }
 }

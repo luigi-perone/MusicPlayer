@@ -4,15 +4,20 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<Pane stylesheets="@playlist/Playlist.css" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
-    <HBox prefHeight="600.0" prefWidth="950.0">
+<Pane stylesheets="@playlist/Playlist.css" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.MainController">
+    <HBox prefHeight="600.0" prefWidth="1100.0">
 
         <fx:include source="playlist/PlaylistSidebar.fxml" fx:id="playlistSidebar" />
 
-        <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="800.0" HBox.hgrow="ALWAYS">
+        <BorderPane fx:id="contentArea" prefHeight="600.0" prefWidth="866.0" HBox.hgrow="ALWAYS">
             <center>
                 <fx:include source="LibraryView.fxml" fx:id="library"/>
             </center>
+
+            <right>
+                <fx:include source="playback/PlaybackQueueView.fxml" fx:id="queue" />
+            </right>
+
             <bottom>
                 <fx:include source="playback/PlaybackView.fxml" fx:id="playback" />
             </bottom>

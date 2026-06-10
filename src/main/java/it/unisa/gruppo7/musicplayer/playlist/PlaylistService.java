@@ -278,4 +278,9 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
         this.save();
     }
+
+    @Override
+    public void onTrackEdit(Track track) {
+
+    }
 }
