@@ -227,7 +227,73 @@ class PlaybackTest {
         }
     }
 
-    
+
+    @Nested
+    class WhenRepeatModeIsActive {
+
+        @BeforeEach
+        void load() {
+            playbackService.loadSource(new ArrayList<>(playlist.getTracks()));
+        }
+
+        @Test
+        void repeatPlaylistGoesBackToFirstTrack() {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+
+            playbackService.playNext();
+            playbackService.playNext();
+
+            playbackService.playNext();
+
+            assertEquals(trk1, playbackService.getCurrentTrack());
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+        }
+
+        @Test
+        void repeatSingleTrackRestartsSameTrack() {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+
+            Track currentTrack = playbackService.getCurrentTrack();
+
+            playbackService.playNext();
+
+            assertEquals(currentTrack, playbackService.getCurrentTrack());
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+        }
+
+        @Test
+        void repeatModeSequenceIsCorrect() {
+            assertEquals(RepeatMode.OFF, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+            assertEquals(RepeatMode.REPEAT_PLAYLIST, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+            assertEquals(RepeatMode.REPEAT_ONE, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.OFF);
+            assertEquals(RepeatMode.OFF, playbackService.getRepeatMode());
+        }
+
+        @Test
+        void changingRepeatModeDoesNotInterruptPlayback() {
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            Track playingTrack = playbackService.getCurrentTrack();
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            assertEquals(playingTrack, playbackService.getCurrentTrack());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            assertEquals(playingTrack, playbackService.getCurrentTrack());
+        }
+    }
+
+
+
 
 
     @Nested
