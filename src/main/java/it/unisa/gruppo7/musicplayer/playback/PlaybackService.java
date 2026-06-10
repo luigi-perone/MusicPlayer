@@ -104,18 +104,16 @@ public class PlaybackService implements TrackObserver{
      * @param track The targeted track object wrapper to launch.
      */
     public void play(Track track) {
-        if (track == null) {
-            return;
-        }
+        if (track == null) return;
         this.stopTimer();
-
         this.currentTrack = track;
         this.currentState = PlaybackState.PLAYING;
+        this.simulatedTimeSeconds.set(0);
         notifyStateChanged(this.currentState);
-
         notifyTrackChanged(track);
         this.startTimer();
     }
+
     /**
      * Suspends the playback stream loop, preserving current execution index points.
      */
@@ -155,9 +153,21 @@ public class PlaybackService implements TrackObserver{
      * Stops playback entirely if there are no remaining tracks.
      */
     public void playNext() {
+        if (repeatMode == RepeatMode.REPEAT_ONE) {
+            this.play(this.currentTrack);
+            return;
+        }
+
         Track nextTrack = this.queue.getNextTrack();
+
         if (nextTrack != null) {
             this.play(nextTrack);
+        } else if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
+            Track first = this.queue.getFirstTrack();
+            if (first != null) {
+                this.queue.setCurrentIndex(0);
+                this.play(first);
+            }
         } else {
             this.stop();
         }
@@ -169,6 +179,16 @@ public class PlaybackService implements TrackObserver{
      * if the engine is currently stopped but the queue is populated.
      */
     public void playPrevious() {
+        if (this.currentState == PlaybackState.STOPPED) {
+            // No current track: jump to the last track in the queue
+            List<Track> tracks = this.queue.getActiveList(); // make getActiveList() package-private or add a helper
+            if (tracks != null && !tracks.isEmpty()) {
+                int lastIndex = tracks.size() - 1;
+                this.queue.setCurrentIndex(lastIndex);
+                this.play(tracks.get(lastIndex));
+            }
+            return;
+        }
         Track previousTrack = this.queue.getPreviousTrack();
         if (previousTrack != null) {
             this.play(previousTrack);

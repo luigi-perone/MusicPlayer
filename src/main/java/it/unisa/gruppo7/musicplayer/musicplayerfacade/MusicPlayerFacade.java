@@ -373,9 +373,7 @@ public class MusicPlayerFacade {
     public void playFromLibraryFrom(Track track) {
         this.activePlaylist = null;
         List<Track> tracks = new ArrayList<>(library.getTracks());
-        System.out.println("Tracks from library: " + tracks.size());
         playbackService.loadSourceFrom(tracks, track);
-        System.out.println("Queue after load: " + playbackService.getQueue().getTrackCount());
     }
 
     /**

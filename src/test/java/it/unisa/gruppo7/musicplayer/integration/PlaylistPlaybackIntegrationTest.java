@@ -64,162 +64,188 @@ class PlaylistPlaybackIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // IT-014-1: avvio da playlist popolata carica la coda e parte dal primo brano
+    // Test scenarios evaluating playback start behaviors
     // ------------------------------------------------------------------
-    @Test
-    @Order(1)
-    void playFromPlaylist_populated_loadsQueueAndStartsFromFirst() throws Exception {
-        Playlist playlist = playlistService.createPlaylist("Pop-IT");
-        playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
 
-        facade.playFromPlaylist(playlist);
-        service.stopTimer();
+    /**
+     * Test scenarios evaluating the effects of starting playback
+     * from a playlist under different initial conditions.
+     */
+    @Nested
+    class WhenStartingPlayback {
 
-        assertSame(trackA, facade.getCurrentPlayingTrack(),
-                "Playback must start from the first track in the playlist");
-        assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
-                "Player must be in PLAYING state");
-        assertSame(playlist, facade.getActivePlaylist(),
-                "Active playlist must be set to the started playlist");
+        /**
+         * IT-014-1 – Verifies that starting playback from a populated playlist
+         * correctly loads the full queue and begins from the first track.
+         */
+        @Test
+        @Order(1)
+        void playFromPlaylist_populated_loadsQueueAndStartsFromFirst() throws Exception {
+            Playlist playlist = playlistService.createPlaylist("Pop-IT");
+            playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
 
-        // Verify the full queue matches the playlist order
-        java.util.List<Track> queue =
-                (java.util.List<Track>) service.getQueue().getTracks();
-        assertEquals(3, queue.size(),
-                "Queue must contain all 3 tracks from the playlist");
-        assertSame(trackA, queue.get(0), "First queue slot must be A");
-        assertSame(trackB, queue.get(1), "Second queue slot must be B");
-        assertSame(trackC, queue.get(2), "Third queue slot must be C");
+            facade.playFromPlaylist(playlist);
+            service.stopTimer();
+
+            assertSame(trackA, facade.getCurrentPlayingTrack(),
+                    "Playback must start from the first track in the playlist");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must be in PLAYING state");
+            assertSame(playlist, facade.getActivePlaylist(),
+                    "Active playlist must be set to the started playlist");
+
+            java.util.List<Track> queue =
+                    (java.util.List<Track>) service.getQueue().getTracks();
+            assertEquals(3, queue.size(),
+                    "Queue must contain all 3 tracks from the playlist");
+            assertSame(trackA, queue.get(0), "First queue slot must be A");
+            assertSame(trackB, queue.get(1), "Second queue slot must be B");
+            assertSame(trackC, queue.get(2), "Third queue slot must be C");
+        }
+
+        /**
+         * IT-014-2 – Verifies that attempting to start playback from an empty playlist
+         * is blocked with an {@link IllegalArgumentException} and leaves the player untouched.
+         */
+        @Test
+        @Order(2)
+        void playFromPlaylist_empty_throwsWithMessage() {
+            Playlist empty = playlistService.createPlaylist("Empty-IT");
+
+            IllegalArgumentException ex = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> facade.playFromPlaylist(empty),
+                    "Starting an empty playlist must throw IllegalArgumentException"
+            );
+
+            assertTrue(ex.getMessage().contains(empty.getName()),
+                    "Error message must mention the playlist name");
+
+            assertEquals(PlaybackState.START_UP, facade.getPlaybackState(),
+                    "Player state must not change after a rejected start");
+            assertNull(facade.getCurrentPlayingTrack(),
+                    "Current track must remain null after a rejected start");
+        }
+
+        /**
+         * IT-014-3 – Verifies that starting a new playlist while one is already active
+         * correctly overwrites the previous queue and updates the active playlist reference.
+         */
+        @Test
+        @Order(3)
+        void playFromPlaylist_newPlaylist_overwritesPreviousQueue() throws Exception {
+            Playlist first = playlistService.createPlaylist("First-IT");
+            playlistService.addTracksToPlaylist(first, Arrays.asList(trackA, trackB));
+            facade.playFromPlaylist(first);
+            service.stopTimer();
+
+            assertSame(trackA, facade.getCurrentPlayingTrack());
+
+            Playlist second = playlistService.createPlaylist("Second-IT");
+            playlistService.addTracksToPlaylist(second, Arrays.asList(trackC));
+            facade.playFromPlaylist(second);
+            service.stopTimer();
+
+            assertSame(trackC, facade.getCurrentPlayingTrack(),
+                    "After starting a new playlist, current track must be the first of the new one");
+            assertSame(second, facade.getActivePlaylist(),
+                    "Active playlist must be updated to the new playlist");
+
+            java.util.List<Track> queue =
+                    (java.util.List<Track>) service.getQueue().getTracks();
+            assertEquals(1, queue.size(),
+                    "Queue must contain only the tracks of the new playlist");
+            assertSame(trackC, queue.get(0),
+                    "The only queue entry must be C from the second playlist");
+        }
+
+        /**
+         * IT-014-6 – Verifies that starting playback from a specific mid-playlist track
+         * correctly begins from that track rather than the first.
+         */
+        @Test
+        @Order(6)
+        void playFromPlaylistFrom_midTrack_startsFromGivenTrack() throws Exception {
+            Playlist playlist = playlistService.createPlaylist("MidStart-IT");
+            playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
+
+            facade.playFromPlaylistFrom(playlist, trackB);
+            service.stopTimer();
+
+            assertSame(trackB, facade.getCurrentPlayingTrack(),
+                    "Playback must start from B when explicitly requested");
+            assertSame(playlist, facade.getActivePlaylist(),
+                    "Active playlist must be set even when starting from a mid track");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must be in PLAYING state");
+        }
     }
 
     // ------------------------------------------------------------------
-    // IT-014-2: avvio da playlist vuota viene bloccato con messaggio di errore
+    // Test scenarios evaluating automatic track advancement behaviors
     // ------------------------------------------------------------------
-    @Test
-    @Order(2)
-    void playFromPlaylist_empty_throwsWithMessage() {
-        Playlist empty = playlistService.createPlaylist("Empty-IT");
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> facade.playFromPlaylist(empty),
-                "Starting an empty playlist must throw IllegalArgumentException"
-        );
+    /**
+     * Test scenarios evaluating the automatic progression of playback
+     * when a track ends, with repeat mode off.
+     */
+    @Nested
+    class WhenTrackEnds {
 
-        assertTrue(ex.getMessage().contains(empty.getName()),
-                "Error message must mention the playlist name");
+        /**
+         * IT-014-4 – Verifies that when the current track ends, playback automatically
+         * advances to the next track in the queue.
+         */
+        @Test
+        @Order(4)
+        void playFromPlaylist_trackEnds_autoAdvancesToNext() throws Exception {
+            Playlist playlist = playlistService.createPlaylist("AutoAdv-IT");
+            playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
 
-        // Player must remain untouched
-        assertEquals(PlaybackState.START_UP, facade.getPlaybackState(),
-                "Player state must not change after a rejected start");
-        assertNull(facade.getCurrentPlayingTrack(),
-                "Current track must remain null after a rejected start");
-    }
+            service.setRepeatMode(RepeatMode.OFF);
+            facade.playFromPlaylist(playlist);
+            service.stopTimer();
 
-    // ------------------------------------------------------------------
-    // IT-014-3: avvio di una nuova playlist sovrascrive la coda precedente
-    // ------------------------------------------------------------------
-    @Test
-    @Order(3)
-    void playFromPlaylist_newPlaylist_overwritesPreviousQueue() throws Exception {
-        // Start first playlist with A, B
-        Playlist first = playlistService.createPlaylist("First-IT");
-        playlistService.addTracksToPlaylist(first, Arrays.asList(trackA, trackB));
-        facade.playFromPlaylist(first);
-        service.stopTimer();
+            assertSame(trackA, facade.getCurrentPlayingTrack());
 
-        assertSame(trackA, facade.getCurrentPlayingTrack());
+            // Simulate end of trackA by manually triggering playNext
+            // (mirrors what startTimer does when simulatedTime >= track.getDuration())
+            service.playNext();
+            service.stopTimer();
 
-        // Start second playlist with only C
-        Playlist second = playlistService.createPlaylist("Second-IT");
-        playlistService.addTracksToPlaylist(second, Arrays.asList(trackC));
-        facade.playFromPlaylist(second);
-        service.stopTimer();
+            assertSame(trackB, facade.getCurrentPlayingTrack(),
+                    "After track A ends, playback must automatically advance to B");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must remain in PLAYING state after auto-advance");
+        }
 
-        assertSame(trackC, facade.getCurrentPlayingTrack(),
-                "After starting a new playlist, current track must be the first of the new one");
-        assertSame(second, facade.getActivePlaylist(),
-                "Active playlist must be updated to the new playlist");
+        /**
+         * IT-014-5 – Verifies that when the last track in the queue ends with repeat off,
+         * playback stops and the current track reference is cleared.
+         */
+        @Test
+        @Order(5)
+        void playFromPlaylist_lastTrackEnds_stopsPlayback() throws Exception {
+            Playlist playlist = playlistService.createPlaylist("LastStop-IT");
+            playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB));
 
-        java.util.List<Track> queue =
-                (java.util.List<Track>) service.getQueue().getTracks();
-        assertEquals(1, queue.size(),
-                "Queue must contain only the tracks of the new playlist");
-        assertSame(trackC, queue.get(0),
-                "The only queue entry must be C from the second playlist");
-    }
+            service.setRepeatMode(RepeatMode.OFF);
+            facade.playFromPlaylist(playlist);
+            service.stopTimer();
 
-    // ------------------------------------------------------------------
-    // IT-014-4: al termine di una traccia la successiva parte automaticamente
-    // ------------------------------------------------------------------
-    @Test
-    @Order(4)
-    void playFromPlaylist_trackEnds_autoAdvancesToNext() throws Exception {
-        Playlist playlist = playlistService.createPlaylist("AutoAdv-IT");
-        playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
+            service.playNext(); // A → B
+            service.stopTimer();
 
-        service.setRepeatMode(RepeatMode.OFF);
-        facade.playFromPlaylist(playlist);
-        service.stopTimer();
+            assertSame(trackB, facade.getCurrentPlayingTrack());
 
-        assertSame(trackA, facade.getCurrentPlayingTrack());
+            service.playNext(); // B → end of queue
+            // No stopTimer needed: playNext calls stop() which cancels the timer
 
-        // Simulate end of trackA by manually triggering playNext
-        // (mirrors what startTimer does when simulatedTime >= track.getDuration())
-        service.playNext();
-        service.stopTimer();
-
-        assertSame(trackB, facade.getCurrentPlayingTrack(),
-                "After track A ends, playback must automatically advance to B");
-        assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
-                "Player must remain in PLAYING state after auto-advance");
-    }
-
-    // ------------------------------------------------------------------
-    // IT-014-5: al termine dell'ultima traccia la riproduzione si interrompe
-    // ------------------------------------------------------------------
-    @Test
-    @Order(5)
-    void playFromPlaylist_lastTrackEnds_stopsPlayback() throws Exception {
-        Playlist playlist = playlistService.createPlaylist("LastStop-IT");
-        playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB));
-
-        service.setRepeatMode(RepeatMode.OFF);
-        facade.playFromPlaylist(playlist);
-        service.stopTimer();
-
-        service.playNext(); // A → B
-        service.stopTimer();
-
-        assertSame(trackB, facade.getCurrentPlayingTrack());
-
-        service.playNext(); // B → end of queue
-        // No stopTimer needed: playNext calls stop() which cancels the timer
-
-        assertEquals(PlaybackState.STOPPED, facade.getPlaybackState(),
-                "Player must stop after the last track ends with repeat OFF");
-        assertNull(facade.getCurrentPlayingTrack(),
-                "Current track must be null after queue is exhausted");
-    }
-
-    // ------------------------------------------------------------------
-    // IT-014-6: playFromPlaylistFrom parte dalla traccia indicata, non dalla prima
-    // ------------------------------------------------------------------
-    @Test
-    @Order(6)
-    void playFromPlaylistFrom_midTrack_startsFromGivenTrack() throws Exception {
-        Playlist playlist = playlistService.createPlaylist("MidStart-IT");
-        playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
-
-        facade.playFromPlaylistFrom(playlist, trackB);
-        service.stopTimer();
-
-        assertSame(trackB, facade.getCurrentPlayingTrack(),
-                "Playback must start from B when explicitly requested");
-        assertSame(playlist, facade.getActivePlaylist(),
-                "Active playlist must be set even when starting from a mid track");
-        assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
-                "Player must be in PLAYING state");
+            assertEquals(PlaybackState.STOPPED, facade.getPlaybackState(),
+                    "Player must stop after the last track ends with repeat OFF");
+            assertNull(facade.getCurrentPlayingTrack(),
+                    "Current track must be null after queue is exhausted");
+        }
     }
 
     // ------------------------------------------------------------------

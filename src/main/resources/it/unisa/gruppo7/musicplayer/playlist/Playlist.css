@@ -304,3 +304,7 @@
     -fx-text-fill: #1c1c1e; /* Testo scuro per garantire massima leggibilità */
     -fx-font-weight: bold; /* Opzionale: fa risaltare la riga */
 }
+
+.control-btn.active {
+    -fx-text-fill: #e0592b; /* Cambia colore (es. arancione) quando premuto/attivo */
+}

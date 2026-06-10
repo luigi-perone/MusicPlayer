@@ -39,7 +39,6 @@ public class App extends Application {
      */
     @Override
     public void stop() throws Exception {
-        System.out.println("Application Shutdown...");
 
         // Shutdown the timer process
         MusicPlayerFacade.getInstance().shutdownPlayback();

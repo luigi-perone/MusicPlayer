@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * during active playback, covering the full chain from MusicPlayerFacade
  * through PlaylistService and PlaybackService down to PlaybackList.
  */
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PlaybackQueueIntegrationTest {
 
     private static final String TEST_LIBRARY_PATH  = "data/test-it-library.json";
@@ -36,14 +35,6 @@ class PlaybackQueueIntegrationTest {
     private Track trackC;
     private Track trackNew;
 
-    /**
-     * Sets up the test environment before each test method.
-     * Cleans up residual files, resets singletons, initializes services with test paths,
-     * populates the library and playlist, starts playback, and stops the async timer
-     * to prevent state mutation during assertions.
-     *
-     * @throws Exception if reflection or file operations fail
-     */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -52,7 +43,6 @@ class PlaybackQueueIntegrationTest {
         resetSingletons();
 
         playlistService = new PlaylistService(TEST_PLAYLIST_PATH);
-
         facade = buildFacade(playlistService);
 
         trackA   = addToLibrary("Integration A", "Artist", 120);
@@ -64,16 +54,9 @@ class PlaybackQueueIntegrationTest {
         playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackA, trackB, trackC));
 
         facade.playFromPlaylistFrom(testPlaylist, trackA);
-
         facade.getPlaybackService().stopTimer();
     }
 
-    /**
-     * Cleans up the test environment after each test method.
-     * Shuts down playback, deletes test files, and resets singletons to avoid interference.
-     *
-     * @throws Exception if reflection or file operations fail
-     */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -82,128 +65,135 @@ class PlaybackQueueIntegrationTest {
         resetSingletons();
     }
 
-    /**
-     * Tests that adding a new track to a playlist in normal playback mode
-     * appends the track to the end of the playback queue and properly persists the change.
-     */
-    @Test
-    @Order(1)
-    void addTrack_normalMode_appendedAtEndOfQueue() {
-        playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackNew));
-        facade.onTrackAddedToPlaylist(testPlaylist, trackNew);
+    @Nested
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class WhenAddingTracks {
 
-        List<Track> queue = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
-        assertEquals(4, queue.size(),
-                "Queue must contain 4 tracks after addition");
-        assertSame(trackNew, queue.get(3),
-                "New track must be the last element in the queue");
+        /**
+         * Tests that adding a new track to a playlist in normal playback mode
+         * appends the track to the end of the playback queue and properly persists the change.
+         */
+        @Test
+        @Order(1)
+        void normalMode_appendedAtEndOfQueue() {
+            playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackNew));
+            facade.onTrackAddedToPlaylist(testPlaylist, trackNew);
 
-        assertTrue(testPlaylist.getTracks().contains(trackNew),
-                "New track must be present in the playlist model");
+            List<Track> queue = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
+            assertEquals(4, queue.size(),
+                    "Queue must contain 4 tracks after addition");
+            assertSame(trackNew, queue.get(3),
+                    "New track must be the last element in the queue");
 
-        PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
-        Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
-        assertNotNull(reloaded, "Playlist must survive a reload from disk");
-        assertTrue(reloaded.getTracks().contains(trackNew),
-                "New track must be persisted in the playlist file");
+            assertTrue(testPlaylist.getTracks().contains(trackNew),
+                    "New track must be present in the playlist model");
+
+            PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
+            Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
+            assertNotNull(reloaded, "Playlist must survive a reload from disk");
+            assertTrue(reloaded.getTracks().contains(trackNew),
+                    "New track must be persisted in the playlist file");
+        }
+
+        /**
+         * Tests that adding a new track while shuffle mode is active inserts the track
+         * into the up-next queue while also appending it to the underlying canonical queue.
+         */
+        @Test
+        @Order(2)
+        void shuffleActive_insertedAtRandomPosition() {
+            facade.shuffleQueue(true, trackA);
+
+            playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackNew));
+            facade.onTrackAddedToPlaylist(testPlaylist, trackNew);
+
+            List<Track> upNext = facade.getUpNextQueueFrom();
+            assertTrue(upNext.contains(trackNew),
+                    "New track must appear in the up-next queue when shuffle is on");
+
+            List<Track> canonical = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
+            assertTrue(canonical.contains(trackNew),
+                    "New track must also be in the canonical list for when shuffle is toggled off");
+        }
     }
 
-    /**
-     * Tests that adding a new track while shuffle mode is active inserts the track
-     * into the up-next queue while also appending it to the underlying canonical queue.
-     */
-    @Test
-    @Order(2)
-    void addTrack_shuffleActive_insertedAtRandomPosition() {
-        facade.shuffleQueue(true, trackA);
+    @Nested
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class WhenRemovingTracks {
 
-        playlistService.addTracksToPlaylist(testPlaylist, Arrays.asList(trackNew));
-        facade.onTrackAddedToPlaylist(testPlaylist, trackNew);
+        /**
+         * Tests the removal of a future track from the active playlist.
+         * Verifies that playback continues uninterrupted, the track is removed
+         * from the up-next queue, and the changes are persisted.
+         */
+        @Test
+        @Order(1)
+        void futureTrack_queueRecalculatedPlaybackContinues() {
+            assertSame(trackA, facade.getCurrentPlayingTrack());
 
-        List<Track> upNext = facade.getUpNextQueueFrom();
-        assertTrue(upNext.contains(trackNew),
-                "New track must appear in the up-next queue when shuffle is on");
+            testPlaylist.removeTrack(trackB);
+            playlistService.save();
+            facade.onTrackRemovedFromPlaylist(testPlaylist, trackB);
 
-        List<Track> canonical = (List<Track>) facade.getPlaybackService().getQueue().getTracks();
-        assertTrue(canonical.contains(trackNew),
-                "New track must also be in the canonical list for when shuffle is toggled off");
+            assertSame(trackA, facade.getCurrentPlayingTrack(),
+                    "Current track must still be A after removing a future track");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Playback must continue uninterrupted");
+
+            List<Track> upNext = facade.getUpNextQueueFrom();
+            assertFalse(upNext.contains(trackB),
+                    "Removed track B must no longer be in the up-next queue");
+            assertTrue(upNext.contains(trackC),
+                    "Track C must still be reachable after B is removed");
+            assertEquals(1, upNext.size(),
+                    "Only one track must remain in the up-next queue");
+
+            assertFalse(testPlaylist.getTracks().contains(trackB),
+                    "Track B must be absent from the in-memory playlist model");
+
+            PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
+            Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
+            assertFalse(reloaded.getTracks().contains(trackB),
+                    "Track B must be absent from the persisted playlist file");
+        }
+
+        /**
+         * Tests the removal of the currently playing track from the active playlist.
+         * Verifies that the player automatically skips to the next available track
+         * and persists the removal.
+         */
+        @Test
+        @Order(2)
+        void currentTrack_autoSkipsToNext() {
+            assertSame(trackA, facade.getCurrentPlayingTrack());
+
+            testPlaylist.removeTrack(trackA);
+            playlistService.save();
+            facade.onTrackRemovedFromPlaylist(testPlaylist, trackA);
+
+            assertSame(trackB, facade.getCurrentPlayingTrack(),
+                    "Player must auto-skip to B after A is removed while playing");
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Player must still be in PLAYING state after the auto-skip");
+
+            List<Track> upNext = facade.getUpNextQueueFrom();
+            assertFalse(upNext.contains(trackA),
+                    "Removed track A must not appear anywhere in the queue");
+
+            assertFalse(testPlaylist.getTracks().contains(trackA),
+                    "Track A must be absent from the in-memory playlist model");
+
+            PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
+            Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
+            assertFalse(reloaded.getTracks().contains(trackA),
+                    "Track A must be absent from the persisted playlist file");
+        }
     }
 
-    /**
-     * Tests the removal of a future track from the active playlist.
-     * Verifies that playback continues uninterrupted, the track is removed
-     * from the up-next queue, and the changes are persisted.
-     */
-    @Test
-    @Order(3)
-    void removeTrack_futureTrack_queueRecalculatedPlaybackContinues() {
-        assertSame(trackA, facade.getCurrentPlayingTrack());
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
 
-        testPlaylist.removeTrack(trackB);
-        playlistService.save();
-        facade.onTrackRemovedFromPlaylist(testPlaylist, trackB);
-
-        assertSame(trackA, facade.getCurrentPlayingTrack(),
-                "Current track must still be A after removing a future track");
-        assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
-                "Playback must continue uninterrupted");
-
-        List<Track> upNext = facade.getUpNextQueueFrom();
-        assertFalse(upNext.contains(trackB),
-                "Removed track B must no longer be in the up-next queue");
-        assertTrue(upNext.contains(trackC),
-                "Track C must still be reachable after B is removed");
-        assertEquals(1, upNext.size(),
-                "Only one track must remain in the up-next queue");
-
-        assertFalse(testPlaylist.getTracks().contains(trackB),
-                "Track B must be absent from the in-memory playlist model");
-
-        PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
-        Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
-        assertFalse(reloaded.getTracks().contains(trackB),
-                "Track B must be absent from the persisted playlist file");
-    }
-
-    /**
-     * Tests the removal of the currently playing track from the active playlist.
-     * Verifies that the player automatically skips to the next available track
-     * and persists the removal.
-     */
-    @Test
-    @Order(4)
-    void removeTrack_currentTrack_autoSkipsToNext() {
-        assertSame(trackA, facade.getCurrentPlayingTrack());
-
-        testPlaylist.removeTrack(trackA);
-        playlistService.save();
-        facade.onTrackRemovedFromPlaylist(testPlaylist, trackA);
-
-        assertSame(trackB, facade.getCurrentPlayingTrack(),
-                "Player must auto-skip to B after A is removed while playing");
-        assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
-                "Player must still be in PLAYING state after the auto-skip");
-
-        List<Track> upNext = facade.getUpNextQueueFrom();
-        assertFalse(upNext.contains(trackA),
-                "Removed track A must not appear anywhere in the queue");
-
-        assertFalse(testPlaylist.getTracks().contains(trackA),
-                "Track A must be absent from the in-memory playlist model");
-
-        PlaylistService freshService = new PlaylistService(TEST_PLAYLIST_PATH);
-        Playlist reloaded = freshService.getPlaylist("TestPlaylist-IT");
-        assertFalse(reloaded.getTracks().contains(trackA),
-                "Track A must be absent from the persisted playlist file");
-    }
-
-    /**
-     * Resets the {@link Library} and {@link MusicPlayerFacade} singletons using reflection
-     * and redirects the Library file path to an isolated test file to prevent
-     * test cross-contamination.
-     *
-     * @throws Exception if reflection field access fails
-     */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -220,14 +210,6 @@ class PlaybackQueueIntegrationTest {
         facadeInstance.set(null, null);
     }
 
-    /**
-     * Constructs a {@link MusicPlayerFacade} instance injecting a custom test
-     * {@link PlaylistService} via reflection, effectively replacing the default service.
-     *
-     * @param ps the test PlaylistService to inject
-     * @return the newly built MusicPlayerFacade with the injected service
-     * @throws Exception if reflection field access fails
-     */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -242,16 +224,6 @@ class PlaybackQueueIntegrationTest {
         return f;
     }
 
-    /**
-     * Adds a new track to the library via the facade and retrieves the newly
-     * stored {@link Track} instance.
-     *
-     * @param title the title of the track
-     * @param author the author/artist of the track
-     * @param duration the duration of the track in seconds
-     * @return the Track instance that was just added and retrieved from the library
-     * @throws RuntimeException if the track is not found after addition
-     */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

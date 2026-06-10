@@ -5,6 +5,7 @@ import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
@@ -43,48 +44,64 @@ public class TrackModificationIntegrationTest {
     }
 
     /**
-     * Verifies that a valid metadata modification updates the track fields
-     * and that the changes are visible through references inside playlists.
+     * Test scenarios evaluating that valid metadata modifications
+     * are correctly propagated to all referencing playlists.
      */
-    @Test
-    public void testValidModificationPropagatesToPlaylist() {
-        Playlist playlist = playlistService.createPlaylist("Test Playlist");
-        playlistService.addTracksToPlaylist(playlist, Collections.singletonList(track));
+    @Nested
+    class WhenModificationIsValid {
 
-        library.modifyTrackInLibrary(track, "New Title", "New Author", 250, "Rock", Year.of(2022));
+        /**
+         * Verifies that a valid metadata modification updates the track fields
+         * and that the changes are visible through references inside playlists.
+         */
+        @Test
+        public void validModificationPropagatesToPlaylist() {
+            Playlist playlist = playlistService.createPlaylist("Test Playlist");
+            playlistService.addTracksToPlaylist(playlist, Collections.singletonList(track));
 
-        Track trackInPlaylist = playlist.getPlaylist().get(0);
+            library.modifyTrackInLibrary(track, "New Title", "New Author", 250, "Rock", Year.of(2022));
 
-        assertEquals("New Title", trackInPlaylist.getTitle());
-        assertEquals("New Author", trackInPlaylist.getAuthor());
-        assertEquals(250, trackInPlaylist.getDuration());
+            Track trackInPlaylist = playlist.getPlaylist().get(0);
+
+            assertEquals("New Title", trackInPlaylist.getTitle());
+            assertEquals("New Author", trackInPlaylist.getAuthor());
+            assertEquals(250, trackInPlaylist.getDuration());
+        }
     }
 
     /**
-     * Assures that attempting to modify a track with an empty title is blocked
-     * by an {@link IllegalArgumentException} and the original metadata is preserved.
+     * Test scenarios evaluating that invalid metadata modifications
+     * are strictly rejected and leave the original track state untouched.
      */
-    @Test
-    public void testModificationWithEmptyTitleIsBlocked() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            library.modifyTrackInLibrary(track, "", "New Author", 200, "Pop", Year.of(2020));
-        });
+    @Nested
+    class WhenModificationIsInvalid {
 
-        assertEquals("Original Title", track.getTitle());
-    }
+        /**
+         * Assures that attempting to modify a track with an empty title is blocked
+         * by an {@link IllegalArgumentException} and the original metadata is preserved.
+         */
+        @Test
+        public void modificationWithEmptyTitleIsBlocked() {
+            assertThrows(IllegalArgumentException.class, () ->
+                    library.modifyTrackInLibrary(track, "", "New Author", 200, "Pop", Year.of(2020))
+            );
 
-    /**
-     * Assures that modifying a track with a publication year set in the future is blocked
-     * and leaves the original track state untouched.
-     */
-    @Test
-    public void testModificationWithFutureYearIsBlocked() {
-        Year futureYear = Year.now().plusYears(1);
+            assertEquals("Original Title", track.getTitle());
+        }
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            library.modifyTrackInLibrary(track, "New Title", "Original Author", 200, "Pop", futureYear);
-        });
+        /**
+         * Assures that modifying a track with a publication year set in the future is blocked
+         * and leaves the original track state untouched.
+         */
+        @Test
+        public void modificationWithFutureYearIsBlocked() {
+            Year futureYear = Year.now().plusYears(1);
 
-        assertEquals(Year.of(2020), track.getPublicationYear());
+            assertThrows(IllegalArgumentException.class, () ->
+                    library.modifyTrackInLibrary(track, "New Title", "Original Author", 200, "Pop", futureYear)
+            );
+
+            assertEquals(Year.of(2020), track.getPublicationYear());
+        }
     }
 }

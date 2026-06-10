@@ -4,6 +4,7 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
@@ -51,19 +52,31 @@ public class TrackDeletionIntegrationTest {
     }
 
     /**
-     * Tests that removing a track from the central library successfully cascades
-     * and purges it from any associated user playlists.
+     * Test scenarios evaluating the cascading effects of a confirmed track deletion
+     * on both the global library and all associated playlists.
      */
-    @Test
-    public void testTrackDeletionCascadesToPlaylists() {
-        Playlist playlist = facade.getPlaylist("My Playlist");
+    @Nested
+    class WhenDeletingTrack {
 
-        assertNotNull(facade.getTrackFromLibrary(track.getId()));
-        assertTrue(playlist.getPlaylist().contains(track));
+        /**
+         * Verifies that removing a track from the central library successfully cascades
+         * and purges it from any associated user playlists.
+         */
+        @Test
+        public void trackDeletionCascadesToPlaylists() {
+            Playlist playlist = facade.getPlaylist("My Playlist");
 
-        facade.removeTrackFromLibrary(track);
+            assertNotNull(facade.getTrackFromLibrary(track.getId()),
+                    "Pre-condition: track must be present in the library before deletion");
+            assertTrue(playlist.getPlaylist().contains(track),
+                    "Pre-condition: track must be present in the playlist before deletion");
 
-        assertNull(facade.getTrackFromLibrary(track.getId()), "La traccia deve essere rimossa dalla libreria");
-        assertFalse(playlist.getPlaylist().contains(track), "La traccia deve essere rimossa dalla playlist");
+            facade.removeTrackFromLibrary(track);
+
+            assertNull(facade.getTrackFromLibrary(track.getId()),
+                    "Track must be removed from the library after deletion");
+            assertFalse(playlist.getPlaylist().contains(track),
+                    "Track must be removed from the playlist after deletion");
+        }
     }
 }

@@ -34,7 +34,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @FXML private Label trackTitleLabel;
     @FXML private Label trackYearLabel;
     @FXML private Button shuffleButton;
-    @FXML private Button loopButton;
+    @FXML private Button repeatButton;
 
     private MainController mainController;
 
@@ -111,12 +111,25 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
     @FXML
     void onShuffle(ActionEvent event) {
-        // toggles the shuffle state
         boolean shuffleState = !musicPlayer.isShuffleActive();
         musicPlayer.shuffleQueue(shuffleState, currentTrack);
 
+        if (shuffleState) {
+            if (!shuffleButton.getStyleClass().contains("active")) {
+                shuffleButton.getStyleClass().add("active");
+            }
+
+            while (musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF) {
+                musicPlayer.changeRepeatMode();
+            }
+
+            repeatButton.getStyleClass().remove("active");
+
+        } else {
+            shuffleButton.getStyleClass().remove("active");
+        }
+
         if (mainController != null) {
-            // calls the mainController to refresh the QueueView
             mainController.refreshQueueView();
         }
     }
@@ -124,6 +137,25 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
+        boolean repeatState = musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF;
+
+        if (repeatState) {
+            if (!repeatButton.getStyleClass().contains("active")) {
+                repeatButton.getStyleClass().add("active");
+            }
+
+            if (musicPlayer.isShuffleActive()) {
+                musicPlayer.shuffleQueue(false, currentTrack);
+            }
+            shuffleButton.getStyleClass().remove("active");
+
+        } else {
+            repeatButton.getStyleClass().remove("active");
+        }
+
+        if (mainController != null) {
+            mainController.refreshQueueView();
+        }
     }
 
     /**

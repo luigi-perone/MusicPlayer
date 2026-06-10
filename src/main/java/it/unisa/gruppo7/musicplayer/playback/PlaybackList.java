@@ -34,7 +34,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * Returns the currently active list of tracks based on the shuffle state.
      * * @return The shuffled list if shuffle is active, otherwise the canonical track list.
      */
-    private List<Track> getActiveList() {
+    public List<Track> getActiveList() {
         if (isShuffleActive()) {
             return this.shuffledTracks;
         }
@@ -51,11 +51,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return currentIndex;
     }
 
-    public Track getNextTrack(){
+    public Track getNextTrack() {
         List<Track> trackList = getActiveList();
         if (trackList == null || trackList.isEmpty()) return null;
         if (currentIndex < 0 || currentIndex >= trackList.size() - 1) return null;
-        System.out.println(currentIndex);
         this.setCurrentIndex(currentIndex + 1);
         return trackList.get(currentIndex);
     }
@@ -64,9 +63,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         List<Track> trackList = getActiveList();
         if (trackList == null || trackList.isEmpty()) return null;
         if (currentIndex <= 0) return null;
-        System.out.println(currentIndex);
         this.setCurrentIndex(currentIndex - 1);
-        return trackList.get(currentIndex - 1);
+        return trackList.get(currentIndex);
     }
 
     /**
@@ -91,8 +89,6 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public void appendTracks(List<Track> tracks) {
         this.tracks.addAll(tracks);
 
-        System.out.println(this.tracks.size());
-        // if the playback is in shuffle mode, append to the shuffled track list
         if (isShuffleActive) {
             shuffledTracks.addAll(tracks);
         }

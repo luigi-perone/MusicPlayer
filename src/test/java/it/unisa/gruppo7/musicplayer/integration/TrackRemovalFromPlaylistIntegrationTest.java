@@ -6,6 +6,7 @@ import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
@@ -64,69 +65,86 @@ public class TrackRemovalFromPlaylistIntegrationTest {
     }
 
     /**
-     * Verifies that track removal drops the item from the playlist container and decrements
-     * total tracks, while preserving the track instance inside the library.
+     * Test scenarios evaluating the effects of a confirmed track removal
+     * on both the playlist and the global library.
      */
-    @Test
-    public void testRemovalDecreasesCountAndPreservesLibraryTrack() {
-        assertTrue(testPlaylist.getPlaylist().contains(track),
-                "Pre-condition: track must be in the playlist before removal");
+    @Nested
+    class WhenRemovingTrack {
 
-        int countBefore = testPlaylist.getTrackCount();
+        /**
+         * Verifies that track removal drops the item from the playlist container
+         * and decrements the total track count, while preserving the track instance
+         * inside the library.
+         */
+        @Test
+        public void removalDecreasesCountAndPreservesLibraryTrack() {
+            assertTrue(testPlaylist.getPlaylist().contains(track),
+                    "Pre-condition: track must be in the playlist before removal");
 
-        testPlaylist.removeTrack(track);
-        playlistService.save();
+            int countBefore = testPlaylist.getTrackCount();
 
-        assertEquals(countBefore - 1, testPlaylist.getTrackCount(),
-                "Track count must decrease by 1 after removal");
+            testPlaylist.removeTrack(track);
+            playlistService.save();
 
-        assertFalse(testPlaylist.getPlaylist().contains(track),
-                "Removed track must not appear in the playlist anymore");
+            assertEquals(countBefore - 1, testPlaylist.getTrackCount(),
+                    "Track count must decrease by 1 after removal");
 
-        assertNotNull(facade.getTrackFromLibrary(track.getId()),
-                "Track must still exist in the library after playlist removal");
+            assertFalse(testPlaylist.getPlaylist().contains(track),
+                    "Removed track must not appear in the playlist anymore");
+
+            assertNotNull(facade.getTrackFromLibrary(track.getId()),
+                    "Track must still exist in the library after playlist removal");
+        }
+
+        /**
+         * Verifies that removing a specific track does not accidentally remove or affect
+         * neighboring sibling tracks mapped inside the same playlist.
+         */
+        @Test
+        public void siblingTrackRemainsInPlaylistAfterRemoval() {
+            Track sibling = facade.getTracksFromLibrary().stream()
+                    .filter(t -> t.getTitle().equals("Track To Keep"))
+                    .findFirst()
+                    .orElseThrow(NoSuchElementException::new);
+
+            testPlaylist.removeTrack(track);
+            playlistService.save();
+
+            assertTrue(testPlaylist.getPlaylist().contains(sibling),
+                    "Sibling track must remain in the playlist after another track is removed");
+
+            assertNotNull(facade.getTrackFromLibrary(sibling.getId()),
+                    "Sibling track must remain in the library after another track is removed");
+        }
     }
 
     /**
-     * Assures that when a removal operation is skipped or cancelled,
-     * no structural side effects alter the library or playlist contents.
+     * Test scenarios evaluating the absence of side effects when a removal
+     * operation is skipped or cancelled.
      */
-    @Test
-    public void testCancelRemovalProducesNoSideEffects() {
-        int countBefore   = testPlaylist.getTrackCount();
-        int libSizeBefore = facade.getTracksFromLibrary().size();
+    @Nested
+    class WhenCancellingRemoval {
 
-        assertEquals(countBefore, testPlaylist.getTrackCount(),
-                "Playlist count must not change when removal is cancelled");
+        /**
+         * Assures that when a removal operation is skipped or cancelled,
+         * no structural side effects alter the library or playlist contents.
+         */
+        @Test
+        public void cancelRemovalProducesNoSideEffects() {
+            int countBefore   = testPlaylist.getTrackCount();
+            int libSizeBefore = facade.getTracksFromLibrary().size();
 
-        assertTrue(testPlaylist.getPlaylist().contains(track),
-                "Track must still be present in the playlist when removal is cancelled");
+            assertEquals(countBefore, testPlaylist.getTrackCount(),
+                    "Playlist count must not change when removal is cancelled");
 
-        assertEquals(libSizeBefore, facade.getTracksFromLibrary().size(),
-                "Library size must not change when removal is cancelled");
+            assertTrue(testPlaylist.getPlaylist().contains(track),
+                    "Track must still be present in the playlist when removal is cancelled");
 
-        assertNotNull(facade.getTrackFromLibrary(track.getId()),
-                "Track must still exist in the library when removal is cancelled");
-    }
+            assertEquals(libSizeBefore, facade.getTracksFromLibrary().size(),
+                    "Library size must not change when removal is cancelled");
 
-    /**
-     * Verifies that removing a specific track does not accidentally remove or affect
-     * neighboring sibling tracks mapped inside the same playlist.
-     */
-    @Test
-    public void testSiblingTrackRemainsInPlaylistAfterRemoval() {
-        Track sibling = facade.getTracksFromLibrary().stream()
-                .filter(t -> t.getTitle().equals("Track To Keep"))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
-
-        testPlaylist.removeTrack(track);
-        playlistService.save();
-
-        assertTrue(testPlaylist.getPlaylist().contains(sibling),
-                "Sibling track must remain in the playlist after another track is removed");
-
-        assertNotNull(facade.getTrackFromLibrary(sibling.getId()),
-                "Sibling track must remain in the library after another track is removed");
+            assertNotNull(facade.getTrackFromLibrary(track.getId()),
+                    "Track must still exist in the library when removal is cancelled");
+        }
     }
 }
