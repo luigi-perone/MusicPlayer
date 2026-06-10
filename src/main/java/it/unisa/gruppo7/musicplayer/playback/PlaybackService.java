@@ -20,21 +20,28 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PlaybackService implements TrackObserver{
 
+    /** The track currently loaded in the playback engine. */
     private Track currentTrack;
+
+    /** The active operational state of the playback engine. */
     private PlaybackState currentState;
+
+    /** The queue managing the sequence of tracks to be played. */
     private PlaybackList queue;
+
+    /** Atomic counter tracking the elapsed simulated playback time in seconds. */
     private AtomicInteger simulatedTimeSeconds;
 
-    // Service for background time
+    /** Service used to schedule and run background timer tasks. */
     private ScheduledExecutorService timer;
 
-    // Handle used to stop the specified timer
+    /** Handle used to monitor or cancel the active timer task. */
     private ScheduledFuture<?> timerHandle;
 
-    // observer list
+    /** List of observers listening to playback state and time changes. */
     private final List<PlaybackObserver> observers;
 
-    // repeat mode default = off
+    /** The current repeat mode setting, defaulting to OFF. */
     private RepeatMode repeatMode;
 
 
@@ -383,10 +390,20 @@ public class PlaybackService implements TrackObserver{
         this.timerHandle = timerHandle;
     }
 
+    /**
+     * Retrieves the current repeat mode configuration.
+     *
+     * @return The active RepeatMode state.
+     */
     public RepeatMode getRepeatMode() {
         return repeatMode;
     }
 
+    /**
+     * Sets the repeat mode for the playback queue.
+     *
+     * @param repeatMode The new RepeatMode to be applied.
+     */
     public void setRepeatMode(RepeatMode repeatMode) {
         this.repeatMode = repeatMode;
     }
@@ -406,6 +423,61 @@ public class PlaybackService implements TrackObserver{
         this.queue.removeTrack(track);
     }
 
+    // In PlaybackService.java
+
+    /**
+     * Appends or randomly inserts a track into the live queue depending on shuffle state.
+     * Does not start playback; the track simply becomes reachable via next/prev.
+     *
+     * @param track The track to add.
+     */
+    public void addTrackToQueue(Track track) {
+        queue.addToCanonicalList(track);
+        if (queue.isShuffleActive()) {
+            queue.insertTrackAtRandom(track);
+        }
+        notifyQueueChanged();
+    }
+
+
+    /**
+     * Removes a track from the live queue.
+     * If the removed track is currently playing, advances to the next track automatically.
+     *
+     * @param track The track to remove.
+     */
+    public void removeTrackFromQueue(Track track) {
+        boolean isCurrentTrack = track.equals(this.currentTrack);
+        if (isCurrentTrack) {
+            Track next = queue.getNextTrack(track);
+            queue.removeTrack(track);
+            if (next != null) {
+                play(next);
+            } else {
+                stop();
+                notifyTrackChanged(null);
+            }
+        } else {
+            queue.removeTrack(track);
+            notifyQueueChanged();
+        }
+    }
+
+    /**
+     * Broadcasts a notification to all registered observers indicating that
+     * the playback queue's structural sequence or content has changed.
+     */
+    private void notifyQueueChanged() {
+        for (PlaybackObserver obs : observers) obs.onQueueChanged();
+    }
+
+    /**
+     * Triggered when a track's metadata is modified.
+     * Currently, a no-op as the playback service relies on object references
+     * and does not directly manage metadata views.
+     *
+     * @param track The track that was edited.
+     */
     @Override
     public void onTrackEdit(Track track) {
 

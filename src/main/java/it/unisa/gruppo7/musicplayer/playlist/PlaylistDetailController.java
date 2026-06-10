@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
@@ -14,7 +15,6 @@ import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -27,7 +27,7 @@ import java.util.List;
  * and handles UI actions such as adding/removing tracks, renaming, or deleting the playlist.
  * * @author Maxim Makhovskyy, Luigi Perone
  */
-public class PlaylistDetailController implements PlaybackObserver {
+public class PlaylistDetailController implements PlaybackObserver, TrackObserver {
 
     @FXML private Label     playlistNameLabel;
     @FXML private TextField playlistNameField;
@@ -139,8 +139,8 @@ public class PlaylistDetailController implements PlaybackObserver {
     public void setMusicPlayer(MusicPlayerFacade facade) {
         this.facade = facade;
         facade.getPlaybackService().addObserver(this);
+        facade.addObserver(this);
 
-        // 1. SINCRONIZZA SUBITO LA VARIABILE LOCALE ALL'AVVIO
         this.playingTrack = facade.getCurrentPlayingTrack();
 
         PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
@@ -151,12 +151,11 @@ public class PlaylistDetailController implements PlaybackObserver {
         configurator.configure(
                 () -> {
                     if (facade.getActivePlaylist() != null && facade.getActivePlaylist().equals(this.currentPlaylist)) {
-                        // 2. LEGGI DIRETTAMENTE DAL FACADE (oppure usa this.playingTrack ora che è aggiornata)
                         return facade.getCurrentPlayingTrack();
                     }
                     return null;
                 },
-                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade,currentPlaylist, track))
+                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, track))
         );
 
         RenameHandler renameHandler = new RenameHandler(
@@ -244,7 +243,6 @@ public class PlaylistDetailController implements PlaybackObserver {
         Dialog<List<Track>> dialog = director.construct(builder);
 
         dialog.showAndWait().ifPresent(selectedTracks -> {
-
             Command<AdditionResult> addCommand = new AddTracksCommand(
                     facade.getPlaylistService(),
                     currentPlaylist,
@@ -254,6 +252,10 @@ public class PlaylistDetailController implements PlaybackObserver {
             CommandInvoker.execute(addCommand).ifPresent(result -> {
                 if (result.hasAdded()) {
                     adapter.getItems().addAll(selectedTracks);
+                    // US-018: keep queue in sync if this playlist is the active source
+                    for (Track t : selectedTracks) {
+                        facade.onTrackAddedToPlaylist(currentPlaylist, t);
+                    }
                 }
             });
         });
@@ -278,9 +280,10 @@ public class PlaylistDetailController implements PlaybackObserver {
             Command<Void> removeCommand = new RemoveTrackCommand(currentPlaylist, selectedTrack);
             CommandInvoker.execute(removeCommand);
 
-            if(adapter!=null){
+            if (adapter != null) {
                 adapter.getItems().remove(selectedTrack);
                 playlistTrackTable.getSelectionModel().clearSelection();
+                facade.onTrackRemovedFromPlaylist(currentPlaylist, selectedTrack);
             }
         }
     }
@@ -338,5 +341,43 @@ public class PlaylistDetailController implements PlaybackObserver {
             alert.setContentText(ex.getMessage());
             alert.showAndWait();
         }
+    }
+
+    /**
+     * Triggered when a track is permanently removed from the application.
+     * Removes the track from the active playlist adapter and refreshes UI labels.
+     *
+     * @param track The track that was deleted globally.
+     */
+    @Override
+    public void onTrackDeleted(Track track) {
+        Platform.runLater(() -> {
+            adapter.getItems().remove(track);
+            playlistTrackTable.refresh();
+            refreshLabels();
+        });
+    }
+
+    /**
+     * Triggered when a track's metadata (e.g., title, author) is modified.
+     * Forces a refresh of the table view to display the most up-to-date information.
+     *
+     * @param track The track that was edited globally.
+     */
+    @Override
+    public void onTrackEdit(Track track) {
+        Platform.runLater(() -> playlistTrackTable.refresh());
+    }
+
+    /**
+     * Triggered when the structural order or content of the playback queue changes.
+     * Clears the current table selection and triggers a refresh to maintain visual consistency.
+     */
+    @Override
+    public void onQueueChanged() {
+        Platform.runLater(() -> {
+            playlistTrackTable.getSelectionModel().clearSelection();
+            playlistTrackTable.refresh();
+        });
     }
 }

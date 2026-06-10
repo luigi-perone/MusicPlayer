@@ -30,4 +30,11 @@ public interface PlaybackObserver {
      * @param newState The updated playback state.
      */
     void onStateChanged(PlaybackState newState);
+
+    /**
+     * Invoked when the contents of the playback queue change
+     * (track added or removed) without necessarily changing the current track.
+     * Default no-op so existing implementors do not need to change.
+     */
+    default void onQueueChanged() {}
 }

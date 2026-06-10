@@ -13,8 +13,10 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 public class PlaybackList extends TrackCollection implements TrackObserver {
     private static final String DEFAULT_PATH = null;
 
-
+    /** A separate list maintaining the randomized order of tracks when shuffle mode is active. */
     private List<Track> shuffledTracks;
+
+    /** Flag indicating whether the playback queue is currently operating in shuffle mode. */
     private boolean isShuffleActive;
 
 
@@ -27,6 +29,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.isShuffleActive = false;
     }
 
+    /**
+     * Returns the currently active list of tracks based on the shuffle state.
+     * * @return The shuffled list if shuffle is active, otherwise the canonical track list.
+     */
     private List<Track> getActiveList() {
         if (isShuffleActive()) {
             return this.shuffledTracks;
@@ -121,6 +127,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.shuffledTracks.clear();
     }
 
+    /**
+     * Retrieves the first track in the active playback list.
+     * * @return The first track, or null if the list is empty.
+     */
     public Track getFirstTrack() {
         List<Track> trackList = getActiveList();
 
@@ -132,7 +142,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     }
 
-
+    /**
+     * Retrieves a sublist of tracks scheduled to play after the specified current track.
+     * * @param current The reference track currently playing.
+     * @return A list containing the upcoming tracks, or an empty list if there are none.
+     */
     public List<Track> getUpNextQueue(Track current) {
         List<Track> trackList = getActiveList();
 
@@ -154,6 +168,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /**
      * Returns the current shuffle mode state.
+     * * @return true if shuffle is active, false otherwise.
      */
     public boolean isShuffleActive() {
         return isShuffleActive;
@@ -175,6 +190,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         }
     }
 
+    /**
+     * Generates a randomized version of the current track list.
+     * If a track is currently playing, it is moved to the head of the shuffled list.
+     * * @param currentTrack The currently playing track, or null.
+     */
     private void shuffleTracks(Track currentTrack) {
         shuffledTracks = new ArrayList<>(this.tracks);
         Collections.shuffle(shuffledTracks);
@@ -184,6 +204,49 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             shuffledTracks.remove(currentTrack);
             shuffledTracks.add(0, currentTrack);
         }
+    }
+
+    // In PlaybackList.java
+
+    /**
+     * Inserts a track at a random position within the shuffled queue,
+     * after the current track (index 0 is reserved for the playing track).
+     * Falls back to appending at the end if the shuffled list is empty.
+     *
+     * @param track The track to insert.
+     */
+    public void insertTrackAtRandom(Track track) {
+        if (shuffledTracks.isEmpty()) {
+            shuffledTracks.add(track);
+            return;
+        }
+        // Insert anywhere after position 0 (position 0 = currently playing)
+        int insertIndex = shuffledTracks.size() == 1
+                ? 1
+                : 1 + new Random().nextInt(shuffledTracks.size() - 1);
+        shuffledTracks.add(insertIndex, track);
+    }
+
+    /**
+     * Adds a track to the canonical list without triggering the shuffle-append side-effect of appendTracks.
+     *
+     * @param track The track to add.
+     */
+    void addToCanonicalList(Track track) {
+        this.tracks.add(track);
+    }
+
+    /**
+     * Removes a track from both the main list and the shuffled list.
+     * Overrides the base class to keep the two lists consistent.
+     *
+     * @param track The track to remove.
+     * @return true if the main list contained the track.
+     */
+    @Override
+    public boolean removeTrack(Track track) {
+        shuffledTracks.remove(track);
+        return super.removeTrack(track);
     }
 
 
@@ -199,6 +262,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         }
     }
 
+    /**
+     * Handles the track edit event.
+     * Currently, a no-op in this context as track metadata changes do not inherently affect queue order.
+     * * @param track The track that was edited.
+     */
     @Override
     public void onTrackEdit(Track track) {
 

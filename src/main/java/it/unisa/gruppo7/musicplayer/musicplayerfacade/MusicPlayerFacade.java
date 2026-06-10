@@ -21,14 +21,25 @@ import java.util.*;
  */
 public class MusicPlayerFacade {
 
+    /** Single instance of the MusicPlayerFacade. */
     private static MusicPlayerFacade instance;
 
+    /** The core library database managing all tracks. */
     private final Library library;
+
+    /** The service responsible for managing user playlists. */
     private final PlaylistService playlistService;
+
+    /** The service handling audio streaming and playback state. */
     private final PlaybackService playbackService;
 
+    /** The track currently selected in the UI context. */
     private Track selectedTrack;
-    private Playlist activePlaylist; // Traccia la playlist attualmente in riproduzione
+
+    /** The playlist currently providing the playback context. */
+    private Playlist activePlaylist;
+
+    /** List of registered observers listening for track data changes. */
     private final List<TrackObserver> observers = new ArrayList<>();
 
     /**
@@ -342,6 +353,11 @@ public class MusicPlayerFacade {
         playbackService.appendSource(tracks);
     }
 
+    /**
+     * Appends a single track to the end of the current playback queue.
+     *
+     * @param track The track to append.
+     */
     public void appendTrackToQueue(Track track) {
         List<Track> tracks = new ArrayList<>();
         tracks.add(track);
@@ -384,24 +400,49 @@ public class MusicPlayerFacade {
         playbackService.playFromQueue(track);
     }
 
+    /**
+     * Retrieves the list of tracks scheduled to play after the specified track.
+     *
+     * @param track The reference track.
+     * @return A list of upcoming tracks in the queue.
+     */
     public List<Track> getUpNextQueueFrom(Track track) {
         return playbackService.getQueue().getUpNextQueue(track);
     }
 
-    // Playback mode methods
+    // --- Playback mode methods ---
 
+    /**
+     * Toggles the shuffle state for the playback queue and reorganizes it relative to the given track.
+     *
+     * @param shuffleState true to enable shuffle, false to disable.
+     * @param track        The currently active track to base the shuffle operations around.
+     */
     public void shuffleQueue(boolean shuffleState, Track track) {
         playbackService.getQueue().setShuffle(shuffleState, track);
     }
 
+    /**
+     * Checks whether the playback queue is currently in shuffle mode.
+     *
+     * @return true if shuffle is active, false otherwise.
+     */
     public boolean isShuffleActive() {
         return playbackService.getQueue().isShuffleActive();
     }
 
+    /**
+     * Retrieves the current repeat mode of the playback engine.
+     *
+     * @return The active RepeatMode state.
+     */
     public RepeatMode getCurrentRepeatMode() {
         return playbackService.getRepeatMode();
     }
 
+    /**
+     * Cycles the playback repeat mode through its available states: OFF, REPEAT_PLAYLIST, and REPEAT_ONE.
+     */
     public void changeRepeatMode() {
         RepeatMode currentRepeatMode = playbackService.getRepeatMode();
         if (currentRepeatMode == RepeatMode.OFF) {
@@ -450,6 +491,34 @@ public class MusicPlayerFacade {
     }
 
     /**
+     * Synchronises the live playback queue after a track has been added to a playlist.
+     * If the playlist is currently the active playback source, the track is appended to
+     * the queue (or inserted at a random position when shuffle is active).
+     *
+     * @param playlist The playlist that received the new track.
+     * @param track    The track that was added.
+     */
+    public void onTrackAddedToPlaylist(Playlist playlist, Track track) {
+        if (playlist != null && playlist.equals(this.activePlaylist)) {
+            playbackService.addTrackToQueue(track);
+        }
+    }
+
+    /**
+     * Synchronises the live playback queue after a track has been removed from a playlist.
+     * If the playlist is currently the active playback source, the track is removed from
+     * the queue. If it was playing, playback advances to the next track automatically.
+     *
+     * @param playlist The playlist from which the track was removed.
+     * @param track    The track that was removed.
+     */
+    public void onTrackRemovedFromPlaylist(Playlist playlist, Track track) {
+        if (playlist != null && playlist.equals(this.activePlaylist)) {
+            playbackService.removeTrackFromQueue(track);
+        }
+    }
+
+    /**
      * Hooks up an update subscriber interface onto tracking collection registries.
      *
      * @param observer The target dynamic subscriber tracking module implementation.
@@ -480,6 +549,11 @@ public class MusicPlayerFacade {
         }
     }
 
+    /**
+     * Iterates through active pipeline subscribers to execute modification notification parameters.
+     *
+     * @param track The edited entity metadata profile.
+     */
     private void notifyTrackEdit(Track track) {
         for (TrackObserver observer : observers) {
             observer.onTrackEdit(track);
