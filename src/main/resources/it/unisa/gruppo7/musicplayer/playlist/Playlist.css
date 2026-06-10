@@ -326,3 +326,20 @@
     -fx-text-fill: #1c1c1e; /* Testo scuro per garantire massima leggibilità */
     -fx-font-weight: bold; /* Opzionale: fa risaltare la riga */
 }
+
+
+.queue-container .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8 10 8 14;
+    -fx-text-fill: #1c1c1e;
+    -fx-font-size: 14px;
+}
+
+.queue-container .list-cell:hover {
+    -fx-background-color: #f6f5f3; /* Grigio chiaro al passaggio del mouse */
+}
+
+.queue-container .list-cell:selected {
+    -fx-background-color: #fdeee7; /* Arancione chiarissimo di selezione tema */
+    -fx-text-fill: #e0592b;        /* Testo arancione scuro */
+}

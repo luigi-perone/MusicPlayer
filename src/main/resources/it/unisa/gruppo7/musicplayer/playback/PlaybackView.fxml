@@ -60,9 +60,16 @@
             </HBox>
          </VBox>
 
-         <VBox alignment="CENTER" prefHeight="90.0" prefWidth="50.0">
-            <padding><Insets right="16.0" /></padding>
-            <Button fx:id="queueButton" onAction="#onToggleQueue" styleClass="queue-btn" text="≡" />
+         <VBox alignment="CENTER" prefHeight="90.0" prefWidth="60.0">
+            <padding><Insets right="24.0" /></padding>
+            <children>
+               <Button fx:id="queueButton" onAction="#onToggleQueue" text="≡">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
+            </children>
          </VBox>
       </children>
    </HBox>
