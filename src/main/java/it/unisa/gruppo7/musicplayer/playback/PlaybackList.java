@@ -222,8 +222,17 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      */
     @Override
     public boolean removeTrack(Track track) {
+        // 1. Salviamo l'indice prima di rimuovere
+        int indexInActive = getActiveList().indexOf(track);
+
         shuffledTracks.remove(track);
-        return super.removeTrack(track);
+        boolean removed = super.removeTrack(track);
+
+        if (indexInActive != -1 && indexInActive <= currentIndex) {
+            currentIndex--;
+        }
+
+        return removed;
     }
 
 
@@ -234,9 +243,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      */
     @Override
     public void onTrackDeleted(Track track) {
-        if (this.tracks != null) {
-            this.tracks.remove(track);
-        }
+        this.removeTrack(track); // Usa il metodo centralizzato invece di this.tracks.remove()
     }
 
     /**

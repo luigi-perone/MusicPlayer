@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
+import java.util.ArrayList;
+
 /**
  * JavaFX controller responsible for managing and displaying the active playback queue.
  * It observes both playback state changes and library track modifications to keep
@@ -41,6 +43,7 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
+                    setGraphic(null);
                 } else {
                     setText(item.getTitle() + " - " + item.getAuthor());
                 }
@@ -68,7 +71,7 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
     public void refreshQueue() {
         Platform.runLater(() -> {
             if (currentTrack == null) {
-                queueListView.getItems().setAll(musicPlayer.getPlaybackService().getQueue().getTracks());
+                queueListView.getItems().setAll(new ArrayList<>());
             } else {
                 queueListView.getItems().setAll(musicPlayer.getUpNextQueueFrom());
             }

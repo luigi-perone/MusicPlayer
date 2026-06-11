@@ -145,8 +145,8 @@ public class LibraryController implements PlaybackObserver {
      */
     @Override
     public void onTrackChanged(Track newTrack) {
-        this.playingTrack = newTrack;
         Platform.runLater(() -> {
+            this.playingTrack = newTrack;
             trackTable.getSelectionModel().clearSelection();
             trackTable.refresh();
         });
@@ -161,8 +161,10 @@ public class LibraryController implements PlaybackObserver {
     @Override
     public void onStateChanged(PlaybackState newState) {
         if (newState == PlaybackState.STOPPED) {
-            this.playingTrack = null;
-            Platform.runLater(() -> trackTable.refresh());
+            Platform.runLater(() -> {
+                this.playingTrack = null;
+                trackTable.refresh();
+            });
         }
     }
 

@@ -146,6 +146,7 @@ public class PlaybackService implements TrackObserver{
         notifyTimeTick(0);
         this.stopTimer();
         this.currentTrack = null;
+        notifyTrackChanged(null);
     }
 
     /**
@@ -420,14 +421,8 @@ public class PlaybackService implements TrackObserver{
      */
     @Override
     public void onTrackDeleted(Track track) {
-        if(this.currentTrack != null && this.currentTrack.equals(track)){
-            this.playNext();
-        }
-
-        this.queue.removeTrack(track);
+        this.removeTrackFromQueue(track);
     }
-
-    // In PlaybackService.java
 
     /**
      * Appends or randomly inserts a track into the live queue depending on shuffle state.

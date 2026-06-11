@@ -79,6 +79,13 @@ public class Track {
     }
 
     /**
+     * No-arg constructor required by serialization frameworks or tests.
+     */
+    protected Track() {
+        this.id = UUID.randomUUID();
+    }
+
+    /**
      * Constructs a Track with no publication year.
      *
      * @param title    The title of the track.
