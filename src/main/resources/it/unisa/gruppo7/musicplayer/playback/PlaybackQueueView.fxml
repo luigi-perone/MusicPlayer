@@ -5,11 +5,25 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="queuePanel" prefWidth="250.0" styleClass="queue-container" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackQueueController">
+<VBox fx:id="queuePanel"
+      prefWidth="250.0"
+      style="-fx-background-color: white; -fx-border-color: #ececeb; -fx-border-width: 0 0 0 1;"
+      styleClass="queue-container"
+      xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackQueueController">
     <children>
-        <Label styleClass="queue-title" text="Coda di riproduzione">
-            <VBox.margin><Insets bottom="10.0" left="10.0" top="10.0" /></VBox.margin>
+        <Label style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1c1c1e;"
+               styleClass="queue-title"
+               text="Coda di riproduzione">
+            <VBox.margin>
+                <Insets bottom="12.0" left="14.0" right="14.0" top="18.0" />
+            </VBox.margin>
         </Label>
-        <ListView fx:id="queueListView" VBox.vgrow="ALWAYS" />
+
+        <!-- ListView ripulita dai bordi nativi -->
+        <ListView fx:id="queueListView"
+                  style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0 4 0 4;"
+                  VBox.vgrow="ALWAYS" />
     </children>
 </VBox>

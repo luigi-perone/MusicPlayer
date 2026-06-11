@@ -5,36 +5,46 @@ import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Slider;
+import javafx.scene.layout.VBox;
 
 import java.time.Year;
 
 /**
- * Controller for the playback user interface bar.
+ * Controller for the playback user interface.
  * It observes the playback system to dynamically update track details,
- * simulated elapsed time, state transitions, and the progress bar.
+ * simulated elapsed time, state transitions, and the progress slider.
  * It provides controls for play/pause, track skipping, and queue visualization toggling.
  *
  * @author Francesco Lemmo
  */
 public class PlaybackController implements PlaybackObserver, TrackObserver {
+    private static final String SHUFFLE_ACTIVE_CLASS = "player-button-active";
+    private static final String LOOP_ACTIVE_CLASS = "player-button-active";
 
     @FXML private Label timeLabel;
     @FXML private Button playPauseButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
     @FXML private Button queueButton;
-    @FXML private ProgressBar progressBar;
     @FXML private Label trackAuthorLabel;
     @FXML private Label trackDurationLabel;
     @FXML private Label trackTitleLabel;
     @FXML private Label trackYearLabel;
     @FXML private Button shuffleButton;
     @FXML private Button repeatButton;
+    @FXML private Button loopButton;
+    @FXML private Slider progressSlider;
+
+    // used to avoid conflict between user and timer
+    private boolean isUserSeeking = false;
 
     private MainController mainController;
 
@@ -50,6 +60,51 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
         musicPlayer.addObserver(this);
+
+        ObservableList<Track> items = FXCollections.observableArrayList(
+            musicPlayer.getPlaybackService().getQueue().getTracks()
+        );
+
+        updateShuffleButtonState();
+        updateRepeatButtonState();
+
+        if (progressSlider != null) {
+            // User is moving or clicking on the slider. Stops UI timer
+            progressSlider.setOnMousePressed(event -> {
+                isUserSeeking = true;
+            });
+
+            // Slider released. Unlocks UI timer
+            progressSlider.setOnMouseReleased(event -> {
+                int seekTime = (int) progressSlider.getValue();
+                musicPlayer.seekTo(seekTime);
+                isUserSeeking = false;
+            });
+
+            // draws the color of the slider progress
+            progressSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+                // progress percentage (0 - 100)
+                double max = progressSlider.getMax();
+                double current = newVal.doubleValue();
+                double percentage = (max == 0) ? 0 : (current / max) * 100;
+
+                // seek the UI bar
+                javafx.scene.Node track = progressSlider.lookup(".track");
+
+                // if the UI is ready draw the color gradient
+                if (track != null) {
+                    // Orange (#e0592b) on the left
+                    // Grey (#d1d1d6) on the righrt, split on the calculated percentage
+                    String style = String.format(
+                            "-fx-background-color: linear-gradient(to right, #e0592b %d%%, #d1d1d6 %d%%);",
+                            (int) percentage, (int) percentage
+                    );
+                    track.setStyle(style);
+                }
+            });
+        }
+
+
     }
 
     /**
@@ -132,6 +187,8 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         if (mainController != null) {
             mainController.refreshQueueView();
         }
+        updateShuffleButtonState();
+
     }
 
     @FXML
@@ -156,10 +213,37 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         if (mainController != null) {
             mainController.refreshQueueView();
         }
+        updateRepeatButtonState();
     }
 
+
+    private void updateShuffleButtonState() {
+
+        boolean isActive = musicPlayer.isShuffleActive();
+        shuffleButton.setText("⇄");
+        shuffleButton.getStyleClass().remove(SHUFFLE_ACTIVE_CLASS);
+        if (isActive) {
+            shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
+        }
+
+    }
+
+    private void updateRepeatButtonState() {
+        RepeatMode repeatMode = musicPlayer.getCurrentRepeatMode();
+        repeatButton.getStyleClass().remove(LOOP_ACTIVE_CLASS);
+
+        if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
+            repeatButton.setText("↻");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else if (repeatMode == RepeatMode.REPEAT_ONE) {
+            repeatButton.setText("↻1");
+            repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+        } else {
+            repeatButton.setText("↺");
+        }
+    }
     /**
-     * Updates the time counter label and recalculates the progress bar percentage ratio
+     * Updates the time counter label and recalculates the progress slider position
      * at periodic simulated time increments.
      *
      * @param simulatedSeconds The elapsed playback time in seconds.
@@ -167,11 +251,9 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @Override
     public void onTimeTick(int simulatedSeconds) {
         Platform.runLater(() -> {
-            timeLabel.setText(musicPlayer.formatDuration(simulatedSeconds));
-
-            if (currentTrack != null && currentTrack.getDuration() > 0) {
-                double progress = (double) simulatedSeconds / currentTrack.getDuration();
-                progressBar.setProgress(progress);
+            if (currentTrack != null && !isUserSeeking) {
+                timeLabel.setText(musicPlayer.formatDuration(simulatedSeconds));
+                progressSlider.setValue(simulatedSeconds);
             }
         });
     }
@@ -199,14 +281,21 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
                 trackDurationLabel.setText(musicPlayer.formatDuration(newTrack.getDuration()));
 
+                // set the slider for the new track
+                progressSlider.setMax(newTrack.getDuration());
+                progressSlider.setValue(0);
+
 
             } else {
                 trackTitleLabel.setText("Nessun brano");
                 trackAuthorLabel.setText("Autore");
-                progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
                 trackYearLabel.setText("Anno");
                 trackDurationLabel.setText(musicPlayer.formatDuration(0));
+
+                //reset the slider
+                progressSlider.setMax(100);
+                progressSlider.setValue(0);
             }
         });
     }
@@ -241,10 +330,12 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
             if (musicPlayer.getUpNextQueueFrom().isEmpty()) {
                 trackTitleLabel.setText("Nessun brano");
                 trackAuthorLabel.setText("Autore");
-                progressBar.setProgress(0.0);
                 timeLabel.setText("00:00");
                 trackYearLabel.setText("Anno");
                 trackDurationLabel.setText(musicPlayer.formatDuration(0));
+
+                progressSlider.setMax(100);
+                progressSlider.setValue(0);
             }
         });
     }

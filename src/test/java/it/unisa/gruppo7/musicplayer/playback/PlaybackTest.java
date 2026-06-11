@@ -138,6 +138,164 @@ class PlaybackTest {
             assertNull(playbackList.getPreviousTrack());
         }
     }
+    
+    @Nested
+    class WhenReadingUpNextQueue {
+
+        @BeforeEach
+        void load() {
+            playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+        }
+
+        @Test
+        void getUpNextQueueFromFirstReturnsFollowingTracks() {
+            assertEquals(
+                Arrays.asList(trk2, trk3),
+                playbackList.getUpNextQueue(trk1)
+            );
+        }
+
+        @Test
+        void getUpNextQueueFromLastReturnsEmptyList() {
+            assertTrue(playbackList.getUpNextQueue(trk3).isEmpty());
+        }
+
+        @Test
+        void getUpNextQueueFromUnknownTrackReturnsEmptyList() {
+            Track unknown = new Track("Unknown", "Unknown", 100, "Pop", Year.of(2000));
+            assertTrue(playbackList.getUpNextQueue(unknown).isEmpty());
+        }
+
+        @Test
+        void getUpNextQueueFromNullTrackReturnsEmptyList() {
+            assertTrue(playbackList.getUpNextQueue(null).isEmpty());
+        }
+    }
+
+    @Nested
+    class WhenShufflingQueue {
+
+        @BeforeEach
+        void load() {
+            playbackList.loadTracks(new ArrayList<>(Arrays.asList(trk1, trk2, trk3)));
+        }
+
+        @Test
+        void shuffleIsInactiveByDefault() {
+            assertFalse(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void setShuffleTrueActivatesShuffleMode() {
+            playbackList.setShuffle(true, trk1);
+
+            assertTrue(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void setShuffleFalseDeactivatesShuffleMode() {
+            playbackList.setShuffle(true, trk1);
+            playbackList.setShuffle(false, trk1);
+
+            assertFalse(playbackList.isShuffleActive());
+        }
+
+        @Test
+        void enablingShuffleKeepsCurrentTrackAtQueueHead() {
+            playbackList.setShuffle(true, trk2);
+
+            assertNull(playbackList.getPreviousTrack(trk2));
+        }
+
+        @Test
+        void shuffledUpNextQueueExcludesCurrentTrackAndKeepsRemainingTracks() {
+            playbackList.setShuffle(true, trk2);
+
+            ArrayList<Track> upNext = new ArrayList<>(playbackList.getUpNextQueue(trk2));
+
+            assertEquals(2, upNext.size());
+            assertFalse(upNext.contains(trk2));
+            assertTrue(upNext.contains(trk1));
+            assertTrue(upNext.contains(trk3));
+        }
+
+        @Test
+        void disablingShuffleRestoresOriginalQueueOrderForNavigation() {
+            playbackList.setShuffle(true, trk2);
+            playbackList.setShuffle(false, trk2);
+
+            assertEquals(trk3, playbackList.getNextTrack(trk2));
+        }
+    }
+
+
+    @Nested
+    class WhenRepeatModeIsActive {
+
+        @BeforeEach
+        void load() {
+            playbackService.loadSource(new ArrayList<>(playlist.getTracks()));
+        }
+
+        @Test
+        void repeatPlaylistGoesBackToFirstTrack() {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+
+            playbackService.playNext();
+            playbackService.playNext();
+
+            playbackService.playNext();
+
+            assertEquals(trk1, playbackService.getCurrentTrack());
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+        }
+
+        @Test
+        void repeatSingleTrackRestartsSameTrack() {
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+
+            Track currentTrack = playbackService.getCurrentTrack();
+
+            playbackService.playNext();
+
+            assertEquals(currentTrack, playbackService.getCurrentTrack());
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+        }
+
+        @Test
+        void repeatModeSequenceIsCorrect() {
+            assertEquals(RepeatMode.OFF, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+            assertEquals(RepeatMode.REPEAT_PLAYLIST, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+            assertEquals(RepeatMode.REPEAT_ONE, playbackService.getRepeatMode());
+
+            playbackService.setRepeatMode(RepeatMode.OFF);
+            assertEquals(RepeatMode.OFF, playbackService.getRepeatMode());
+        }
+
+        @Test
+        void changingRepeatModeDoesNotInterruptPlayback() {
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            Track playingTrack = playbackService.getCurrentTrack();
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
+
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            assertEquals(playingTrack, playbackService.getCurrentTrack());
+
+            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
+
+            assertEquals(PlaybackState.PLAYING, playbackService.getCurrentState());
+            assertEquals(playingTrack, playbackService.getCurrentTrack());
+        }
+    }
+
+
+
+
 
     @Nested
     class WhenSkippingInPlaybackService {
@@ -217,7 +375,7 @@ class PlaybackTest {
         void emptyPlaylistDoesNotChangeCurrentTrack() {
             playbackService.loadSource(new ArrayList<>(playlist.getTracks()));
             assertEquals(trk1, playbackService.getCurrentTrack());
-            // la validazione della playlist vuota è responsabilità del facade, non del service
+           
         }
     }
 

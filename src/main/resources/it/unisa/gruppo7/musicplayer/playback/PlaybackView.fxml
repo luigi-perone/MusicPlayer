@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -11,6 +12,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Slider?>
 <VBox fx:id="rootContainer" alignment="BOTTOM_CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playback.PlaybackController">
 
    <HBox fx:id="playbackPanel" alignment="CENTER_LEFT" prefHeight="90.0" prefWidth="850.0" styleClass="playback-panel">
@@ -27,11 +29,21 @@
 
          <VBox alignment="CENTER" prefHeight="90.0" prefWidth="570.0" spacing="10.0">
             <HBox alignment="CENTER" spacing="16.0">
-               <Button fx:id="shuffleButton" onAction="#onShuffle" styleClass="control-btn" text="⇄" />
+               <Button fx:id="shuffleButton" onAction="#onShuffle" text="⇄">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
                <Button fx:id="prevButton" onAction="#onPreviousTrack" styleClass="control-btn" text="⏮" />
                <Button fx:id="playPauseButton" onAction="#onPlayPause" styleClass="play-btn-graphic" text="▶" />
                <Button fx:id="nextButton" onAction="#onNextTrack" styleClass="control-btn" text="⏭" />
-               <Button fx:id="repeatButton" onAction="#onRepeat" styleClass="control-btn" text="↺" />
+               <Button fx:id="repeatButton" onAction="#onRepeat" text="↺">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
             </HBox>
             <HBox alignment="CENTER" spacing="12.0">
                <GridPane alignment="CENTER" maxWidth="450.0" HBox.hgrow="ALWAYS">
@@ -42,15 +54,22 @@
                   </columnConstraints>
                   <rowConstraints><RowConstraints minHeight="10.0" vgrow="SOMETIMES" /></rowConstraints>
                   <Label fx:id="timeLabel" styleClass="time-text" text="00:00" GridPane.halignment="LEFT" />
-                  <ProgressBar fx:id="progressBar" maxHeight="5.0" minHeight="5.0" prefHeight="5.0" prefWidth="340.0" progress="0.0" styleClass="custom-progress" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                  <Slider fx:id="progressSlider" maxHeight="15.0" prefWidth="340.0" styleClass="custom-slider" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
                   <Label fx:id="trackDurationLabel" styleClass="time-text" text="00:00" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
                </GridPane>
             </HBox>
          </VBox>
 
-         <VBox alignment="CENTER" prefHeight="90.0" prefWidth="50.0">
-            <padding><Insets right="16.0" /></padding>
-            <Button fx:id="queueButton" onAction="#onToggleQueue" styleClass="queue-btn" text="≡" />
+         <VBox alignment="CENTER" prefHeight="90.0" prefWidth="60.0">
+            <padding><Insets right="24.0" /></padding>
+            <children>
+               <Button fx:id="queueButton" onAction="#onToggleQueue" text="≡">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
+            </children>
          </VBox>
       </children>
    </HBox>
