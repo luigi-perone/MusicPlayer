@@ -76,6 +76,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.clear();
         this.tracks.addAll(tracks);
 
+        if (!tracks.isEmpty()) {
+            this.currentIndex = 0;
+        }
+
         if (isShuffleActive) {
             shuffleTracks(null);
         }
@@ -122,7 +126,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public List<Track> getUpNextQueue() {
         List<Track> trackList = getActiveList();
 
-        if (trackList == null || trackList.isEmpty() || currentIndex == -1) {
+        if (trackList == null || trackList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -153,9 +157,13 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.isShuffleActive = shuffleState;
         if (shuffleState) {
             shuffleTracks(currentTrack);
+            this.currentIndex = 0;
         } else {
             shuffledTracks.clear();
-
+            if (currentTrack != null) {
+                int idx = ((List<Track>) this.tracks).indexOf(currentTrack);
+                this.currentIndex = Math.max(idx, 0);
+            }
         }
     }
 

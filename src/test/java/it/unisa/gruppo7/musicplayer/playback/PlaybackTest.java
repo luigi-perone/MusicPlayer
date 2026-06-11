@@ -151,24 +151,26 @@ class PlaybackTest {
         void getUpNextQueueFromFirstReturnsFollowingTracks() {
             assertEquals(
                 Arrays.asList(trk2, trk3),
-                playbackList.getUpNextQueue(trk1)
+                playbackList.getUpNextQueue()
             );
         }
 
         @Test
         void getUpNextQueueFromLastReturnsEmptyList() {
-            assertTrue(playbackList.getUpNextQueue(trk3).isEmpty());
+            playbackList.setCurrentIndex(2);
+            assertTrue(playbackList.getUpNextQueue().isEmpty());
         }
 
         @Test
         void getUpNextQueueFromUnknownTrackReturnsEmptyList() {
-            Track unknown = new Track("Unknown", "Unknown", 100, "Pop", Year.of(2000));
-            assertTrue(playbackList.getUpNextQueue(unknown).isEmpty());
+            playbackList.setCurrentIndex(-1);
+            assertTrue(playbackList.getUpNextQueue().isEmpty());
         }
 
         @Test
         void getUpNextQueueFromNullTrackReturnsEmptyList() {
-            assertTrue(playbackList.getUpNextQueue(null).isEmpty());
+            playbackList.setCurrentIndex(-1);
+            assertTrue(playbackList.getUpNextQueue().isEmpty());
         }
     }
 
@@ -204,14 +206,14 @@ class PlaybackTest {
         void enablingShuffleKeepsCurrentTrackAtQueueHead() {
             playbackList.setShuffle(true, trk2);
 
-            assertNull(playbackList.getPreviousTrack(trk2));
+            assertNull(playbackList.getPreviousTrack());
         }
 
         @Test
         void shuffledUpNextQueueExcludesCurrentTrackAndKeepsRemainingTracks() {
             playbackList.setShuffle(true, trk2);
 
-            ArrayList<Track> upNext = new ArrayList<>(playbackList.getUpNextQueue(trk2));
+            ArrayList<Track> upNext = new ArrayList<>(playbackList.getUpNextQueue());
 
             assertEquals(2, upNext.size());
             assertFalse(upNext.contains(trk2));
@@ -224,7 +226,7 @@ class PlaybackTest {
             playbackList.setShuffle(true, trk2);
             playbackList.setShuffle(false, trk2);
 
-            assertEquals(trk3, playbackList.getNextTrack(trk2));
+            assertEquals(trk3, playbackList.getNextTrack());
         }
     }
 

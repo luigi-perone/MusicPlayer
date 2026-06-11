@@ -166,71 +166,57 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
     @FXML
     void onShuffle(ActionEvent event) {
-        boolean shuffleState = !musicPlayer.isShuffleActive();
-        musicPlayer.shuffleQueue(shuffleState, currentTrack);
+        boolean newShuffleState = !musicPlayer.isShuffleActive();
+        musicPlayer.shuffleQueue(newShuffleState, currentTrack);
 
-        if (shuffleState) {
-            if (!shuffleButton.getStyleClass().contains("active")) {
-                shuffleButton.getStyleClass().add("active");
-            }
-
+        if (newShuffleState) {
             while (musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF) {
                 musicPlayer.changeRepeatMode();
             }
-
-            repeatButton.getStyleClass().remove("active");
-
-        } else {
-            shuffleButton.getStyleClass().remove("active");
+            updateRepeatButtonState();
         }
 
         if (mainController != null) {
             mainController.refreshQueueView();
         }
-        updateShuffleButtonState();
 
+        updateShuffleButtonState();
     }
 
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
-        boolean repeatState = musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF;
 
-        if (repeatState) {
-            if (!repeatButton.getStyleClass().contains("active")) {
-                repeatButton.getStyleClass().add("active");
+        if (musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF) {
+            musicPlayer.shuffleQueue(false, currentTrack);
+            updateShuffleButtonState();
+
+            if (mainController != null) {
+                mainController.refreshQueueView();
             }
-
-            if (musicPlayer.isShuffleActive()) {
-                musicPlayer.shuffleQueue(false, currentTrack);
-            }
-            shuffleButton.getStyleClass().remove("active");
-
-        } else {
-            repeatButton.getStyleClass().remove("active");
         }
 
-        if (mainController != null) {
-            mainController.refreshQueueView();
-        }
         updateRepeatButtonState();
     }
 
 
     private void updateShuffleButtonState() {
-
         boolean isActive = musicPlayer.isShuffleActive();
         shuffleButton.setText("⇄");
+
         shuffleButton.getStyleClass().remove(SHUFFLE_ACTIVE_CLASS);
+        shuffleButton.getStyleClass().remove("active");
+
         if (isActive) {
             shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
         }
-
     }
 
     private void updateRepeatButtonState() {
         RepeatMode repeatMode = musicPlayer.getCurrentRepeatMode();
+
         repeatButton.getStyleClass().remove(LOOP_ACTIVE_CLASS);
+        repeatButton.getStyleClass().remove("active");
 
         if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
             repeatButton.setText("↻");
@@ -242,6 +228,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
             repeatButton.setText("↺");
         }
     }
+
     /**
      * Updates the time counter label and recalculates the progress slider position
      * at periodic simulated time increments.

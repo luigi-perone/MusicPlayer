@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.library;
 
 import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
+import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
@@ -145,7 +146,10 @@ public class LibraryController implements PlaybackObserver {
     @Override
     public void onTrackChanged(Track newTrack) {
         this.playingTrack = newTrack;
-        Platform.runLater(() -> trackTable.refresh());
+        Platform.runLater(() -> {
+            trackTable.getSelectionModel().clearSelection();
+            trackTable.refresh();
+        });
     }
 
     /**
@@ -329,26 +333,13 @@ public class LibraryController implements PlaybackObserver {
     }
 
     /**
-     * Sends the current row selection context model pointer straight into audio pipeline processing engines.
-     */
-    @FXML
-    private void onPlayTrackClick() {
-        Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
-        musicPlayer.playFromLibraryFrom(selectedTrack);
-    }
-
-    /**
      * Auxiliary internal framework utility to prompt basic instructional popups to users.
      *
      * @param titolo    The message alert title header context.
      * @param messaggio The details info description text.
      */
     private void mostraAvviso(String titolo, String messaggio) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(titolo);
-        alert.setHeaderText(null);
-        alert.setContentText(messaggio);
-        alert.showAndWait();
+        DialogUtils.showInfo(titolo, messaggio);
     }
 
     public void setMainController(MainController mainController) {
