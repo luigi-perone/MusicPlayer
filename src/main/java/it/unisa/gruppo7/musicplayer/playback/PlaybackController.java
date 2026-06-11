@@ -169,12 +169,6 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         boolean newShuffleState = !musicPlayer.isShuffleActive();
         musicPlayer.shuffleQueue(newShuffleState, currentTrack);
 
-        if (newShuffleState) {
-            while (musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF) {
-                musicPlayer.changeRepeatMode();
-            }
-            updateRepeatButtonState();
-        }
 
         if (mainController != null) {
             mainController.refreshQueueView();
@@ -186,16 +180,6 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
-
-        if (musicPlayer.getCurrentRepeatMode() != RepeatMode.OFF) {
-            musicPlayer.shuffleQueue(false, currentTrack);
-            updateShuffleButtonState();
-
-            if (mainController != null) {
-                mainController.refreshQueueView();
-            }
-        }
-
         updateRepeatButtonState();
     }
 

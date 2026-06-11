@@ -131,7 +131,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-002] Visualizzazione delle tracce
 
-**story points**: 1
+**story points**: 2
 **priorità**: *alta*
 
 **Come** utente,
@@ -618,7 +618,7 @@ V -.->|6. Legge i dati di stato| M
 
 ## [US-019] Aggiornamento UI in tempo reale durante il playback
 
-**story points**: 5
+**story points**: 3
 **priorità**: *alta*
 
 **Come** utente,
