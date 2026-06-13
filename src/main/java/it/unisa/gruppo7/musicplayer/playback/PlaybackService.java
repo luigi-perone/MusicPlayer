@@ -182,7 +182,7 @@ public class PlaybackService implements TrackObserver{
     public void playPrevious() {
         if (this.currentState == PlaybackState.STOPPED) {
             // No current track: jump to the last track in the queue
-            List<Track> tracks = this.queue.getActiveList(); // make getActiveList() package-private or add a helper
+            List<Track> tracks = this.queue.getActiveList();
             if (tracks != null && !tracks.isEmpty()) {
                 int lastIndex = tracks.size() - 1;
                 this.queue.setCurrentIndex(lastIndex);
@@ -198,11 +198,12 @@ public class PlaybackService implements TrackObserver{
 
     /**
      * Plays a specific track directly from the existing queue context.
+     * The cursor is moved to that track so that next/previous navigation stays correct.
      *
      * @param track The target track to play.
      */
     public void playFromQueue(Track track) {
-        this.queue.setCurrentIndex(0);
+        this.queue.jumpTo(track);
         this.play(track);
     }
 
@@ -222,14 +223,15 @@ public class PlaybackService implements TrackObserver{
 
     /**
      * Overwrites the current queue with a new list of tracks and begins playback
-     * starting from the specified track.
+     * starting from the specified track. The cursor is positioned on {@code startFrom}
+     * so that next/previous navigation continues correctly from that point.
      *
      * @param tracks    The new data source to load.
      * @param startFrom The specific track to begin playing initially.
      */
     public void loadSourceFrom(List<Track> tracks, Track startFrom) {
         this.queue.loadTracks(tracks);
-        this.queue.setCurrentIndex(0);
+        this.queue.jumpTo(startFrom);
         this.play(startFrom);
     }
 
@@ -260,12 +262,19 @@ public class PlaybackService implements TrackObserver{
         }
 
         this.timerHandle = this.timer.scheduleAtFixedRate(() -> {
+            // Snapshot the current track: stop()/removeTrack() may null it out
+            // from another thread between ticks.
+            Track track = this.currentTrack;
+            if (track == null) {
+                return;
+            }
+
             int currentTime = this.simulatedTimeSeconds.incrementAndGet();
             notifyTimeTick(currentTime);
 
-            if (currentTime >= currentTrack.getDuration()) {
+            if (currentTime >= track.getDuration()) {
                 if (repeatMode == RepeatMode.REPEAT_ONE) {
-                    this.play(currentTrack);
+                    this.play(track);
                 } else {
                     this.playNext();
                 }
@@ -446,24 +455,30 @@ public class PlaybackService implements TrackObserver{
 
 
     /**
-     * Removes a track from the live queue.
-     * If the removed track is currently playing, advances to the next track automatically.
+     * Removes a track from the live queue (every occurrence of it).
+     * If the removed track was the one playing, playback advances to whatever
+     * the cursor now points at, or stops if the queue ran off the end.
      *
      * @param track The track to remove.
      */
     public void removeTrackFromQueue(Track track) {
-        boolean isCurrentTrack = track.equals(this.currentTrack);
-        if (isCurrentTrack) {
-            Track next = queue.getNextTrack();
-            queue.removeTrack(track);
-            if (next != null) {
-                play(next);
+        if (track == null) {
+            return;
+        }
+
+        boolean wasCurrent = track.equals(this.currentTrack);
+
+        // The queue owns the cursor: it removes all occurrences and repositions it.
+        queue.removeTrack(track);
+
+        if (wasCurrent) {
+            Track nowPlaying = queue.getCurrentTrack();
+            if (nowPlaying != null) {
+                play(nowPlaying);
             } else {
-                stop();
-                notifyTrackChanged(null);
+                stop(); // stop() already notifies observers with a null track
             }
         } else {
-            queue.removeTrack(track);
             notifyQueueChanged();
         }
     }

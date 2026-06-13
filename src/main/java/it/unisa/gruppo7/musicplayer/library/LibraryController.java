@@ -311,26 +311,34 @@ public class LibraryController implements PlaybackObserver {
     }
 
     /**
-     * Drops the highlighted selected index target track container entirely out of core persistence registries
-     * after validating confirmation popup requests.
+     * Drops the highlighted selected track(s) entirely out of core persistence registries
+     * after validating confirmation popup requests. Supports multi-selection.
      */
     @FXML
     private void onDeleteTrackClick() {
-        Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
-        if (selectedTrack == null) {
+        List<Track> selectedTracks =
+                new ArrayList<>(trackTable.getSelectionModel().getSelectedItems());
+        if (selectedTracks.isEmpty()) {
             mostraAvviso("Nessuna selezione", "Seleziona una traccia dalla tabella per eliminarla.");
             return;
         }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Conferma eliminazione");
         alert.setHeaderText("Eliminazione traccia");
-        alert.setContentText(
-                "Sei sicuro di voler eliminare definitivamente '"
-                        + selectedTrack.getTitle() + "'?");
+        String contentText = selectedTracks.size() == 1
+                ? "Sei sicuro di voler eliminare definitivamente '"
+                        + selectedTracks.get(0).getTitle() + "'?"
+                : "Sei sicuro di voler eliminare definitivamente "
+                        + selectedTracks.size() + " tracce?";
+        alert.setContentText(contentText);
+
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            musicPlayer.removeTrackFromLibrary(selectedTrack);
-            observableTracks.remove(selectedTrack);
+            for (Track track : selectedTracks) {
+                musicPlayer.removeTrackFromLibrary(track);
+            }
+            observableTracks.removeAll(selectedTracks);
         }
     }
 

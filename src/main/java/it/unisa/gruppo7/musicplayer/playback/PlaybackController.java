@@ -5,15 +5,11 @@ import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.VBox;
 
 import java.time.Year;
 
@@ -61,10 +57,6 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         musicPlayer.getPlaybackService().addObserver(this);
         musicPlayer.addObserver(this);
 
-        ObservableList<Track> items = FXCollections.observableArrayList(
-            musicPlayer.getPlaybackService().getQueue().getTracks()
-        );
-
         updateShuffleButtonState();
         updateRepeatButtonState();
 
@@ -94,7 +86,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
                 // if the UI is ready draw the color gradient
                 if (track != null) {
                     // Orange (#e0592b) on the left
-                    // Grey (#d1d1d6) on the righrt, split on the calculated percentage
+                    // Grey (#d1d1d6) on the right, split on the calculated percentage
                     String style = String.format(
                             "-fx-background-color: linear-gradient(to right, #e0592b %d%%, #d1d1d6 %d%%);",
                             (int) percentage, (int) percentage
@@ -258,17 +250,24 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
 
             } else {
-                trackTitleLabel.setText("Nessun brano");
-                trackAuthorLabel.setText("Autore");
-                timeLabel.setText("00:00");
-                trackYearLabel.setText("Anno");
-                trackDurationLabel.setText(musicPlayer.formatDuration(0));
-
-                //reset the slider
-                progressSlider.setMax(100);
-                progressSlider.setValue(0);
+                resetTrackInfo();
             }
         });
+    }
+
+    /**
+     * Resets all track-info widgets to their idle defaults. Must be called on the FX thread.
+     */
+    private void resetTrackInfo() {
+        trackTitleLabel.setText("Nessun brano");
+        trackAuthorLabel.setText("Autore");
+        timeLabel.setText("00:00");
+        trackYearLabel.setText("Anno");
+        trackDurationLabel.setText(musicPlayer.formatDuration(0));
+
+        // reset the slider
+        progressSlider.setMax(100);
+        progressSlider.setValue(0);
     }
 
     /**
@@ -298,15 +297,11 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @Override
     public void onTrackDeleted(Track track) {
         Platform.runLater(() -> {
-            if (musicPlayer.getUpNextQueueFrom().isEmpty()) {
-                trackTitleLabel.setText("Nessun brano");
-                trackAuthorLabel.setText("Autore");
-                timeLabel.setText("00:00");
-                trackYearLabel.setText("Anno");
-                trackDurationLabel.setText(musicPlayer.formatDuration(0));
-
-                progressSlider.setMax(100);
-                progressSlider.setValue(0);
+            // Only blank the info panel when nothing is playing any more.
+            // If the engine advanced to another track, onTrackChanged already
+            // refreshed the labels, so we must not clobber them here.
+            if (musicPlayer.getCurrentPlayingTrack() == null) {
+                resetTrackInfo();
             }
         });
     }

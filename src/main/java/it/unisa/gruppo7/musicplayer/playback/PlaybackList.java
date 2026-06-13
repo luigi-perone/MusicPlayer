@@ -9,6 +9,10 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 /**
  * Represents the playback queue of the music player.
  * Extends {@link TrackCollection} and observes track changes via {@link TrackObserver}.
+ *
+ * <p>This class is the single owner of the playback cursor ({@code currentIndex}).
+ * All index arithmetic lives here so that callers (the service, controllers) never
+ * have to set the cursor by hand and risk de-syncing it from the playing track.</p>
  */
 public class PlaybackList extends TrackCollection implements TrackObserver {
     private static final String DEFAULT_PATH = null;
@@ -18,6 +22,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /** Flag indicating whether the playback queue is currently operating in shuffle mode. */
     private boolean isShuffleActive;
+
+    /** Cursor into {@link #getActiveList()} pointing at the track being played; -1 means "no current track". */
     private int currentIndex = -1;
 
 
@@ -31,16 +37,20 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
     /**
+     * Returns the canonical (non-shuffled) backing list.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Track> canonicalList() {
+        return (List<Track>) this.tracks;
+    }
+
+    /**
      * Returns the currently active list of tracks based on the shuffle state.
-     * * @return The shuffled list if shuffle is active, otherwise the canonical track list.
+     *
+     * @return The shuffled list if shuffle is active, otherwise the canonical track list.
      */
     public List<Track> getActiveList() {
-        if (isShuffleActive()) {
-            return this.shuffledTracks;
-        }
-        else {
-            return (List<Track>) this.tracks;
-        }
+        return isShuffleActive() ? this.shuffledTracks : canonicalList();
     }
 
     public void setCurrentIndex(int index) {
@@ -49,6 +59,35 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     public int getCurrentIndex() {
         return currentIndex;
+    }
+
+    /**
+     * Returns the track the cursor currently points at, or null if the cursor is
+     * out of range (e.g. the queue is empty or playback has run off the end).
+     */
+    public Track getCurrentTrack() {
+        List<Track> trackList = getActiveList();
+        if (currentIndex < 0 || currentIndex >= trackList.size()) {
+            return null;
+        }
+        return trackList.get(currentIndex);
+    }
+
+    /**
+     * Moves the cursor to the given track (first occurrence in the active list).
+     * Use this instead of {@link #setCurrentIndex(int)} so the cursor always
+     * matches the track that is actually being played.
+     *
+     * @param track the track to point the cursor at.
+     * @return true if the track was found and the cursor moved, false otherwise.
+     */
+    public boolean jumpTo(Track track) {
+        int idx = getActiveList().indexOf(track);
+        if (idx >= 0) {
+            this.currentIndex = idx;
+            return true;
+        }
+        return false;
     }
 
     public Track getNextTrack() {
@@ -109,7 +148,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /**
      * Retrieves the first track in the active playback list.
-     * * @return The first track, or null if the list is empty.
+     *
+     * @return The first track, or null if the list is empty.
      */
     public Track getFirstTrack() {
         List<Track> trackList = getActiveList();
@@ -119,7 +159,6 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         }
 
         return trackList.get(0);
-
     }
 
 
@@ -130,8 +169,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             return new ArrayList<>();
         }
 
-        // if the track is not in the list, or it is in the last position, return an empty list
-        if (currentIndex == -1 || currentIndex >= trackList.size() - 1) {
+        // if the cursor is unset or already at the last position, there is nothing "up next"
+        if (currentIndex < 0 || currentIndex >= trackList.size() - 1) {
             return new ArrayList<>();
         }
 
@@ -141,7 +180,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /**
      * Returns the current shuffle mode state.
-     * * @return true if shuffle is active, false otherwise.
+     *
+     * @return true if shuffle is active, false otherwise.
      */
     public boolean isShuffleActive() {
         return isShuffleActive;
@@ -157,11 +197,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.isShuffleActive = shuffleState;
         if (shuffleState) {
             shuffleTracks(currentTrack);
-            this.currentIndex = 0;
+            this.currentIndex = (currentTrack != null && !shuffledTracks.isEmpty()) ? 0 : -1;
         } else {
             shuffledTracks.clear();
             if (currentTrack != null) {
-                int idx = ((List<Track>) this.tracks).indexOf(currentTrack);
+                int idx = canonicalList().indexOf(currentTrack);
                 this.currentIndex = Math.max(idx, 0);
             }
         }
@@ -170,7 +210,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     /**
      * Generates a randomized version of the current track list.
      * If a track is currently playing, it is moved to the head of the shuffled list.
-     * * @param currentTrack The currently playing track, or null.
+     *
+     * @param currentTrack The currently playing track, or null.
      */
     private void shuffleTracks(Track currentTrack) {
         shuffledTracks = new ArrayList<>(this.tracks);
@@ -182,8 +223,6 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             shuffledTracks.add(0, currentTrack);
         }
     }
-
-    // In PlaybackList.java
 
     /**
      * Inserts a track at a random position within the shuffled queue,
@@ -214,42 +253,84 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
     /**
-     * Removes a track from both the main list and the shuffled list.
-     * Overrides the base class to keep the two lists consistent.
+     * Removes a track from the queue.
+     *
+     * <p>Because the playback queue may legitimately contain the same {@link Track}
+     * more than once (e.g. it was loaded from the library and later appended again
+     * from a playlist), this method removes <b>every</b> occurrence from both the
+     * canonical list and the shuffled list, and then repositions the cursor so it
+     * keeps pointing at the same logical track:</p>
+     *
+     * <ul>
+     *   <li>occurrences located <em>before</em> the cursor shift it left by their count;</li>
+     *   <li>if the <em>current</em> track itself is removed, the cursor lands on the
+     *       track that takes its place (the natural "next" track), or becomes -1 if
+     *       playback ran off the end.</li>
+     * </ul>
      *
      * @param track The track to remove.
-     * @return true if the main list contained the track.
+     * @return true if at least one occurrence was removed from the queue.
      */
     @Override
     public boolean removeTrack(Track track) {
-        // 1. Salviamo l'indice prima di rimuovere
-        int indexInActive = getActiveList().indexOf(track);
-
-        shuffledTracks.remove(track);
-        boolean removed = super.removeTrack(track);
-
-        if (indexInActive != -1 && indexInActive <= currentIndex) {
-            currentIndex--;
+        if (track == null) {
+            return false;
         }
 
-        return removed;
+        List<Track> active = getActiveList();
+        List<Track> other  = isShuffleActive ? canonicalList() : shuffledTracks;
+
+        boolean currentRemoved = currentIndex >= 0
+                && currentIndex < active.size()
+                && track.equals(active.get(currentIndex));
+
+        // Walk the active list, recording where the track lives and removing every
+        // occurrence. This is the "look up all the indices, then update the list" step.
+        int removedBeforeCurrent = 0;
+        boolean removedAny = false;
+        for (int i = active.size() - 1; i >= 0; i--) {
+            if (track.equals(active.get(i))) {
+                active.remove(i);
+                removedAny = true;
+                if (i < currentIndex) {
+                    removedBeforeCurrent++;
+                }
+            }
+        }
+
+        // Keep the non-active list consistent (no cursor lives there).
+        other.removeIf(track::equals);
+
+        // Reposition the cursor.
+        currentIndex -= removedBeforeCurrent;
+        if (active.isEmpty()) {
+            currentIndex = -1;
+        } else if (currentRemoved && currentIndex >= active.size()) {
+            // We removed the playing track and there is nothing after it.
+            currentIndex = -1;
+        } else if (currentIndex < 0) {
+            currentIndex = 0;
+        }
+
+        return removedAny;
     }
 
 
     /**
-     * Handles the track deletion event by removing it from the list if present.
+     * Handles the track deletion event by removing every occurrence from the queue.
      *
      * @param track The track that was deleted.
      */
     @Override
     public void onTrackDeleted(Track track) {
-        this.removeTrack(track); // Usa il metodo centralizzato invece di this.tracks.remove()
+        this.removeTrack(track);
     }
 
     /**
      * Handles the track edit event.
-     * Currently, a no-op in this context as track metadata changes do not inherently affect queue order.
-     * * @param track The track that was edited.
+     * No-op: metadata changes do not affect queue order or identity.
+     *
+     * @param track The track that was edited.
      */
     @Override
     public void onTrackEdit(Track track) {
