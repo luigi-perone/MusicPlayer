@@ -114,13 +114,17 @@ public class PlaybackService implements TrackObserver{
      * @param track The targeted track object wrapper to launch.
      */
     public void play(Track track) {
-        if (track == null) return;
+        if (track == null) {
+            return;
+        }
         this.stopTimer();
         this.currentTrack = track;
         this.currentState = PlaybackState.PLAYING;
         this.simulatedTimeSeconds.set(0);
+
         notifyStateChanged(this.currentState);
         notifyTrackChanged(track);
+
         this.startTimer();
     }
 
@@ -550,7 +554,6 @@ public class PlaybackService implements TrackObserver{
      */
     @Override
     public void onTrackEdit(Track track) {
-
     }
 
     /**

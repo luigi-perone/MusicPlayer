@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
+import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.io.File;
@@ -233,5 +235,4 @@ public class Library extends TrackCollection implements PersistenceService {
                         .map(p -> " - " + p)
                         .collect(Collectors.joining(System.lineSeparator()));
     }
-
 }

@@ -22,6 +22,7 @@ public class Track {
     private int duration;   // track duration in seconds
     private String genre;
     private Year publicationYear;
+    private int playCount;
 
     /**
      * Complete Track constructor used for initialization and JSON deserialization.
@@ -32,6 +33,7 @@ public class Track {
      * @param duration          The length of the track in seconds.
      * @param genre             The music genre of the track.
      * @param publicationYear   The year the track was released.
+     * @param playCount         The number of times the track has been played.
      * @throws IllegalArgumentException If title or author are empty, duration is non-positive,
      * or publication year is invalid.
      */
@@ -42,9 +44,10 @@ public class Track {
             @JsonProperty("author") String author,
             @JsonProperty("duration") int duration,
             @JsonProperty("genre") String genre,
-            @JsonProperty("publicationYear") Year publicationYear) {
+            @JsonProperty("publicationYear") Year publicationYear,
+            @JsonProperty("playCount") Integer playCount) {
 
-        this.validateArguments(title, author, duration, genre, publicationYear);
+        this.validateArguments(title, author, duration, genre, publicationYear, playCount);
 
         this.id = (id == null) ? UUID.randomUUID() : id;
         this.title = title;
@@ -52,6 +55,7 @@ public class Track {
         this.duration = duration;
         this.genre = genre;
         this.publicationYear = publicationYear;
+        this.playCount = (playCount == null) ? 0 : playCount;
     }
 
     /**
@@ -64,7 +68,7 @@ public class Track {
      * @param publicationYear The year the track was released.
      */
     public Track(String title, String author, int duration, String genre, Year publicationYear) {
-        this(null, title, author, duration, genre, publicationYear);
+        this(null, title, author, duration, genre, publicationYear, null);
     }
 
     /**
@@ -119,9 +123,10 @@ public class Track {
      * @param duration        The duration integer to check.
      * @param genre           The genre string to check.
      * @param publicationYear The publication year object to check.
+     * @param playCount       The number of times the track has been played to check.
      * @throws IllegalArgumentException If any of the provided fields violate validation constraints.
      */
-    public void validateArguments(String title, String author, int duration, String genre, Year publicationYear) {
+    public void validateArguments(String title, String author, int duration, String genre, Year publicationYear, Integer playCount) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Track title must be included");
         }
@@ -136,6 +141,11 @@ public class Track {
                 throw new IllegalArgumentException("Track Publication Year must be a valid year and prior to the current one");
             }
         }
+        if (playCount != null) {
+            if (playCount.compareTo(0) < 0) {
+                throw new IllegalArgumentException("Play Count must be non-negative");
+            }
+        }
     }
 
     /**
@@ -148,7 +158,7 @@ public class Track {
      * @param newPublicationYear The new release year.
      */
     public void modifyTrack(String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
-        this.validateArguments(newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
+        this.validateArguments(newTitle, newAuthor, newDuration, newGenre, newPublicationYear, null);
 
         this.title = newTitle;
         this.author = newAuthor;
@@ -268,6 +278,23 @@ public class Track {
         this.publicationYear = publicationYear;
     }
 
+    /**
+     * Gets the play count of the track.
+     *
+     * @return The number of times the track has been played.
+     */
+    public int getPlayCount() {
+        return playCount;
+    }
+
+    /**
+     * Increments the play count of the track.
+     *
+     */
+    public void incrementPlayCount() {
+        this.playCount++;
+    }
+
     // -- toString --
 
     /**
@@ -284,6 +311,7 @@ public class Track {
                 ", duration=" + duration +
                 ", genre='" + genre + '\'' +
                 ", publicationYear=" + publicationYear +
+                ", playCount=" + playCount +
                 '}';
     }
 
