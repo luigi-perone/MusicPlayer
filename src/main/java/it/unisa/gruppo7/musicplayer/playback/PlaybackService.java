@@ -1,6 +1,10 @@
 package it.unisa.gruppo7.musicplayer.playback;
 
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
+import it.unisa.gruppo7.musicplayer.playback.strategy.PlaylistSkipStrategy;
+import it.unisa.gruppo7.musicplayer.playback.strategy.SkipStrategy;
+import it.unisa.gruppo7.musicplayer.playback.strategy.TrackSkipStrategy;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.util.ArrayList;
@@ -160,21 +164,11 @@ public class PlaybackService implements TrackObserver{
      * Stops playback entirely if there are no remaining tracks.
      */
     public void playNext() {
-        if (repeatMode == RepeatMode.REPEAT_ONE) {
-            this.play(this.currentTrack);
-            return;
-        }
+        Track next = repeatMode.getStrategy()
+                .nextOnAdvance(this.queue, this.currentTrack, this.trackSkipStrategy);
 
-        Track nextTrack = trackSkipStrategy.skipForward(this.queue);
-
-        if (nextTrack != null) {
-            this.play(nextTrack);
-        } else if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
-            Track first = this.queue.getFirstTrack();
-            if (first != null) {
-                this.queue.setCurrentIndex(0);
-                this.play(first);
-            }
+        if (next != null) {
+            this.play(next);
         } else {
             this.stop();
         }
@@ -261,8 +255,9 @@ public class PlaybackService implements TrackObserver{
     public void loadSource(List<Track> tracks) {
         this.queue.loadTracks(tracks);
         if (!tracks.isEmpty()) {
-            this.queue.setCurrentIndex(0);
-            this.play(tracks.get(0));
+            Track first = tracks.get(0);
+            this.queue.jumpTo(first);
+            this.play(first);
         }
     }
 
@@ -322,11 +317,8 @@ public class PlaybackService implements TrackObserver{
             notifyTimeTick(currentTime);
 
             if (currentTime >= track.getDuration()) {
-                if (repeatMode == RepeatMode.REPEAT_ONE) {
-                    this.play(track);
-                } else {
-                    this.playNext();
-                }
+                // repeat-one is handled inside playNext() via the active RepeatStrategy
+                this.playNext();
             }
         }, 1, 1, TimeUnit.SECONDS);
     }

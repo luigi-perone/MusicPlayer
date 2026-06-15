@@ -8,7 +8,7 @@ import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.*;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;

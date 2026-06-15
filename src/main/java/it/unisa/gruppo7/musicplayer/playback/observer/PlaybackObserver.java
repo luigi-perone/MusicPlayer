@@ -1,5 +1,6 @@
-package it.unisa.gruppo7.musicplayer.playback;
+package it.unisa.gruppo7.musicplayer.playback.observer;
 
+import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**

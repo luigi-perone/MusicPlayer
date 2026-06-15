@@ -2,7 +2,7 @@ package it.unisa.gruppo7.musicplayer.integration;
 
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;

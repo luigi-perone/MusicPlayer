@@ -1,5 +1,6 @@
-package it.unisa.gruppo7.musicplayer.playback;
+package it.unisa.gruppo7.musicplayer.playback.strategy;
 
+import it.unisa.gruppo7.musicplayer.playback.PlaybackList;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**

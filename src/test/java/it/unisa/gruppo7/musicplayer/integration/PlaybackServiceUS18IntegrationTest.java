@@ -7,6 +7,7 @@ import java.time.Year;
 import java.util.*;
 import java.util.concurrent.*;
 import it.unisa.gruppo7.musicplayer.playback.*;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 
 import static org.junit.jupiter.api.Assertions.*;
 

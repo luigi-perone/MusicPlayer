@@ -4,7 +4,7 @@ import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackObserver;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;

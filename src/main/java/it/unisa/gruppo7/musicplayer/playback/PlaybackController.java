@@ -3,6 +3,7 @@ package it.unisa.gruppo7.musicplayer.playback;
 import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
