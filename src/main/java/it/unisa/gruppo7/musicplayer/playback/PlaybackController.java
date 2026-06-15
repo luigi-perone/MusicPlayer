@@ -29,6 +29,8 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     @FXML private Button playPauseButton;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
+    @FXML private Button skipPlaylistPrevButton;
+    @FXML private Button skipPlaylistNextButton;
     @FXML private Button queueButton;
     @FXML private Label trackAuthorLabel;
     @FXML private Label trackDurationLabel;
@@ -59,6 +61,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
         updateShuffleButtonState();
         updateRepeatButtonState();
+        updatePlaylistSkipButtonsState();
 
         if (progressSlider != null) {
             // User is moving or clicking on the slider. Stops UI timer
@@ -143,6 +146,28 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     }
 
     /**
+     * Handles the action event triggered when the "next playlist" button is pressed.
+     * Requests the playback service to skip to the next playlist block in the queue (US-029).
+     *
+     * @param event The action event context.
+     */
+    @FXML
+    void onSkipPlaylistNext(ActionEvent event) {
+        musicPlayer.skipToNextPlaylist();
+    }
+
+    /**
+     * Handles the action event triggered when the "previous playlist" button is pressed.
+     * Requests the playback service to skip to the previous playlist block in the queue (US-029).
+     *
+     * @param event The action event context.
+     */
+    @FXML
+    void onSkipPlaylistPrev(ActionEvent event) {
+        musicPlayer.skipToPreviousPlaylist();
+    }
+
+    /**
      * Handles the action event triggered when the queue visibility button is pressed.
      * Toggles the display state of the execution play queue panel in the user interface.
      *
@@ -206,6 +231,29 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     }
 
     /**
+     * Enables/disables the playlist-skip buttons based on whether a previous/next
+     * playlist block exists in the queue (US-029). Safe to call off the FX thread
+     * only via {@link Platform#runLater}; callers on the FX thread may call directly.
+     */
+    private void updatePlaylistSkipButtonsState() {
+        if (skipPlaylistPrevButton != null) {
+            skipPlaylistPrevButton.setDisable(!musicPlayer.hasPreviousPlaylist());
+        }
+        if (skipPlaylistNextButton != null) {
+            skipPlaylistNextButton.setDisable(!musicPlayer.hasNextPlaylist());
+        }
+    }
+
+    /**
+     * Reacts to a blocked playlist-skip command (queue limit reached or shuffle active)
+     * by refreshing the skip buttons' enabled state. Playback is left untouched.
+     */
+    @Override
+    public void onPlaylistSkipBlocked() {
+        Platform.runLater(this::updatePlaylistSkipButtonsState);
+    }
+
+    /**
      * Updates the time counter label and recalculates the progress slider position
      * at periodic simulated time increments.
      *
@@ -232,6 +280,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         this.currentTrack = newTrack;
 
         Platform.runLater(() -> {
+            updatePlaylistSkipButtonsState();
             if (newTrack != null) {
                 trackTitleLabel.setText(newTrack.getTitle());
                 trackAuthorLabel.setText(newTrack.getAuthor());
@@ -289,6 +338,15 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         });
     }
 
+
+    /**
+     * Refreshes the playlist-skip buttons when the queue contents change
+     * (e.g. a playlist was appended), so their enabled state stays accurate.
+     */
+    @Override
+    public void onQueueChanged() {
+        Platform.runLater(this::updatePlaylistSkipButtonsState);
+    }
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;

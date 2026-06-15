@@ -35,9 +35,21 @@
                      <String fx:value="player-button-secondary" />
                   </styleClass>
                </Button>
+               <Button fx:id="skipPlaylistPrevButton" onAction="#onSkipPlaylistPrev" text="⏪">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
                <Button fx:id="prevButton" onAction="#onPreviousTrack" styleClass="control-btn" text="⏮" />
                <Button fx:id="playPauseButton" onAction="#onPlayPause" styleClass="play-btn-graphic" text="▶" />
                <Button fx:id="nextButton" onAction="#onNextTrack" styleClass="control-btn" text="⏭" />
+               <Button fx:id="skipPlaylistNextButton" onAction="#onSkipPlaylistNext" text="⏩">
+                  <styleClass>
+                     <String fx:value="control-btn" />
+                     <String fx:value="player-button-secondary" />
+                  </styleClass>
+               </Button>
                <Button fx:id="repeatButton" onAction="#onRepeat" text="↺">
                   <styleClass>
                      <String fx:value="control-btn" />

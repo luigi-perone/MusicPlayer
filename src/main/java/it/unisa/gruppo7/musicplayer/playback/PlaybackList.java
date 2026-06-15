@@ -26,6 +26,18 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     /** Cursor into {@link #getActiveList()} pointing at the track being played; -1 means "no current track". */
     private int currentIndex = -1;
 
+    /**
+     * Playlist-block ids, kept aligned 1:1 with the canonical (non-shuffled) track list.
+     * Every load/append operation tags its tracks with a fresh incremental id, so that
+     * a "block" corresponds to one playlist (or one batch) added to the queue. This is
+     * what lets {@link #getNextPlaylistTrack()} / {@link #getPreviousPlaylistTrack()}
+     * jump between playlists instead of single tracks.
+     */
+    private final List<Integer> blockIds = new ArrayList<>();
+
+    /** Next playlist-block id to assign. */
+    private int nextBlockId = 0;
+
 
     /**
      * Constructs a new empty playback list.
@@ -106,6 +118,102 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return trackList.get(currentIndex);
     }
 
+    // -- playlist-block navigation (US-029) --
+
+    /**
+     * Computes the canonical-list index of the first track of the <b>next</b>
+     * playlist block, relative to the block the cursor is currently in.
+     *
+     * @return the target index, or -1 if there is no following block.
+     */
+    private int nextPlaylistStartIndex() {
+        List<Track> canonical = canonicalList();
+        if (canonical.isEmpty() || blockIds.isEmpty()) return -1;
+
+        int idx = currentIndex;
+        // Cursor unset: the "next playlist" is simply the first block.
+        if (idx < 0) return 0;
+        if (idx >= blockIds.size()) return -1;
+
+        int currentBlock = blockIds.get(idx);
+        for (int i = idx + 1; i < blockIds.size(); i++) {
+            if (blockIds.get(i) != currentBlock) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Computes the canonical-list index of the first track of the <b>previous</b>
+     * playlist block (always the start of the preceding block, regardless of the
+     * cursor's position within the current block).
+     *
+     * @return the target index, or -1 if the cursor is already in the first block.
+     */
+    private int previousPlaylistStartIndex() {
+        List<Track> canonical = canonicalList();
+        if (canonical.isEmpty() || blockIds.isEmpty()) return -1;
+
+        int idx = currentIndex;
+        if (idx < 0) idx = 0;
+        if (idx >= blockIds.size()) idx = blockIds.size() - 1;
+
+        int currentBlock = blockIds.get(idx);
+        // Walk back to the start of the current block.
+        int start = idx;
+        while (start > 0 && blockIds.get(start - 1) == currentBlock) {
+            start--;
+        }
+        if (start == 0) return -1; // already in the first block
+
+        // Walk back to the start of the previous block.
+        int prevBlock = blockIds.get(start - 1);
+        int prevStart = start - 1;
+        while (prevStart > 0 && blockIds.get(prevStart - 1) == prevBlock) {
+            prevStart--;
+        }
+        return prevStart;
+    }
+
+    /**
+     * Moves the cursor to the first track of the next playlist block and returns it.
+     *
+     * @return the first track of the next block, or null if there is none.
+     */
+    public Track getNextPlaylistTrack() {
+        int target = nextPlaylistStartIndex();
+        if (target < 0) return null;
+        this.currentIndex = target;
+        return canonicalList().get(target);
+    }
+
+    /**
+     * Moves the cursor to the first track of the previous playlist block and returns it.
+     *
+     * @return the first track of the previous block, or null if the cursor is in the first block.
+     */
+    public Track getPreviousPlaylistTrack() {
+        int target = previousPlaylistStartIndex();
+        if (target < 0) return null;
+        this.currentIndex = target;
+        return canonicalList().get(target);
+    }
+
+    /**
+     * @return true if a following playlist block exists to skip to.
+     */
+    public boolean hasNextPlaylist() {
+        return nextPlaylistStartIndex() >= 0;
+    }
+
+    /**
+     * @return true if a preceding playlist block exists to skip to.
+     */
+    public boolean hasPreviousPlaylist() {
+        return previousPlaylistStartIndex() >= 0;
+    }
+
     /**
      * Replaces the tracks in the playback list with the provided ones.
      *
@@ -116,6 +224,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.tracks.addAll(tracks);
 
         if (!tracks.isEmpty()) {
+            // A fresh load is a single playlist block.
+            int id = nextBlockId++;
+            for (int i = 0; i < tracks.size(); i++) {
+                blockIds.add(id);
+            }
             this.currentIndex = 0;
         }
 
@@ -132,6 +245,14 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public void appendTracks(List<Track> tracks) {
         this.tracks.addAll(tracks);
 
+        if (tracks != null && !tracks.isEmpty()) {
+            // Each append (e.g. one appended playlist) becomes a new block.
+            int id = nextBlockId++;
+            for (int i = 0; i < tracks.size(); i++) {
+                blockIds.add(id);
+            }
+        }
+
         if (isShuffleActive) {
             shuffledTracks.addAll(tracks);
         }
@@ -143,7 +264,9 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     public void clear() {
         this.tracks.clear();
         this.shuffledTracks.clear();
+        this.blockIds.clear();
         this.currentIndex = -1;
+        this.nextBlockId = 0;
     }
 
     /**
@@ -250,6 +373,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      */
     void addToCanonicalList(Track track) {
         this.tracks.add(track);
+        // A single appended track is its own one-track block.
+        this.blockIds.add(nextBlockId++);
     }
 
     /**
@@ -278,19 +403,16 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         }
 
         List<Track> active = getActiveList();
-        List<Track> other  = isShuffleActive ? canonicalList() : shuffledTracks;
 
         boolean currentRemoved = currentIndex >= 0
                 && currentIndex < active.size()
                 && track.equals(active.get(currentIndex));
 
-        // Walk the active list, recording where the track lives and removing every
-        // occurrence. This is the "look up all the indices, then update the list" step.
+        // Count occurrences before the cursor in the ACTIVE list (the cursor lives here).
         int removedBeforeCurrent = 0;
         boolean removedAny = false;
         for (int i = active.size() - 1; i >= 0; i--) {
             if (track.equals(active.get(i))) {
-                active.remove(i);
                 removedAny = true;
                 if (i < currentIndex) {
                     removedBeforeCurrent++;
@@ -298,8 +420,17 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             }
         }
 
-        // Keep the non-active list consistent (no cursor lives there).
-        other.removeIf(track::equals);
+        // Remove every occurrence from the canonical list, keeping blockIds aligned 1:1.
+        List<Track> canonical = canonicalList();
+        for (int i = canonical.size() - 1; i >= 0; i--) {
+            if (track.equals(canonical.get(i))) {
+                canonical.remove(i);
+                blockIds.remove(i);
+            }
+        }
+
+        // Keep the shuffled list consistent (no cursor or block info lives there).
+        shuffledTracks.removeIf(track::equals);
 
         // Reposition the cursor.
         currentIndex -= removedBeforeCurrent;

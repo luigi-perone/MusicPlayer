@@ -37,4 +37,12 @@ public interface PlaybackObserver {
      * Default no-op so existing implementors do not need to change.
      */
     default void onQueueChanged() {}
+
+    /**
+     * Invoked when a playlist-block skip command (US-029) cannot be honoured,
+     * e.g. the user tried to skip past the last playlist in the queue, or shuffle
+     * mode is active. Lets the UI disable/signal the skip button.
+     * Default no-op so existing implementors do not need to change.
+     */
+    default void onPlaylistSkipBlocked() {}
 }

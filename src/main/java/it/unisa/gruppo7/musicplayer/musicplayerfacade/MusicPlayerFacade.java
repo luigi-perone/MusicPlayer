@@ -400,6 +400,36 @@ public class MusicPlayerFacade {
         return playbackService.getQueue().getUpNextQueue();
     }
 
+    /**
+     * Skips to the first track of the next playlist block in the queue (US-029).
+     * Ignored (and observers notified) when already on the last playlist.
+     */
+    public void skipToNextPlaylist() {
+        playbackService.skipToNextPlaylist();
+    }
+
+    /**
+     * Skips to the first track of the previous playlist block in the queue (US-029).
+     * Ignored (and observers notified) when already on the first playlist.
+     */
+    public void skipToPreviousPlaylist() {
+        playbackService.skipToPreviousPlaylist();
+    }
+
+    /**
+     * @return true if there is a following playlist block to skip to.
+     */
+    public boolean hasNextPlaylist() {
+        return playbackService.getQueue().hasNextPlaylist();
+    }
+
+    /**
+     * @return true if there is a preceding playlist block to skip to.
+     */
+    public boolean hasPreviousPlaylist() {
+        return playbackService.getQueue().hasPreviousPlaylist();
+    }
+
     // --- Playback mode methods ---
 
     /**

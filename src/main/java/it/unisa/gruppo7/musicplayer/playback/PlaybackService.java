@@ -44,6 +44,12 @@ public class PlaybackService implements TrackObserver{
     /** The current repeat mode setting, defaulting to OFF. */
     private RepeatMode repeatMode;
 
+    /** Strategy used to skip the queue one track at a time. */
+    private final SkipStrategy trackSkipStrategy = new TrackSkipStrategy();
+
+    /** Strategy used to skip the queue one playlist block at a time (US-029). */
+    private final SkipStrategy playlistSkipStrategy = new PlaylistSkipStrategy();
+
 
     /**
      * Constructs a new PlaybackService and allocates resource executors
@@ -159,7 +165,7 @@ public class PlaybackService implements TrackObserver{
             return;
         }
 
-        Track nextTrack = this.queue.getNextTrack();
+        Track nextTrack = trackSkipStrategy.skipForward(this.queue);
 
         if (nextTrack != null) {
             this.play(nextTrack);
@@ -190,9 +196,48 @@ public class PlaybackService implements TrackObserver{
             }
             return;
         }
-        Track previousTrack = this.queue.getPreviousTrack();
+        Track previousTrack = trackSkipStrategy.skipBackward(this.queue);
         if (previousTrack != null) {
             this.play(previousTrack);
+        }
+    }
+
+    /**
+     * Skips forward to the first track of the next playlist block in the queue (US-029).
+     *
+     * <p>This is an explicit user navigation: it bypasses the repeat modes and jumps
+     * straight to the next block. If shuffle is active or there is no following block,
+     * the command is ignored and observers are notified via
+     * {@link PlaybackObserver#onPlaylistSkipBlocked()}.</p>
+     */
+    public void skipToNextPlaylist() {
+        if (queue.isShuffleActive()) {
+            notifyPlaylistSkipBlocked();
+            return;
+        }
+        Track target = playlistSkipStrategy.skipForward(queue);
+        if (target != null) {
+            this.play(target);
+        } else {
+            notifyPlaylistSkipBlocked();
+        }
+    }
+
+    /**
+     * Skips backward to the first track of the previous playlist block in the queue (US-029).
+     *
+     * <p>Same contract as {@link #skipToNextPlaylist()} in the opposite direction.</p>
+     */
+    public void skipToPreviousPlaylist() {
+        if (queue.isShuffleActive()) {
+            notifyPlaylistSkipBlocked();
+            return;
+        }
+        Track target = playlistSkipStrategy.skipBackward(queue);
+        if (target != null) {
+            this.play(target);
+        } else {
+            notifyPlaylistSkipBlocked();
         }
     }
 
@@ -246,6 +291,10 @@ public class PlaybackService implements TrackObserver{
         if (wasEmpty && !tracks.isEmpty()) {
             queue.setCurrentIndex(0);
             play(tracks.get(0));
+        } else {
+            // Appending to a non-empty queue: the current track is unchanged, so notify
+            // observers explicitly so the UI (skip-playlist buttons, up-next panel) refreshes.
+            notifyQueueChanged();
         }
     }
 
@@ -489,6 +538,15 @@ public class PlaybackService implements TrackObserver{
      */
     private void notifyQueueChanged() {
         for (PlaybackObserver obs : observers) obs.onQueueChanged();
+    }
+
+    /**
+     * Broadcasts a notification to all registered observers indicating that a
+     * playlist-block skip command could not be honoured (queue limit reached or
+     * shuffle active), so the UI can ignore/disable the corresponding control.
+     */
+    private void notifyPlaylistSkipBlocked() {
+        for (PlaybackObserver obs : observers) obs.onPlaylistSkipBlocked();
     }
 
     /**
