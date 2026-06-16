@@ -1,8 +1,10 @@
 package it.unisa.gruppo7.musicplayer.library;
 
 import it.unisa.gruppo7.musicplayer.MainController;
+import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
+import it.unisa.gruppo7.musicplayer.dialog.DialogTag;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
@@ -22,7 +24,6 @@ import javafx.scene.layout.VBox;
 
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  * and handles main interface button actions such as track creation, modifications, deletions, and playlist mapping.
  *
  */
-public class LibraryController implements PlaybackObserver {
+public class LibraryController implements PlaybackObserver, TrackObserver {
 
     @FXML private TableView<Track>           trackTable;
     @FXML private TableColumn<Track, String> titleColumn;
@@ -143,6 +144,7 @@ public class LibraryController implements PlaybackObserver {
         });
 
         musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addObserver(this);
     }
 
     /**
@@ -374,39 +376,7 @@ public class LibraryController implements PlaybackObserver {
      * @param track The track whose tags should be edited.
      */
     private void showTagDialog(Track track) {
-        Dialog<Set<TrackTag>> dialog = new Dialog<>();
-        dialog.setTitle("Gestisci Tag");
-        dialog.setHeaderText(track.getTitle());
-
-        ButtonType confirmButtonType = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
-
-        VBox content = new VBox(8);
-        List<CheckBox> checkBoxes = new ArrayList<>();
-        for (TrackTag tag : TrackTag.values()) {
-            CheckBox checkBox = new CheckBox(tag.getDisplayName());
-            checkBox.setSelected(track.hasTag(tag));
-            checkBox.setUserData(tag);
-            checkBoxes.add(checkBox);
-            content.getChildren().add(checkBox);
-        }
-        dialog.getDialogPane().setContent(content);
-
-        dialog.setResultConverter(button -> {
-            if (button == confirmButtonType) {
-                Set<TrackTag> selectedTags = new HashSet<>();
-                for (CheckBox checkBox : checkBoxes) {
-                    if (checkBox.isSelected()) {
-                        selectedTags.add((TrackTag) checkBox.getUserData());
-                    }
-                }
-                return selectedTags;
-            }
-            return null;
-        });
-
-        Optional<Set<TrackTag>> result = dialog.showAndWait();
-        result.ifPresent(selectedTags -> {
+        DialogTag.show(track).ifPresent(selectedTags -> {
             musicPlayer.updateTrackTags(track, selectedTags);
             trackTable.refresh();
         });
@@ -434,5 +404,15 @@ public class LibraryController implements PlaybackObserver {
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
+    }
+
+    @Override
+    public void onTrackDeleted(Track track) {
+        throw new UnsupportedOperationException("Unimplemented method 'onTrackDeleted'");
+    }
+
+    @Override
+    public void onTrackEdit(Track track) {
+        Platform.runLater(() -> trackTable.refresh());
     }
 }

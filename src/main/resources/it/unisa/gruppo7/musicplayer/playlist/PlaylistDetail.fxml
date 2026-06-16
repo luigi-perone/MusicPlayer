@@ -33,7 +33,7 @@
                 <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #b4a0ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="+ Aggiungi" />
 
                 <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="- Rimuovi" />
-
+                <Button fx:id="manageTagsBtn" mnemonicParsing="false" onAction="#onManageTagsClick" style="-fx-background-color: #d722d1ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="Gestisci Tag" />
                 <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="🗑 Elimina" />
             </HBox>
         </VBox>

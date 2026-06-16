@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Year;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Unit test suite for the {@link Track} class.
@@ -62,4 +62,73 @@ public class TrackTest {
             Track track = new Track("Faithfully", "Journey", -12, "Rock", Year.of(1983));
         });
     }
+    
+    @Test
+    public void newTrackHasNoTags() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+
+        assertTrue(track.getTags().isEmpty());
+    }
+
+    @Test
+    public void addTagAddsTagToTrack() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+
+        track.addTag(TrackTag.FAVOURITE);
+
+        assertTrue(track.hasTag(TrackTag.FAVOURITE));
+    }
+
+    @Test
+    public void removeTagRemovesTagFromTrack() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+        track.addTag(TrackTag.EXPLICIT);
+
+        track.removeTag(TrackTag.EXPLICIT);
+
+        assertFalse(track.hasTag(TrackTag.EXPLICIT));
+    }
+
+    @Test
+    public void hasTagReturnsTrueOnlyWhenTagIsPresent() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+        track.addTag(TrackTag.NEW_RELEASE);
+
+        assertTrue(track.hasTag(TrackTag.NEW_RELEASE));
+        assertFalse(track.hasTag(TrackTag.FAVOURITE));
+    }
+
+    @Test
+    public void addingSameTagTwiceDoesNotCreateDuplicates() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+
+        track.addTag(TrackTag.FAVOURITE);
+        track.addTag(TrackTag.FAVOURITE);
+
+        assertEquals(1, track.getTags().size());
+    }
+
+    @Test
+    public void setTagsWithNullClearsTagsWithoutException() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+        track.addTag(TrackTag.FAVOURITE);
+
+        assertDoesNotThrow(() -> track.setTags(null));
+        assertTrue(track.getTags().isEmpty());
+    }
+
+    @Test
+    public void setTagsReplacesCurrentTags() {
+        Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
+        Set<TrackTag> tags = new HashSet<>();
+        tags.add(TrackTag.EXPLICIT);
+        tags.add(TrackTag.NEW_RELEASE);
+
+        track.setTags(tags);
+
+        assertTrue(track.hasTag(TrackTag.EXPLICIT));
+        assertTrue(track.hasTag(TrackTag.NEW_RELEASE));
+        assertFalse(track.hasTag(TrackTag.FAVOURITE));
+    }
+
 }
