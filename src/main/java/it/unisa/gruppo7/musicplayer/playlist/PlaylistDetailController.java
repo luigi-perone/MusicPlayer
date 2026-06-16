@@ -39,6 +39,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     @FXML private TableColumn<Track, String> titleColumn;
     @FXML private TableColumn<Track, String> authorColumn;
     @FXML private TableColumn<Track, String> durationColumn;
+    @FXML private TableColumn<Track, String> tagColumn;
     @FXML private TableColumn<Track, Void>   indexColumn;
 
     private Runnable             onBackAction;
@@ -145,7 +146,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
 
         PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
                 playlistTrackTable, titleColumn, authorColumn,
-                durationColumn, indexColumn, facade
+                durationColumn, tagColumn, indexColumn, facade
         );
 
         configurator.configure(

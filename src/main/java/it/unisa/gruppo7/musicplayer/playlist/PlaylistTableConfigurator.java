@@ -5,6 +5,7 @@ import java.util.function.Supplier; // Aggiunto import
 
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
@@ -26,6 +27,7 @@ public class PlaylistTableConfigurator {
     private final TableColumn<Track, String> titleColumn;
     private final TableColumn<Track, String> authorColumn;
     private final TableColumn<Track, String> durationColumn;
+    private final TableColumn<Track, String> tagColumn;
     private final TableColumn<Track, Void>   indexColumn;
     private final MusicPlayerFacade          facade;
 
@@ -33,12 +35,14 @@ public class PlaylistTableConfigurator {
                                      TableColumn<Track, String> titleColumn,
                                      TableColumn<Track, String> authorColumn,
                                      TableColumn<Track, String> durationColumn,
+                                     TableColumn<Track, String> tagColumn,
                                      TableColumn<Track, Void>   indexColumn,
                                      MusicPlayerFacade          facade) {
         this.table          = table;
         this.titleColumn    = titleColumn;
         this.authorColumn   = authorColumn;
         this.durationColumn = durationColumn;
+        this.tagColumn      = tagColumn;
         this.indexColumn    = indexColumn;
         this.facade         = facade;
     }
@@ -61,6 +65,7 @@ public class PlaylistTableConfigurator {
 
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         authorColumn.setCellValueFactory(new PropertyValueFactory<>("author"));
+        tagColumn.setCellValueFactory(cellData -> new SimpleStringProperty(formatTags(cellData.getValue())));
         durationColumn.setCellValueFactory(cellData -> {
             Track track = cellData.getValue();
             try {
@@ -75,6 +80,20 @@ public class PlaylistTableConfigurator {
         // Passa il supplier a buildRow
         table.setRowFactory(tv -> buildRow(playingTrackSupplier, onDoubleClick));
     }
+
+    private String formatTags(Track track) {
+        if (track == null || track.getTags().isEmpty()) {
+            return "";
+        }
+
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        for (TrackTag tag : TrackTag.values()) {
+            if (track.hasTag(tag)) {
+                labels.add(tag.getShortLabel());
+            }
+        }
+        return String.join(", ", labels);
+    }    
 
     /**
      * Builds a custom TableRow to handle specific styling and mouse events.

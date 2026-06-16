@@ -25,6 +25,13 @@
                -fx-font-weight: bold; -fx-background-radius: 6;
                -fx-padding: 6 12;"
                              text="＋ Aggiungi a Playlist" />
+                     <Button fx:id="manageTagsBtn"
+                           mnemonicParsing="false"
+                           onAction="#onManageTagsClick"
+                           style="-fx-background-color: #c92aceff; -fx-text-fill: white;
+                           -fx-font-weight: bold; -fx-background-radius: 6;
+                           -fx-padding: 6 12;"
+                           text="Gestisci Tag" />                             
                  </children>
              </HBox>
          </children>
@@ -41,6 +48,7 @@
           <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata " />
           <TableColumn fx:id="genreColumn" prefWidth="120.0" text="Genere" />
           <TableColumn fx:id="yearColumn" prefWidth="100.0" text="Anno" />
+          <TableColumn fx:id="tagColumn" prefWidth="120.0" text="Tag" />
         </columns>
       </TableView>
    </center>

@@ -8,6 +8,7 @@ import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
@@ -205,6 +206,21 @@ public class MusicPlayerFacade implements PlaybackObserver {
             notifyTrackEdit(track);
         }
         return success;
+    }
+    
+    /**
+     * Updates the predefined visual tags assigned to a track and persists the library.
+     *
+     * @param track The track to update.
+     * @param tags  The selected predefined tags.
+     */
+    public void updateTrackTags(Track track, Set<TrackTag> tags) {
+        if (track == null) {
+            return;
+        }
+        track.setTags(tags);
+        library.save();
+        notifyTrackEdit(track);
     }
 
     /**
