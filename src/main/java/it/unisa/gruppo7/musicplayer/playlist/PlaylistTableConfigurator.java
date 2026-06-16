@@ -121,7 +121,7 @@ public class PlaylistTableConfigurator {
             @Override
             protected void updateItem(Track item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle(rowStyle(item, empty, playingTrackSupplier));
+                applyPlayingStyle(this, item, empty, playingTrackSupplier);
             }
         };
         row.setOnMouseClicked(e -> {
@@ -134,18 +134,22 @@ public class PlaylistTableConfigurator {
     }
 
     /**
-     * Computes the inline style for a track row, highlighting the currently playing track.
+     * Highlights the currently playing track via the {@code playing-row} CSS class,
+     * keeping the styling centralized in the stylesheet. Also clears any leftover
+     * inline style (e.g. the drag-over border) so rows return to their resting look.
      *
+     * @param row                  The row to style.
      * @param item                 The track displayed in the row (may be null).
      * @param empty                Whether the row is empty.
      * @param playingTrackSupplier Supplier of the track currently playing.
-     * @return The CSS style string for the row.
      */
-    private String rowStyle(Track item, boolean empty, Supplier<Track> playingTrackSupplier) {
-        if (empty || item == null) return "";
-        return item.equals(playingTrackSupplier.get())
-                ? "-fx-background-color: #6498CCFF; -fx-font-weight: bold;"
-                : "";
+    private void applyPlayingStyle(TableRow<Track> row, Track item, boolean empty,
+                                   Supplier<Track> playingTrackSupplier) {
+        row.setStyle(""); // drop any inline drag-over border
+        row.getStyleClass().remove("playing-row");
+        if (!empty && item != null && item.equals(playingTrackSupplier.get())) {
+            row.getStyleClass().add("playing-row");
+        }
     }
 
     /**
@@ -181,7 +185,7 @@ public class PlaylistTableConfigurator {
 
         row.setOnDragExited(event -> {
             // Restore styling (e.g. playing-track highlight) after the drag-over border.
-            row.setStyle(rowStyle(row.getItem(), row.isEmpty(), playingTrackSupplier));
+            applyPlayingStyle(row, row.getItem(), row.isEmpty(), playingTrackSupplier);
         });
 
         row.setOnDragDropped(event -> {

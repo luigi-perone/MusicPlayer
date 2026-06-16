@@ -284,12 +284,6 @@
     -fx-border-color: #f6f5f3;
 }
 
-/* Colore di selezione personalizzato (Arancione chiaro del tuo tema) */
-.table-row-cell:selected {
-    -fx-background-color: #fdeee7;
-    -fx-background-insets: 0;
-}
-
 /* Testo nelle celle */
 .table-cell {
     -fx-text-fill: #1c1c1e;
@@ -298,33 +292,49 @@
     -fx-padding: 0 10; /* Margine interno per staccare i testi dai bordi */
 }
 
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: #e0592b; /* Testo arancione scuro quando selezionato */
-}
-
-.secondary-col {
-    -fx-text-fill: #6e6e73;
-}
-.table-row-cell:selected .secondary-col {
-    -fx-text-fill: #e0592b; /* Mantiene la leggibilità in selezione */
-}
-
 /* Rimuove i bordi blu di focus da tutta la tabella */
 .table-view {
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 
-/* Stile della riga selezionata */
+/* --- Selezione riga (ciano chiaro, coerente con la traccia in riproduzione) --- */
 .table-row-cell:selected {
-    -fx-background-color: #80B5FFFF;
+    -fx-background-color: #e1eff8;
+    -fx-background-insets: 0;
     -fx-table-cell-border-color: transparent; /* Rimuove linee interne */
 }
 
-/* Testo nella riga selezionata */
 .table-row-cell:selected .table-cell {
-    -fx-text-fill: #1c1c1e; /* Testo scuro per garantire massima leggibilità */
-    -fx-font-weight: bold; /* Opzionale: fa risaltare la riga */
+    -fx-text-fill: #2c6a98; /* Testo ciano scuro quando selezionato */
+    -fx-font-weight: bold;
+}
+
+.secondary-col {
+    -fx-text-fill: #6e6e73;
+}
+
+.table-row-cell:selected .secondary-col {
+    -fx-text-fill: #2c6a98; /* Mantiene la leggibilità in selezione */
+}
+
+/* --- Riga in riproduzione (accent blu, distinto dalla selezione arancione) --- */
+.playing-row {
+    -fx-background-color: #6498CC;
+}
+
+.playing-row .table-cell {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* La riga in riproduzione resta riconoscibile anche quando è selezionata */
+.playing-row:selected {
+    -fx-background-color: #4f86bd;
+}
+
+.playing-row:selected .table-cell {
+    -fx-text-fill: white;
 }
 
 
@@ -340,8 +350,8 @@
 }
 
 .queue-container .list-cell:selected {
-    -fx-background-color: #fdeee7; /* Arancione chiarissimo di selezione tema */
-    -fx-text-fill: #e0592b;        /* Testo arancione scuro */
+    -fx-background-color: #e1eff8; /* Ciano chiarissimo di selezione */
+    -fx-text-fill: #2c6a98;        /* Testo ciano scuro */
 }
 .control-btn.active {
     -fx-text-fill: #e0592b; /* Cambia colore (es. arancione) quando premuto/attivo */

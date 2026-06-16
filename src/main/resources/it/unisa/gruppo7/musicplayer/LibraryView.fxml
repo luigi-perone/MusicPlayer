@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -15,23 +16,33 @@
             <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1c1c1e;" text="Libreria Musicale" />
              <HBox spacing="10.0">
                  <children>
-                     <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="+ Aggiungi Traccia" />
-                     <Button mnemonicParsing="false" minWidth="-Infinity" onAction="#onEditTrackClick" style="-fx-background-color: #8d8888; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Modifica" />
-                     <Button mnemonicParsing="false" minWidth="-Infinity" onAction="#onDeleteTrackClick" style="-fx-background-color: #d40505; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Elimina" textFill="#d92d20" />
+                     <Button mnemonicParsing="false" onAction="#onAddTrackClick" style="-fx-background-color: #e0592b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="+ Aggiungi Traccia">
+                         <tooltip><Tooltip text="Aggiungi una nuova traccia alla libreria" /></tooltip>
+                     </Button>
+                     <Button mnemonicParsing="false" minWidth="-Infinity" onAction="#onEditTrackClick" style="-fx-background-color: #8d8888; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Modifica">
+                         <tooltip><Tooltip text="Modifica la traccia selezionata" /></tooltip>
+                     </Button>
+                     <Button mnemonicParsing="false" minWidth="-Infinity" onAction="#onDeleteTrackClick" style="-fx-background-color: #d40505; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12;" text="Elimina" textFill="#d92d20">
+                         <tooltip><Tooltip text="Elimina le tracce selezionate dalla libreria" /></tooltip>
+                     </Button>
                      <Button fx:id="addToPlaylistBtn"
                              mnemonicParsing="false"
                              onAction="#onAddToPlaylistClick"
                              style="-fx-background-color: #5856d6; -fx-text-fill: white;
                -fx-font-weight: bold; -fx-background-radius: 6;
                -fx-padding: 6 12;"
-                             text="＋ Aggiungi a Playlist" />
+                             text="＋ Aggiungi a Playlist">
+                         <tooltip><Tooltip text="Aggiungi le tracce selezionate a una playlist" /></tooltip>
+                     </Button>
                      <Button fx:id="manageTagsBtn"
                            mnemonicParsing="false"
                            onAction="#onManageTagsClick"
                            style="-fx-background-color: #c92aceff; -fx-text-fill: white;
                            -fx-font-weight: bold; -fx-background-radius: 6;
                            -fx-padding: 6 12;"
-                           text="Gestisci Tag" />                             
+                           text="Gestisci Tag">
+                         <tooltip><Tooltip text="Gestisci i tag della traccia selezionata" /></tooltip>
+                     </Button>
                  </children>
              </HBox>
          </children>
