@@ -551,6 +551,26 @@ public class MusicPlayerFacade {
     }
 
     /**
+     * Synchronises the live playback queue after a track has been reordered within
+     * a playlist (US-027). If the playlist is currently the active playback source
+     * and shuffle is not active, the track is moved to the matching position in the
+     * queue. The currently playing track keeps playing without interruption.
+     *
+     * <p>When shuffle is active the queue order is randomised and the acceptance
+     * criteria concern sequential playback only, so the queue is left untouched
+     * (the new order is still persisted on disk).</p>
+     *
+     * @param playlist The playlist whose tracks were reordered.
+     * @param from     The previous index of the moved track.
+     * @param to       The new index of the moved track.
+     */
+    public void onTrackReorderedInPlaylist(Playlist playlist, int from, int to) {
+        if (playlist != null && playlist.equals(this.activePlaylist) && !isShuffleActive()) {
+            playbackService.moveTrackInQueue(from, to);
+        }
+    }
+
+    /**
      * Hooks up an update subscriber interface onto tracking collection registries.
      *
      * @param observer The target dynamic subscriber tracking module implementation.

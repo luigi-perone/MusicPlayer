@@ -259,6 +259,51 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
     /**
+     * Moves a track within the canonical list from one position to another,
+     * keeping the playlist-block ids aligned 1:1 and repositioning the cursor so
+     * it still points at the same logical track that is currently playing.
+     *
+     * <p>This is the queue-side counterpart of a playlist reorder (US-027). It is
+     * deliberately a pure list operation on the canonical (non-shuffled) list and
+     * does not touch the playing track reference or the timer, so playback
+     * continues without interruption:</p>
+     *
+     * <ul>
+     *   <li>if the moved track <em>is</em> the current one, the cursor follows it
+     *       to {@code to};</li>
+     *   <li>if the move crosses the cursor, the cursor shifts by one to keep
+     *       pointing at the same track.</li>
+     * </ul>
+     *
+     * @param from the current index of the track in the canonical list.
+     * @param to   the target index in the canonical list.
+     */
+    public void moveTrack(int from, int to) {
+        List<Track> canonical = canonicalList();
+        int size = canonical.size();
+
+        // No-op on out-of-range indices or a move that changes nothing.
+        if (from < 0 || from >= size || to < 0 || to >= size || from == to) {
+            return;
+        }
+
+        Track track = canonical.remove(from);
+        canonical.add(to, track);
+
+        Integer blockId = blockIds.remove(from);
+        blockIds.add(to, blockId);
+
+        // Reposition the cursor so it keeps pointing at the same playing track.
+        if (currentIndex == from) {
+            currentIndex = to;
+        } else if (from < currentIndex && to >= currentIndex) {
+            currentIndex--;
+        } else if (from > currentIndex && to <= currentIndex) {
+            currentIndex++;
+        }
+    }
+
+    /**
      * Removes all tracks from the playback list.
      */
     public void clear() {

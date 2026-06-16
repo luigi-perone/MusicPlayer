@@ -54,4 +54,22 @@ public class PlaylistTableAdapter {
         playlist.removeTrack(t);
         observableItems.remove(t);
     }
+
+    /**
+     * Moves a track within the observable UI list from one position to another (US-027).
+     * The underlying playlist model is reordered separately (via the service), so this
+     * method only keeps the bound UI list in sync. The change fires the table's
+     * {@code ListChangeListener}, which persists the new order automatically.
+     *
+     * @param from the current index of the track.
+     * @param to   the target index.
+     */
+    public void moveTrack(int from, int to){
+        int size = observableItems.size();
+        if (from < 0 || from >= size || to < 0 || to >= size || from == to) {
+            return;
+        }
+        Track t = observableItems.remove(from);
+        observableItems.add(to, t);
+    }
 }

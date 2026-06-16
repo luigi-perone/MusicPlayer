@@ -581,4 +581,98 @@ class PlaylistServiceTest {
                     "Track should still be available in Playlist B");
         }
     }
+
+    /**
+     * Test scenarios for reordering tracks within a playlist (US-027).
+     */
+    @Nested
+    class ReorderTrack {
+
+        private Playlist playlist;
+        private Track t1, t2, t3;
+
+        @BeforeEach
+        void setUp() {
+            playlist = service.createPlaylist("Reorder Playlist");
+            t1 = new Track("First",  "Author", 100, "Rock");
+            t2 = new Track("Second", "Author", 100, "Rock");
+            t3 = new Track("Third",  "Author", 100, "Rock");
+            playlist.addTrack(t1);
+            playlist.addTrack(t2);
+            playlist.addTrack(t3);
+        }
+
+        @Test
+        void movingTrackChangesTheModelOrder() {
+            Optional<String> error = service.reorderTrack(playlist, 0, 2);
+
+            assertFalse(error.isPresent());
+            assertEquals(java.util.Arrays.asList(t2, t3, t1), playlist.getPlaylist());
+        }
+
+        @Test
+        void sameIndexIsANoOp() {
+            Optional<String> error = service.reorderTrack(playlist, 1, 1);
+
+            assertFalse(error.isPresent());
+            assertEquals(java.util.Arrays.asList(t1, t2, t3), playlist.getPlaylist());
+        }
+
+        @Test
+        void returnsErrorForNullPlaylist() {
+            assertTrue(service.reorderTrack(null, 0, 1).isPresent());
+        }
+
+        @Test
+        void returnsErrorForUnmanagedPlaylist() {
+            Playlist ghost = new Playlist("Ghost", null);
+            assertTrue(service.reorderTrack(ghost, 0, 0).isPresent());
+        }
+
+        @Test
+        void returnsErrorForOutOfRangeIndices() {
+            assertTrue(service.reorderTrack(playlist, -1, 1).isPresent());
+            assertTrue(service.reorderTrack(playlist, 0, 99).isPresent());
+            // Order must remain unchanged after rejected moves.
+            assertEquals(java.util.Arrays.asList(t1, t2, t3), playlist.getPlaylist());
+        }
+
+        /**
+         * Verifies the custom order persists across a save/reload cycle (AC1/AC4).
+         */
+        @Nested
+        class Persistence {
+
+            @TempDir
+            Path tempDir;
+
+            @Test
+            void reorderedSequenceIsRestoredAfterReload() {
+                Path tempFile = tempDir.resolve("reorder-playlists.json");
+                PlaylistService persistenceService = new PlaylistService(tempFile.toString());
+
+                // The tracks must live in the library so load() can re-map their ids.
+                Library library = Library.getInstance();
+                for (Track t : new Track[]{t1, t2, t3}) {
+                    try { library.addTrack(t); } catch (IllegalArgumentException ignored) {}
+                }
+
+                Playlist p = persistenceService.createPlaylist("Persisted Order");
+                p.addTrack(t1);
+                p.addTrack(t2);
+                p.addTrack(t3);
+
+                persistenceService.reorderTrack(p, 0, 2); // -> t2, t3, t1 (saves)
+
+                PlaylistService reloaded = new PlaylistService(tempFile.toString());
+                reloaded.load();
+
+                Playlist reloadedPlaylist = reloaded.getPlaylist("Persisted Order");
+                assertEquals(
+                        java.util.Arrays.asList(t2.getId(), t3.getId(), t1.getId()),
+                        reloadedPlaylist.getTrackIds(),
+                        "The custom track order must survive a reload");
+            }
+        }
+    }
 }

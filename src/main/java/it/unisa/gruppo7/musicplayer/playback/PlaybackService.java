@@ -525,6 +525,22 @@ public class PlaybackService implements TrackObserver{
     }
 
     /**
+     * Moves a track within the live queue from one position to another (US-027).
+     *
+     * <p>The currently playing track and the timer are left untouched, so playback
+     * continues without interruption; the queue owns the cursor and repositions it
+     * to keep pointing at the same logical track. Observers are notified so the
+     * "up next" panel and row styling refresh.</p>
+     *
+     * @param from the current index of the track in the queue.
+     * @param to   the target index.
+     */
+    public void moveTrackInQueue(int from, int to) {
+        queue.moveTrack(from, to);
+        notifyQueueChanged();
+    }
+
+    /**
      * Broadcasts a notification to all registered observers indicating that
      * the playback queue's structural sequence or content has changed.
      */
