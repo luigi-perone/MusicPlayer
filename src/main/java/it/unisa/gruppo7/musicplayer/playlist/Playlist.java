@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -18,24 +19,37 @@ import java.util.Collection;
  * @author Maxim Makhovskyy, Luigi Perone
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Playlist extends TrackCollection{
+public class Playlist extends TrackCollection {
     private String playlistName;
     private List<UUID> loadedTrackIds = new ArrayList<>();
+    private int playCount;
 
     /**
      * Constructor of the class Playlist.
-     * * @param playlistName the name of the playlist
-     * @param trackIds the list of track IDs loaded from storage
+     * @param playlistName  the name of the playlist
+     * @param trackIds      the list of track IDs loaded from storage
+     * @param playCount     The number of times the playlist has been played.
      */
     @JsonCreator
     public Playlist(
             @JsonProperty("name") String playlistName,
-            @JsonProperty("trackIds") List<UUID> trackIds) {
+            @JsonProperty("trackIds") List<UUID> trackIds,
+            @JsonProperty("playCount") Integer playCount) {
         super("", new ArrayList<>());
         this.playlistName = playlistName;
         if (trackIds != null) {
             this.loadedTrackIds = trackIds;
         }
+        this.playCount = (playCount == null) ? 0 : playCount;
+    }
+
+    /**
+     * Constructor of the class Playlist. Default play count.
+     * @param playlistName  the name of the playlist
+     * @param trackIds      the list of track IDs loaded from storage
+     */
+    public Playlist(String playlistName, List<UUID> trackIds) {
+        this(playlistName, trackIds, null);
     }
 
     /**
@@ -99,6 +113,23 @@ public class Playlist extends TrackCollection{
     }
 
     /**
+     * Gets the play count of the track.
+     *
+     * @return The number of times the playlist has been played.
+     */
+    public int getPlayCount() {
+        return playCount;
+    }
+
+    /**
+     * Increments the play count of the playlist.
+     *
+     */
+    public void incrementPlayCount() {
+        this.playCount++;
+    }
+
+    /**
      * Returns a string representation of the playlist, including its name and track count.
      * * @return a formatted string with the playlist name and number of songs
      */
@@ -107,7 +138,7 @@ public class Playlist extends TrackCollection{
         int trackCount = (this.tracks != null && !this.tracks.isEmpty())
                 ? this.tracks.size()
                 : (this.loadedTrackIds != null ? this.loadedTrackIds.size() : 0);
-        return this.playlistName + " (" + trackCount + " songs)";
+        return this.playlistName + " (" + trackCount + " songs)" + " (" + playCount + " playCount)";
     }
 
     /**

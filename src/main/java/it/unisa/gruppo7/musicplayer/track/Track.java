@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.lang.IllegalArgumentException;
 import java.time.Year;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents the data model of a music track.
@@ -22,6 +24,8 @@ public class Track {
     private int duration;   // track duration in seconds
     private String genre;
     private Year publicationYear;
+    private Set<TrackTag> tags = new HashSet<>();
+    private int playCount;
 
     /**
      * Complete Track constructor used for initialization and JSON deserialization.
@@ -32,6 +36,8 @@ public class Track {
      * @param duration          The length of the track in seconds.
      * @param genre             The music genre of the track.
      * @param publicationYear   The year the track was released.
+     * @param tags              The predefined visual tags assigned to the track.
+     * @param playCount         The number of times the track has been played.
      * @throws IllegalArgumentException If title or author are empty, duration is non-positive,
      * or publication year is invalid.
      */
@@ -42,9 +48,11 @@ public class Track {
             @JsonProperty("author") String author,
             @JsonProperty("duration") int duration,
             @JsonProperty("genre") String genre,
-            @JsonProperty("publicationYear") Year publicationYear) {
+            @JsonProperty("publicationYear") Year publicationYear,
+            @JsonProperty("tags") Set<TrackTag> tags,
+            @JsonProperty("playCount") Integer playCount) {
 
-        this.validateArguments(title, author, duration, genre, publicationYear);
+        this.validateArguments(title, author, duration, genre, publicationYear, playCount);
 
         this.id = (id == null) ? UUID.randomUUID() : id;
         this.title = title;
@@ -52,6 +60,8 @@ public class Track {
         this.duration = duration;
         this.genre = genre;
         this.publicationYear = publicationYear;
+        this.setTags(tags);
+        this.playCount = (playCount == null) ? 0 : playCount;
     }
 
     /**
@@ -64,7 +74,7 @@ public class Track {
      * @param publicationYear The year the track was released.
      */
     public Track(String title, String author, int duration, String genre, Year publicationYear) {
-        this(null, title, author, duration, genre, publicationYear);
+        this(null, title, author, duration, genre, publicationYear, null, null);
     }
 
     /**
@@ -83,6 +93,7 @@ public class Track {
      */
     protected Track() {
         this.id = UUID.randomUUID();
+        this.tags = new HashSet<>();
     }
 
     /**
@@ -119,9 +130,10 @@ public class Track {
      * @param duration        The duration integer to check.
      * @param genre           The genre string to check.
      * @param publicationYear The publication year object to check.
+     * @param playCount       The number of times the track has been played to check.
      * @throws IllegalArgumentException If any of the provided fields violate validation constraints.
      */
-    public void validateArguments(String title, String author, int duration, String genre, Year publicationYear) {
+    public void validateArguments(String title, String author, int duration, String genre, Year publicationYear, Integer playCount) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Track title must be included");
         }
@@ -136,6 +148,11 @@ public class Track {
                 throw new IllegalArgumentException("Track Publication Year must be a valid year and prior to the current one");
             }
         }
+        if (playCount != null) {
+            if (playCount.compareTo(0) < 0) {
+                throw new IllegalArgumentException("Play Count must be non-negative");
+            }
+        }
     }
 
     /**
@@ -148,7 +165,7 @@ public class Track {
      * @param newPublicationYear The new release year.
      */
     public void modifyTrack(String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
-        this.validateArguments(newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
+        this.validateArguments(newTitle, newAuthor, newDuration, newGenre, newPublicationYear, null);
 
         this.title = newTitle;
         this.author = newAuthor;
@@ -268,6 +285,73 @@ public class Track {
         this.publicationYear = publicationYear;
     }
 
+    /**
+     * Gets the visual tags assigned to this track.
+     *
+     * @return A copy of the assigned tag set.
+     */
+    public Set<TrackTag> getTags() {
+        return new HashSet<>(tags);
+    }
+
+    /**
+     * Replaces the visual tags assigned to this track.
+     *
+     * @param tags The new tag set, or null to clear all tags.
+     */
+    public void setTags(Set<TrackTag> tags) {
+        this.tags = (tags == null) ? new HashSet<>() : new HashSet<>(tags);
+    }
+
+    /**
+     * Adds a predefined visual tag to this track.
+     *
+     * @param tag The tag to add.
+     */
+    public void addTag(TrackTag tag) {
+        if (tag != null) {
+            this.tags.add(tag);
+        }
+    }
+
+    /**
+     * Removes a visual tag from this track.
+     *
+     * @param tag The tag to remove.
+     */
+    public void removeTag(TrackTag tag) {
+        this.tags.remove(tag);
+    }
+
+    /**
+     * Checks whether a visual tag is assigned to this track.
+     *
+     * @param tag The tag to check.
+     * @return true if the tag is assigned.
+     */
+    public boolean hasTag(TrackTag tag) {
+        return this.tags.contains(tag);
+    }
+
+
+
+    /**
+     * Gets the play count of the track.
+     *
+     * @return The number of times the track has been played.
+     */
+    public int getPlayCount() {
+        return playCount;
+    }
+
+    /**
+     * Increments the play count of the track.
+     *
+     */
+    public void incrementPlayCount() {
+        this.playCount++;
+    }
+
     // -- toString --
 
     /**
@@ -284,6 +368,7 @@ public class Track {
                 ", duration=" + duration +
                 ", genre='" + genre + '\'' +
                 ", publicationYear=" + publicationYear +
+                ", playCount=" + playCount +
                 '}';
     }
 

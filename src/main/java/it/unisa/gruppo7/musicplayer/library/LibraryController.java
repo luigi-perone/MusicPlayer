@@ -9,6 +9,7 @@ import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.track.TrackFormController;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,11 +18,14 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +43,8 @@ public class LibraryController implements PlaybackObserver {
     @FXML private TableColumn<Track, String> genreColumn;
     @FXML private TableColumn<Track, Year>    yearColumn;
     @FXML private Button                      addToPlaylistBtn;
+    @FXML private TableColumn<Track, String> tagColumn;
+    @FXML private Button                      manageTagsBtn;
 
     private MusicPlayerFacade     musicPlayer;
     private ObservableList<Track> observableTracks;
@@ -65,6 +71,7 @@ public class LibraryController implements PlaybackObserver {
         });
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("publicationYear"));
+        tagColumn.setCellValueFactory(cellData -> new SimpleStringProperty(formatTags(cellData.getValue())));
 
         trackTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         trackTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -78,6 +85,7 @@ public class LibraryController implements PlaybackObserver {
         addToPlaylistBtn.disableProperty().bind(
                 trackTable.getSelectionModel().selectedItemProperty().isNull()
         );
+        manageTagsBtn.disableProperty().bind(trackTable.getSelectionModel().selectedItemProperty().isNull());
 
         trackTable.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldSelection, newSelection) -> {
@@ -130,7 +138,7 @@ public class LibraryController implements PlaybackObserver {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     musicPlayer.playFromLibraryFrom(row.getItem());
                 }
-            });
+            });           
             return row;
         });
 
@@ -350,6 +358,78 @@ public class LibraryController implements PlaybackObserver {
      */
     private void mostraAvviso(String titolo, String messaggio) {
         DialogUtils.showInfo(titolo, messaggio);
+    }
+
+    @FXML
+    private void onManageTagsClick() {
+        Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
+        if (selectedTrack != null) {
+            showTagDialog(selectedTrack);
+        }
+    }
+
+    /**
+     * Opens the tag management dialog for a selected track.
+     *
+     * @param track The track whose tags should be edited.
+     */
+    private void showTagDialog(Track track) {
+        Dialog<Set<TrackTag>> dialog = new Dialog<>();
+        dialog.setTitle("Gestisci Tag");
+        dialog.setHeaderText(track.getTitle());
+
+        ButtonType confirmButtonType = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+
+        VBox content = new VBox(8);
+        List<CheckBox> checkBoxes = new ArrayList<>();
+        for (TrackTag tag : TrackTag.values()) {
+            CheckBox checkBox = new CheckBox(tag.getDisplayName());
+            checkBox.setSelected(track.hasTag(tag));
+            checkBox.setUserData(tag);
+            checkBoxes.add(checkBox);
+            content.getChildren().add(checkBox);
+        }
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(button -> {
+            if (button == confirmButtonType) {
+                Set<TrackTag> selectedTags = new HashSet<>();
+                for (CheckBox checkBox : checkBoxes) {
+                    if (checkBox.isSelected()) {
+                        selectedTags.add((TrackTag) checkBox.getUserData());
+                    }
+                }
+                return selectedTags;
+            }
+            return null;
+        });
+
+        Optional<Set<TrackTag>> result = dialog.showAndWait();
+        result.ifPresent(selectedTags -> {
+            musicPlayer.updateTrackTags(track, selectedTags);
+            trackTable.refresh();
+        });
+    }
+
+    /**
+     * Formats assigned tags for the table column using short labels.
+     *
+     * @param track The track to format.
+     * @return A comma-separated short label list.
+     */
+    private String formatTags(Track track) {
+        if (track == null || track.getTags().isEmpty()) {
+            return "";
+        }
+
+        List<String> labels = new ArrayList<>();
+        for (TrackTag tag : TrackTag.values()) {
+            if (track.hasTag(tag)) {
+                labels.add(tag.getShortLabel());
+            }
+        }
+        return String.join(", ", labels);
     }
 
     public void setMainController(MainController mainController) {

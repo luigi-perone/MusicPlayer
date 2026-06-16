@@ -5,12 +5,16 @@ import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Structural Facade that centralizes and coordinates core music player sub-systems
@@ -19,7 +23,7 @@ import java.util.*;
  *
  * @author Francesco Lemmo
  */
-public class MusicPlayerFacade {
+public class MusicPlayerFacade implements PlaybackObserver {
 
     /** Single instance of the MusicPlayerFacade. */
     private static MusicPlayerFacade instance;
@@ -42,6 +46,11 @@ public class MusicPlayerFacade {
     /** List of registered observers listening for track data changes. */
     private final List<TrackObserver> observers = new ArrayList<>();
 
+    /** * Executor dedicated to Input/Output file operations.
+     * Uses a single thread in background.
+     */
+    private final ExecutorService ioExecutor;
+
     /**
      * Private constructor initializing subsystems and registering internal dependencies.
      */
@@ -49,8 +58,13 @@ public class MusicPlayerFacade {
         this.library = Library.getInstance();
         this.playlistService = new PlaylistService();
         this.playbackService = new PlaybackService();
+
+        this.ioExecutor = Executors.newSingleThreadExecutor();
+
+        this.playbackService.addObserver(this);
         this.addObserver(this.playlistService);
         this.addObserver(this.playbackService);
+
     }
 
     /**
@@ -63,6 +77,12 @@ public class MusicPlayerFacade {
             instance = new MusicPlayerFacade();
         }
         return instance;
+    }
+
+    public void saveLibrary() {
+        ioExecutor.submit(() -> {
+            library.save();
+        });
     }
 
     /**
@@ -143,7 +163,7 @@ public class MusicPlayerFacade {
 
             boolean success = library.addTrack(newTrack);
             if (success) {
-                library.save();
+                saveLibrary();
             }
             return success;
 
@@ -162,7 +182,7 @@ public class MusicPlayerFacade {
     public boolean removeTrackFromLibrary(Track track) {
         boolean success = library.removeTrack(track);
         if (success) {
-            library.save();
+            saveLibrary();
             this.notifyTrackDeleted(track);
         }
         return success;
@@ -182,10 +202,25 @@ public class MusicPlayerFacade {
     public boolean modifyTrack(Track track, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
         boolean success = library.modifyTrackInLibrary(track, newTitle, newAuthor, newDuration, newGenre, newPublicationYear);
         if (success) {
-            library.save();
+            saveLibrary();
             notifyTrackEdit(track);
         }
         return success;
+    }
+    
+    /**
+     * Updates the predefined visual tags assigned to a track and persists the library.
+     *
+     * @param track The track to update.
+     * @param tags  The selected predefined tags.
+     */
+    public void updateTrackTags(Track track, Set<TrackTag> tags) {
+        if (track == null) {
+            return;
+        }
+        track.setTags(tags);
+        library.save();
+        notifyTrackEdit(track);
     }
 
     /**
@@ -279,11 +314,13 @@ public class MusicPlayerFacade {
      * Serializes current user playlist tracking parameters to disk storage.
      */
     public void savePlaylists() {
-        playlistService.save();
+        ioExecutor.submit(() -> {
+            playlistService.save();
+        });
     }
 
     /**
-     * Formats an raw numerical integer seconds index into a standard user-readable "MM:SS" time layout.
+     * Formats a raw numerical integer seconds index into a standard user-readable "MM:SS" time layout.
      *
      * @param totalSeconds Total aggregated track duration length in seconds.
      * @return A padded string structured format presentation.
@@ -339,6 +376,8 @@ public class MusicPlayerFacade {
             throw new IllegalArgumentException("La playlist \"" + playlist.getName() + "\" non contiene brani.");
         }
         this.activePlaylist = playlist;
+        playlist.incrementPlayCount();
+        savePlaylists();
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
         playbackService.loadSource(tracks);
     }
@@ -382,6 +421,10 @@ public class MusicPlayerFacade {
      * @param track    The track to start playback from.
      */
     public void playFromPlaylistFrom(Playlist playlist, Track track) {
+        if (this.activePlaylist == null || !this.activePlaylist.equals(playlist)) {
+            playlist.incrementPlayCount();
+            savePlaylists();
+        }
         this.activePlaylist = playlist;
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
         playbackService.loadSourceFrom(tracks, track);
@@ -520,10 +563,14 @@ public class MusicPlayerFacade {
         if (playbackService != null) {
             playbackService.shutdownTimer();
         }
+
+        if (ioExecutor != null && !ioExecutor.isShutdown()) {
+            ioExecutor.shutdown();
+        }
     }
 
     /**
-     * Synchronises the live playback queue after a track has been added to a playlist.
+     * Synchronizes the live playback queue after a track has been added to a playlist.
      * If the playlist is currently the active playback source, the track is appended to
      * the queue (or inserted at a random position when shuffle is active).
      *
@@ -537,7 +584,7 @@ public class MusicPlayerFacade {
     }
 
     /**
-     * Synchronises the live playback queue after a track has been removed from a playlist.
+     * Synchronizes the live playback queue after a track has been removed from a playlist.
      * If the playlist is currently the active playback source, the track is removed from
      * the queue. If it was playing, playback advances to the next track automatically.
      *
@@ -612,4 +659,23 @@ public class MusicPlayerFacade {
         }
     }
 
+    // -- Playback Observer methods --
+
+    @Override
+    public void onTimeTick(int simulatedSeconds) {
+
+    }
+
+    @Override
+    public void onTrackChanged(Track currentTrack) {
+        if (currentTrack != null){
+            currentTrack.incrementPlayCount();
+        }
+        saveLibrary();
+    }
+
+    @Override
+    public void onStateChanged(PlaybackState newState) {
+
+    }
 }
