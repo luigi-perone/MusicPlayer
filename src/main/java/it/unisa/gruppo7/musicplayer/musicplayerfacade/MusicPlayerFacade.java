@@ -7,6 +7,7 @@ import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
@@ -324,10 +325,40 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * Serializes current user playlist tracking parameters to disk storage.
      */
     public void savePlaylists() {
-        ioExecutor.submit(() -> {
-            playlistService.save();
-        });
+        if (ioExecutor == null || ioExecutor.isShutdown()) {
+            return;
+        }
+        try {
+            ioExecutor.submit(() -> {
+                playlistService.save();
+            });
+        } catch (RejectedExecutionException ignored) {
+            // Executor is shutting down (e.g. application/test teardown): skip the save.
+        }
     }
+
+    /**
+     * Generates and saves automatically a playlist (uses Strategy Pattern)
+     */
+    public Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy) {
+        // Apply filter to the library
+        List<Track> selectedTracks = strategy.generate(this.getTracksFromLibrary());
+
+        // If no tracks remain after the filtering, throw an exception
+        if (selectedTracks.isEmpty()) {
+            throw new IllegalArgumentException("Nessuna traccia trovata");
+        }
+
+        // otherwise, create the playlist with the selected tracks
+        Playlist newPlaylist = playlistService.createPlaylist(playlistName);
+        playlistService.addTracksToPlaylist(newPlaylist, selectedTracks);
+
+        // Saves the new playlist
+        savePlaylists();
+
+        return newPlaylist;
+    }
+
 
     /**
      * Formats a raw numerical integer seconds index into a standard user-readable "MM:SS" time layout.

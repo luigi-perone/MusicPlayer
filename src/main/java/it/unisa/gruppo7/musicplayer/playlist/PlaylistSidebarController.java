@@ -5,20 +5,20 @@ import java.util.function.Consumer;
 import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
+import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
+import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
+import it.unisa.gruppo7.musicplayer.dialog.PlaylistGeneratorDialogBuilder;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
+import javafx.scene.control.*;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
@@ -68,6 +68,74 @@ public class PlaylistSidebarController {
             mainController.showLibrary();
         }
     }
+
+    @FXML
+    private void onPlaylistGeneratorToggle() {
+        DialogDirector director = new DialogDirector();
+
+        PlaylistGeneratorDialogBuilder builder = new PlaylistGeneratorDialogBuilder();
+        Dialog<PlaylistGeneratorDialogBuilder.GenerationRequest> dialog = director.construct(builder);
+
+        dialog.showAndWait().ifPresent(request -> {
+            String criterion = request.criterion;
+            String target = request.target;
+
+            if (target.isEmpty()) {
+                DialogUtils.showWarning("Dati mancanti", "Inserisci un valore per procedere.");
+                return;
+            }
+
+            // Default playlist name
+            String formattedTarget = target.substring(0, 1).toUpperCase() + target.substring(1).toLowerCase();
+            String defaultPlaylistName = "Playlist " + formattedTarget;
+
+            // Selecting strategy
+            PlaylistGenerationStrategy strategy = null;
+
+            try {
+                switch (criterion) {
+                    case "Genere":
+                        strategy = new GenreGenerationStrategy(target);
+                        break;
+                    case "Anno":
+                        //strategy
+                        break;
+                    case "Tag":
+                        //strategy
+                        break;
+                }
+
+                // Execution from facade
+                MusicPlayerFacade.getInstance().createAutoPlaylist(defaultPlaylistName, strategy);
+
+                DialogUtils.showInfo("Completato", "La '" + defaultPlaylistName + "' è stata creata con successo!");
+                refreshList();
+
+            } catch (NumberFormatException e) {
+                DialogUtils.showWarning("Errore di formato", "L'anno deve essere un numero valido.");
+            } catch (IllegalArgumentException e) {
+                String errorMessage = e.getMessage();
+
+                if (errorMessage != null && errorMessage.equals("Nessuna traccia trovata")) {
+                    DialogUtils.showWarning(
+                            "Creazione Annullata",
+                            "Nessun brano trovato per questo " + criterion.toLowerCase() + " nella tua libreria."
+                    );
+                }else if (errorMessage != null && errorMessage.equals("Esiste già una playlist con questo nome")) {
+                    DialogUtils.showWarning(
+                            "Creazione Annullata",
+                            "La playlist '" + defaultPlaylistName + "' esiste già."
+                    );
+                } else {
+                    DialogUtils.showWarning(
+                            "Impossibile creare la playlist",
+                            errorMessage
+                    );
+                }
+            }
+        });
+    }
+
 
     /**
      * Sets the playlist service injection and refreshes the sidebar list view.

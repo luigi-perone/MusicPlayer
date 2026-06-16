@@ -403,7 +403,6 @@
 }
 
 
-/* Rimuove lo sfondo grigio da QUALSIASI ScrollPane */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-background: transparent;
@@ -413,18 +412,15 @@
     -fx-background-color: transparent;
 }
 
-/* 1. Spessore e sfondo per tutte le barre (Orizzontali e Verticali) */
 .scroll-bar:horizontal { -fx-pref-height: 8px; -fx-background-color: transparent; }
 .scroll-bar:vertical   { -fx-pref-width: 8px;  -fx-background-color: transparent; }
 
-/* 2. Nasconde il binario */
 .scroll-bar .track,
 .scroll-bar .track-background {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
 }
 
-/* 3. Distrugge le freccette ovunque */
 .scroll-bar .increment-button,
 .scroll-bar .decrement-button {
     -fx-background-color: transparent;
@@ -437,7 +433,6 @@
     -fx-padding: 0;
 }
 
-/* 4. La "pillola" trascinabile */
 .scroll-bar .thumb {
     -fx-background-color: #d1d1d6;
     -fx-background-radius: 10px;
@@ -447,7 +442,128 @@
     -fx-background-color: #a3a3a8;
 }
 
-/* 5. Nasconde il quadratino in basso a destra ovunque */
 .corner {
     -fx-background-color: transparent;
+}
+
+
+/* Dialog classes */
+.dialog-pane {
+    -fx-background-color: #ffffff; /* Metti qui il colore di sfondo della tua app (es. #1e1e1e se è tema scuro) */
+}
+
+
+.dialog-pane .header-panel {
+    -fx-background-color: #f0f0f5; /* Un colore leggermente diverso per staccare dal contenuto */
+}
+
+
+.dialog-pane .label {
+    /* -fx-text-fill: white;  <-- Decommenta questa riga se usi uno sfondo scuro! */
+    -fx-font-size: 14px;
+}
+
+/* 1. Stile base uguale per tutti i bottoni del Dialog */
+.dialog-pane .button {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 18px; /* Dà respiro al testo */
+    -fx-background-radius: 8px; /* Bordi morbidi in linea con le tendine */
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* 2. Bottone ANNULLA (Secondario) */
+.dialog-pane .button:cancel {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6e6e73; /* Grigio testo */
+    -fx-border-color: #d1d1d6; /* Bordino grigio chiaro */
+    -fx-border-radius: 8px;
+}
+
+.dialog-pane .button:cancel:hover {
+    -fx-background-color: #f6f5f3; /* Si scurisce leggermente al passaggio */
+    -fx-text-fill: #1c1c1e;
+}
+
+/* 3. Bottone GENERA (Primario) */
+.dialog-pane .button:default {
+    -fx-background-color: #e0592b; /* Il tuo Arancione */
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+}
+
+.dialog-pane .button:default:hover {
+    -fx-background-color: #f26a3c; /* Arancione più luminoso al passaggio */
+    /* Piccola ombra per dare un effetto premium al click */
+    -fx-effect: dropshadow(three-pass-box, rgba(224, 89, 43, 0.3), 8, 0, 0, 2);
+}
+
+
+
+/* 1. Stile principale della tendina chiusa */
+.custom-combo-box {
+    -fx-background-color: #f2f2f7; /* Grigio chiarissimo di base */
+    -fx-background-radius: 8px; /* Bordi arrotondati */
+    -fx-border-color: #d1d1d6; /* Bordo grigio chiaro */
+    -fx-border-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-padding: 2px;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent; /* Nasconde l'alone blu di default */
+    -fx-faint-focus-color: transparent;
+}
+
+/* 2. Effetto Focus: Bordo leggermente più scuro quando l'utente ci clicca */
+.custom-combo-box:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #8e8e93; /* Grigio medio, molto sobrio */
+}
+
+/* 3. Stile del testo dentro la tendina chiusa */
+.custom-combo-box .list-cell {
+    -fx-text-fill: #333333; /* Testo grigio scuro */
+    -fx-background-color: transparent;
+}
+
+/* 4. Il pulsantino a destra e la freccia */
+.custom-combo-box .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 12 0 10;
+}
+.custom-combo-box .arrow {
+    -fx-background-color: #555555; /* Freccetta grigio scuro (non più arancione) */
+}
+
+
+/* 1. Lo sfondo del menu a discesa */
+.custom-combo-box .combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8px;
+    -fx-border-color: #d1d1d6;
+    -fx-border-radius: 8px;
+    /* Piccola ombra grigia sotto al menù per farlo sembrare sollevato */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 4);
+}
+
+/* 2. Le singole opzioni ("Genere", "Anno", "Tag") */
+.custom-combo-box .combo-box-popup .list-cell {
+    -fx-padding: 8px 12px;
+    -fx-text-fill: #333333;
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+/* 3. Effetto passaggio del mouse (Hover) sulle opzioni */
+.custom-combo-box .combo-box-popup .list-cell:hover {
+    -fx-background-color: #f2f2f7; /* Sfondo appena più scuro del bianco */
+    -fx-text-fill: #000000; /* Il testo diventa nero intenso */
+}
+
+/* 4. L'opzione attualmente selezionata */
+.custom-combo-box .combo-box-popup .list-cell:selected {
+    -fx-background-color: #e5e5ea; /* Grigio evidenziazione sobrio */
+    -fx-text-fill: #000000; /* Testo nero scuro per massima leggibilità */
 }

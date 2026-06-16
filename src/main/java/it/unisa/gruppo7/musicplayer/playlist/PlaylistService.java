@@ -53,7 +53,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
 
         if (existsByName(name)) {
-            throw new IllegalArgumentException("This playlist name already exists");
+            throw new IllegalArgumentException("Esiste già una playlist con questo nome");
         }
 
         Playlist newPlaylist = new Playlist(name, new ArrayList<>());
