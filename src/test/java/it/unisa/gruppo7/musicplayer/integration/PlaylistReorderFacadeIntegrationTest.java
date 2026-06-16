@@ -9,6 +9,7 @@ import org.junit.jupiter.api.*;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,7 +57,7 @@ public class PlaylistReorderFacadeIntegrationTest {
     }
 
     private static Track byTitle(List<Track> tracks, String title) {
-        return tracks.stream().filter(t -> t.getTitle().equals(title)).findFirst().orElseThrow();
+        return tracks.stream().filter(t -> t.getTitle().equals(title)).findFirst().orElseThrow(NoSuchElementException::new);
     }
 
     /** Mirrors the controller's reorderTrack(from, to) sequence. */
