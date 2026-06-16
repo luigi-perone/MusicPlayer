@@ -405,7 +405,7 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
 
     @Override
     public void onTrackDeleted(Track track) {
-        throw new UnsupportedOperationException("Unimplemented method 'onTrackDeleted'");
+        //throw new UnsupportedOperationException("Unimplemented method 'onTrackDeleted'");
     }
 
     @Override
