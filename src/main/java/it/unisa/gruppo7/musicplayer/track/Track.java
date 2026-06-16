@@ -49,7 +49,7 @@ public class Track {
             @JsonProperty("duration") int duration,
             @JsonProperty("genre") String genre,
             @JsonProperty("publicationYear") Year publicationYear,
-            @JsonProperty("tags") Set<TrackTag> tags),
+            @JsonProperty("tags") Set<TrackTag> tags,
             @JsonProperty("playCount") Integer playCount) {
 
         this.validateArguments(title, author, duration, genre, publicationYear, playCount);
