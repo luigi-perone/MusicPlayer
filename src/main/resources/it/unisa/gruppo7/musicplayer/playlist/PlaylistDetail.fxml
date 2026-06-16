@@ -49,6 +49,7 @@
                 <TableColumn fx:id="titleColumn" prefWidth="280.0" text="Titolo" />
                 <TableColumn fx:id="authorColumn" prefWidth="180.0" text="Autore" />
                 <TableColumn fx:id="durationColumn" prefWidth="100.0" text="Durata" />
+                <TableColumn fx:id="tagColumn" prefWidth="120.0" text="Tag" />
             </columns>
         </TableView>
     </center>
