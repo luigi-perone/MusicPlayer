@@ -5,6 +5,7 @@ import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playback.strategy.PlaylistSkipStrategy;
 import it.unisa.gruppo7.musicplayer.playback.strategy.SkipStrategy;
 import it.unisa.gruppo7.musicplayer.playback.strategy.TrackSkipStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 import java.util.ArrayList;
@@ -257,7 +258,19 @@ public class PlaybackService implements TrackObserver{
      * @param tracks The new data source to load.
      */
     public void loadSource(List<Track> tracks) {
-        this.queue.loadTracks(tracks);
+        loadSource(tracks, null);
+    }
+
+    /**
+     * Overwrites the current queue with a new list of tracks coming from the given
+     * playlist and immediately begins playing the first track. Tagging the resulting
+     * block with its source playlist lets later playlist reorders propagate to it.
+     *
+     * @param tracks The new data source to load.
+     * @param source The playlist the tracks come from, or null for an ad-hoc load.
+     */
+    public void loadSource(List<Track> tracks, Playlist source) {
+        this.queue.loadTracks(tracks, source);
         if (!tracks.isEmpty()) {
             Track first = tracks.get(0);
             this.queue.jumpTo(first);
@@ -274,7 +287,20 @@ public class PlaybackService implements TrackObserver{
      * @param startFrom The specific track to begin playing initially.
      */
     public void loadSourceFrom(List<Track> tracks, Track startFrom) {
-        this.queue.loadTracks(tracks);
+        loadSourceFrom(tracks, startFrom, null);
+    }
+
+    /**
+     * Overwrites the current queue with a new list of tracks coming from the given
+     * playlist and begins playback from {@code startFrom}. Tagging the resulting block
+     * with its source playlist lets later playlist reorders propagate to it.
+     *
+     * @param tracks    The new data source to load.
+     * @param startFrom The specific track to begin playing initially.
+     * @param source    The playlist the tracks come from, or null for an ad-hoc load.
+     */
+    public void loadSourceFrom(List<Track> tracks, Track startFrom, Playlist source) {
+        this.queue.loadTracks(tracks, source);
         this.queue.jumpTo(startFrom);
         this.play(startFrom);
     }
@@ -285,8 +311,20 @@ public class PlaybackService implements TrackObserver{
      * @param tracks The sequence of tracks to add.
      */
     public void appendSource(List<Track> tracks) {
+        appendSource(tracks, null);
+    }
+
+    /**
+     * Appends a new list of tracks coming from the given playlist to the end of the
+     * existing active queue. Tagging the resulting block with its source playlist lets
+     * later playlist reorders propagate to it.
+     *
+     * @param tracks The sequence of tracks to add.
+     * @param source The playlist the tracks come from, or null for an ad-hoc append.
+     */
+    public void appendSource(List<Track> tracks, Playlist source) {
         boolean wasEmpty = queue.getTrackCount() == 0;
-        queue.appendTracks(tracks);
+        queue.appendTracks(tracks, source);
         if (wasEmpty && !tracks.isEmpty()) {
             queue.setCurrentIndex(0);
             play(tracks.get(0));
@@ -541,6 +579,22 @@ public class PlaybackService implements TrackObserver{
      */
     public void moveTrackInQueue(int from, int to) {
         queue.moveTrack(from, to);
+        notifyQueueChanged();
+    }
+
+    /**
+     * Propagates a playlist reorder (US-027) to every queue block that was added from
+     * the given playlist, moving the track at block-relative index {@code from} to
+     * {@code to} in each. The currently playing track and the timer are untouched, so
+     * playback continues without interruption; observers are notified so the "up next"
+     * panel and row styling refresh.
+     *
+     * @param source the playlist whose queued blocks must be reordered.
+     * @param from   the block-relative index of the moved track.
+     * @param to     the block-relative target index.
+     */
+    public void reorderInPlaylistBlocks(Playlist source, int from, int to) {
+        queue.reorderWithinPlaylistBlocks(source, from, to);
         notifyQueueChanged();
     }
 

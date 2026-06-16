@@ -75,7 +75,7 @@ public class Library extends TrackCollection implements PersistenceService {
      * @throws IllegalArgumentException If a track with the same title and author already exists in the library.
      */
     @Override
-    public boolean addTrack(Track t) {
+    public synchronized boolean addTrack(Track t) {
         String signature = this.generateSignature(t);
         if (!this.signatures.add(signature)){
             throw new IllegalArgumentException("Track already in library");
@@ -90,7 +90,7 @@ public class Library extends TrackCollection implements PersistenceService {
      * @return true if the track was successfully removed.
      */
     @Override
-    public boolean removeTrack(Track track) {
+    public synchronized boolean removeTrack(Track track) {
         this.signatures.remove(generateSignature(track));
         return super.removeTrack(track);
     }
@@ -122,7 +122,7 @@ public class Library extends TrackCollection implements PersistenceService {
      * @return true if the modification succeeded without signature conflicts, false otherwise.
      * @throws IllegalArgumentException If the new arguments fail domain validation checks.
      */
-    public boolean modifyTrackInLibrary(Track t, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
+    public synchronized boolean modifyTrackInLibrary(Track t, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear) {
         String oldTitle = t.getTitle();
         String oldAuthor = t.getAuthor();
         int oldDuration = t.getDuration();
@@ -152,7 +152,7 @@ public class Library extends TrackCollection implements PersistenceService {
     /**
      * Purges all tracks and uniqueness signatures currently held in the library memory.
      */
-    public void clearLibrary() {
+    public synchronized void clearLibrary() {
         this.tracks.clear();
         this.signatures.clear();
     }
@@ -167,8 +167,16 @@ public class Library extends TrackCollection implements PersistenceService {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // Take a defensive snapshot under the same lock used by the mutators, then
+        // serialize the copy outside the lock to avoid ConcurrentModificationException
+        // when a background save races with library mutations on another thread.
+        HashSet<Track> snapshot;
+        synchronized (this) {
+            snapshot = new HashSet<>(this.tracks);
+        }
+
         try {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(path), this.tracks);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(path), snapshot);
         } catch (IOException e) {
             System.err.println("Error saving " + path);
             e.printStackTrace();
