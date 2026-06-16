@@ -346,3 +346,98 @@
 .control-btn.active {
     -fx-text-fill: #e0592b; /* Cambia colore (es. arancione) quando premuto/attivo */
 }
+
+.home-container {
+    -fx-background-color: #ffffff;
+    -fx-padding: 30;
+}
+
+.home-section-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1c1c1e;
+    -fx-padding: 0 0 15 0;
+}
+
+.home-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.home-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.home-scroll-pane:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+
+.media-card {
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 10, 0, 0, 4);
+}
+
+.media-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 15, 0, 0, 6);
+}
+
+
+.home-scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height: 8px;
+    -fx-padding: 0 5 0 5;
+}
+
+
+/* Rimuove lo sfondo grigio da QUALSIASI ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* 1. Spessore e sfondo per tutte le barre (Orizzontali e Verticali) */
+.scroll-bar:horizontal { -fx-pref-height: 8px; -fx-background-color: transparent; }
+.scroll-bar:vertical   { -fx-pref-width: 8px;  -fx-background-color: transparent; }
+
+/* 2. Nasconde il binario */
+.scroll-bar .track,
+.scroll-bar .track-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* 3. Distrugge le freccette ovunque */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-pref-width: 0; -fx-pref-height: 0; -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+/* 4. La "pillola" trascinabile */
+.scroll-bar .thumb {
+    -fx-background-color: #d1d1d6;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: #a3a3a8;
+}
+
+/* 5. Nasconde il quadratino in basso a destra ovunque */
+.corner {
+    -fx-background-color: transparent;
+}

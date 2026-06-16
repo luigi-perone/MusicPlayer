@@ -55,6 +55,20 @@ public class PlaylistSidebarController {
         addBtn.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> committing = true);
     }
 
+    @FXML
+    private void onHomeClick() {
+        if (mainController != null) {
+            mainController.showHomePage();
+        }
+    }
+
+    @FXML
+    private void onLibraryClick() {
+        if (mainController != null) {
+            mainController.showLibrary();
+        }
+    }
+
     /**
      * Sets the playlist service injection and refreshes the sidebar list view.
      *

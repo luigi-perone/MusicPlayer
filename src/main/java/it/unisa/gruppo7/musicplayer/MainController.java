@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer;
 
+import it.unisa.gruppo7.musicplayer.homepage.HomePageController;
 import it.unisa.gruppo7.musicplayer.library.LibraryController;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackController;
@@ -31,10 +32,13 @@ public class MainController {
     @FXML private PlaybackController playbackController;
     @FXML private BorderPane contentArea;
 
+    @FXML private HomePageController homePageController;
+
     @FXML private VBox queue;
     @FXML private PlaybackQueueController queueController;
 
     private Node libraryView;
+    private Node homePageView;
 
     /**
      * Initializes the controller. Sets up the default center view component
@@ -45,7 +49,7 @@ public class MainController {
         PlaylistService playlistService = MusicPlayerFacade.getInstance().getPlaylistService();
 
         if (contentArea != null) {
-            libraryView = contentArea.getCenter();
+            homePageView = contentArea.getCenter();
         }
 
         if (playlistSidebarController != null) {
@@ -60,6 +64,10 @@ public class MainController {
 
         if (libraryController != null) {
             libraryController.setMainController(this);
+        }
+
+        if (homePageController != null) {
+            homePageController.setMainController(this);
         }
     }
 
@@ -111,8 +119,33 @@ public class MainController {
      * Switches the application view focus back to the primary main music track library screen.
      */
     public void showLibrary() {
-        if (contentArea != null && libraryView != null) {
-            contentArea.setCenter(libraryView);
+        try {
+            if (libraryView == null) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/LibraryView.fxml"));
+                libraryView = loader.load();
+
+                LibraryController libController = loader.getController();
+                libController.setMainController(this);
+            }
+
+            if (contentArea != null) {
+                contentArea.setCenter(libraryView);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Errore nel caricamento della Libreria.");
+        }
+    }
+
+    /**
+     * Switches the application view focus back to the primary main homepage screen.
+     */
+    public void showHomePage() {
+        if (contentArea != null && homePageView != null) {
+            if (homePageController != null) {
+                homePageController.refreshHomePage();
+            }
+            contentArea.setCenter(homePageView);
         }
     }
 

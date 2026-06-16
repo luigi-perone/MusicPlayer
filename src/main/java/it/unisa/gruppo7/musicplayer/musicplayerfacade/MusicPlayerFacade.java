@@ -15,6 +15,7 @@ import java.time.Year;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Structural Facade that centralizes and coordinates core music player sub-systems
@@ -639,12 +640,32 @@ public class MusicPlayerFacade implements PlaybackObserver {
         }
     }
 
-    // -- Playback Observer methods --
+    // HomePage methods
 
-    @Override
-    public void onTimeTick(int simulatedSeconds) {
-
+    /**
+     * Returns the list with the most played tracks.
+     * @param limit maximum number of tracks to return (es. 5 o 10)
+     */
+    public List<Track> getMostPlayedTracks(int limit) {
+        return library.getTracks().stream()
+                .filter(track -> track.getPlayCount() > 0) // Ignores the tracks never played
+                .sorted(Comparator.comparingInt(Track::getPlayCount).reversed()) // Decreasing order
+                .limit(limit) // Take the first N (limit) tracks
+                .collect(Collectors.toList());
     }
+
+    /**
+     * Returns the list with the most played playlists.
+     * @param limit maximum number of playlists to return (es. 5 o 10)
+     */
+    public List<Playlist> getMostPlayedPlaylists(int limit) {
+        return playlistService.getPlaylists().stream()
+                .filter(playlist -> playlist.getPlayCount() > 0)
+                .sorted(Comparator.comparingInt(Playlist::getPlayCount).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+    // -- Playback Observer methods --
 
     @Override
     public void onTrackChanged(Track currentTrack) {
@@ -654,8 +675,4 @@ public class MusicPlayerFacade implements PlaybackObserver {
         saveLibrary();
     }
 
-    @Override
-    public void onStateChanged(PlaybackState newState) {
-
-    }
 }
