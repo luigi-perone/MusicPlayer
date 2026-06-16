@@ -6,6 +6,7 @@ import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
+import it.unisa.gruppo7.musicplayer.dialog.DialogTag;
 import it.unisa.gruppo7.musicplayer.dialog.TrackSelectionDialogBuilder;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
@@ -34,6 +35,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     @FXML private Label     trackCountLabel;
     @FXML private Label     totalDurationLabel;
     @FXML private Button    addTrack;
+    @FXML private Button    manageTagsBtn;
     @FXML private Button    deletePlaylistBtn;
     @FXML private TableView<Track>           playlistTrackTable;
     @FXML private TableColumn<Track, String> titleColumn;
@@ -172,7 +174,9 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
 
         playlistTrackTable.getSelectionModel().selectedItemProperty()
                 .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
-
+        manageTagsBtn.disableProperty().bind(
+                playlistTrackTable.getSelectionModel().selectedItemProperty().isNull()
+        );        
         refreshLabels();
         playlistTrackTable.refresh();
     }
@@ -287,6 +291,21 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
                 facade.onTrackRemovedFromPlaylist(currentPlaylist, selectedTrack);
             }
         }
+    }
+
+        @FXML
+    private void onManageTagsClick() {
+        Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
+        if (selectedTrack != null) {
+            showTagDialog(selectedTrack);
+        }
+    }
+
+    private void showTagDialog(Track track) {
+        DialogTag.show(track).ifPresent(selectedTags -> {
+            facade.updateTrackTags(track, selectedTags);
+            playlistTrackTable.refresh();
+        });
     }
 
     /**
