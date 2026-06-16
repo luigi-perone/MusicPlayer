@@ -11,6 +11,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 
 import java.time.Year;
 
@@ -212,6 +213,8 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         if (isActive) {
             shuffleButton.getStyleClass().add(SHUFFLE_ACTIVE_CLASS);
         }
+
+        shuffleButton.setTooltip(new Tooltip(isActive ? "Casuale: attivo" : "Casuale: disattivo"));
     }
 
     private void updateRepeatButtonState() {
@@ -220,15 +223,21 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         repeatButton.getStyleClass().remove(LOOP_ACTIVE_CLASS);
         repeatButton.getStyleClass().remove("active");
 
+        String tooltipText;
         if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
             repeatButton.setText("↻");
             repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+            tooltipText = "Ripeti: playlist";
         } else if (repeatMode == RepeatMode.REPEAT_ONE) {
             repeatButton.setText("↻1");
             repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
+            tooltipText = "Ripeti: un brano";
         } else {
             repeatButton.setText("↺");
+            tooltipText = "Ripeti: off";
         }
+
+        repeatButton.setTooltip(new Tooltip(tooltipText));
     }
 
     /**

@@ -158,7 +158,8 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
                     }
                     return null;
                 },
-                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, track))
+                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, track)),
+                this::reorderTrack
         );
 
         RenameHandler renameHandler = new RenameHandler(
@@ -306,6 +307,27 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
             facade.updateTrackTags(track, selectedTags);
             playlistTrackTable.refresh();
         });
+    }
+
+    /**
+     * Reorders a track within the playlist after a drag-and-drop gesture (US-027).
+     * Persists the new order via {@link ReorderTrackCommand}, mirrors the move in the
+     * bound UI list, keeps the live playback queue in sync when this playlist is the
+     * active source, and restores the selection on the moved row.
+     *
+     * @param from The previous index of the moved track.
+     * @param to   The new index of the moved track.
+     */
+    private void reorderTrack(int from, int to) {
+        if (currentPlaylist == null || adapter == null || facade == null) return;
+
+        CommandInvoker.execute(new ReorderTrackCommand(facade.getPlaylistService(), currentPlaylist, from, to));
+
+        adapter.moveTrack(from, to);
+        facade.onTrackReorderedInPlaylist(currentPlaylist, from, to);
+
+        playlistTrackTable.getSelectionModel().select(to);
+        playlistTrackTable.refresh();
     }
 
     /**

@@ -126,12 +126,9 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
                 @Override
                 protected void updateItem(Track item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setStyle("");
-                    } else if (item.equals(playingTrack)) {
-                        setStyle("-fx-background-color: #6498CCFF; -fx-font-weight: bold;");
-                    } else {
-                        setStyle("");
+                    getStyleClass().remove("playing-row");
+                    if (!empty && item != null && item.equals(playingTrack)) {
+                        getStyleClass().add("playing-row");
                     }
                 }
             };

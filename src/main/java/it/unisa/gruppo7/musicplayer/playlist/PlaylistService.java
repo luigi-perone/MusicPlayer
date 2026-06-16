@@ -148,6 +148,35 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     }
 
     /**
+     * Reorders a track within the given playlist, moving it from one position to
+     * another and persisting the new sequence automatically (US-027).
+     *
+     * @param playlist the playlist whose tracks are being reordered
+     * @param from     the current index of the track
+     * @param to       the target index
+     * @return an empty Optional if the reorder is successful, or an Optional
+     * containing an error message otherwise.
+     */
+    public Optional<String> reorderTrack(Playlist playlist, int from, int to) {
+        if (playlist == null || !playlists.contains(playlist))
+            return Optional.of("Playlist to reorder not found");
+
+        List<Track> tracks = (List<Track>) playlist.getTracks();
+        int size = tracks.size();
+
+        if (from < 0 || from >= size || to < 0 || to >= size)
+            return Optional.of("Track position out of range");
+
+        if (from == to)
+            return Optional.empty(); // No changes needed
+
+        Track moved = tracks.remove(from);
+        tracks.add(to, moved);
+        save();
+        return Optional.empty();
+    }
+
+    /**
      * Retrieves the list of all playlists managed by this service.
      * * @return a list of {@link Playlist} objects
      */

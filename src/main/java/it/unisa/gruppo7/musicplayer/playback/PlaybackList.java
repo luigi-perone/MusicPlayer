@@ -4,6 +4,7 @@ import java.util.*;
 
 import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
@@ -37,6 +38,14 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
 
     /** Next playlist-block id to assign. */
     private int nextBlockId = 0;
+
+    /**
+     * Maps each playlist-block id to the source {@link Playlist} it was added from.
+     * Ad-hoc blocks (a bare library load, or a single track appended outside of a
+     * playlist) have no entry here. This is what lets a playlist reorder be
+     * propagated to <b>every</b> queued copy of that playlist, not just the active one.
+     */
+    private final Map<Integer, Playlist> blockSources = new HashMap<>();
 
 
     /**
@@ -220,6 +229,17 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param tracks The new list of tracks to load.
      */
     public void loadTracks(List<Track> tracks) {
+        loadTracks(tracks, null);
+    }
+
+    /**
+     * Replaces the tracks in the playback list with the provided ones, tagging the
+     * resulting block with the {@link Playlist} they originate from.
+     *
+     * @param tracks The new list of tracks to load.
+     * @param source The playlist the tracks come from, or null for an ad-hoc load.
+     */
+    public void loadTracks(List<Track> tracks, Playlist source) {
         this.clear();
         this.tracks.addAll(tracks);
 
@@ -228,6 +248,9 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             int id = nextBlockId++;
             for (int i = 0; i < tracks.size(); i++) {
                 blockIds.add(id);
+            }
+            if (source != null) {
+                blockSources.put(id, source);
             }
             this.currentIndex = 0;
         }
@@ -243,6 +266,17 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param tracks The list of tracks to append.
      */
     public void appendTracks(List<Track> tracks) {
+        appendTracks(tracks, null);
+    }
+
+    /**
+     * Appends the specified tracks to the end of the playback list as a new block,
+     * tagging that block with the {@link Playlist} they originate from.
+     *
+     * @param tracks The list of tracks to append.
+     * @param source The playlist the tracks come from, or null for an ad-hoc append.
+     */
+    public void appendTracks(List<Track> tracks, Playlist source) {
         this.tracks.addAll(tracks);
 
         if (tracks != null && !tracks.isEmpty()) {
@@ -251,10 +285,109 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
             for (int i = 0; i < tracks.size(); i++) {
                 blockIds.add(id);
             }
+            if (source != null) {
+                blockSources.put(id, source);
+            }
         }
 
         if (isShuffleActive) {
             shuffledTracks.addAll(tracks);
+        }
+    }
+
+    /**
+     * Moves a track within the canonical list from one position to another,
+     * keeping the playlist-block ids aligned 1:1 and repositioning the cursor so
+     * it still points at the same logical track that is currently playing.
+     *
+     * <p>This is the queue-side counterpart of a playlist reorder (US-027). It is
+     * deliberately a pure list operation on the canonical (non-shuffled) list and
+     * does not touch the playing track reference or the timer, so playback
+     * continues without interruption:</p>
+     *
+     * <ul>
+     *   <li>if the moved track <em>is</em> the current one, the cursor follows it
+     *       to {@code to};</li>
+     *   <li>if the move crosses the cursor, the cursor shifts by one to keep
+     *       pointing at the same track.</li>
+     * </ul>
+     *
+     * @param from the current index of the track in the canonical list.
+     * @param to   the target index in the canonical list.
+     */
+    public void moveTrack(int from, int to) {
+        List<Track> canonical = canonicalList();
+        int size = canonical.size();
+
+        // No-op on out-of-range indices or a move that changes nothing.
+        if (from < 0 || from >= size || to < 0 || to >= size || from == to) {
+            return;
+        }
+
+        Track track = canonical.remove(from);
+        canonical.add(to, track);
+
+        Integer blockId = blockIds.remove(from);
+        blockIds.add(to, blockId);
+
+        // Reposition the cursor so it keeps pointing at the same playing track.
+        if (currentIndex == from) {
+            currentIndex = to;
+        } else if (from < currentIndex && to >= currentIndex) {
+            currentIndex--;
+        } else if (from > currentIndex && to <= currentIndex) {
+            currentIndex++;
+        }
+    }
+
+    /**
+     * Propagates a playlist reorder (US-027) to <b>every</b> queue block that was
+     * added from the given {@link Playlist}, moving the track at block-relative
+     * index {@code from} to block-relative index {@code to} inside each such block.
+     *
+     * <p>This is what keeps multiple queued copies of the same playlist in sync with
+     * a reorder performed on the playlist itself. It operates on the canonical
+     * (non-shuffled) list and reuses {@link #moveTrack(int, int)} for each block, so
+     * the cursor keeps pointing at the track currently playing and playback is not
+     * interrupted.</p>
+     *
+     * <p>Because every move is internal to a single block (no net change in length),
+     * the start positions of the other blocks do not drift, so the block ranges are
+     * collected up front and the moves applied afterwards. Blocks whose size does not
+     * cover both indices are skipped.</p>
+     *
+     * @param source the playlist whose queued blocks must be reordered.
+     * @param from   the block-relative source index.
+     * @param to     the block-relative target index.
+     */
+    public void reorderWithinPlaylistBlocks(Playlist source, int from, int to) {
+        if (source == null || from == to) {
+            return;
+        }
+
+        // Collect the start of every block belonging to this playlist first.
+        List<Integer> blockStarts = new ArrayList<>();
+        List<Integer> blockSizes = new ArrayList<>();
+        int i = 0;
+        int size = blockIds.size();
+        while (i < size) {
+            int blockId = blockIds.get(i);
+            int start = i;
+            while (i < size && blockIds.get(i) == blockId) {
+                i++;
+            }
+            if (source.equals(blockSources.get(blockId))) {
+                blockStarts.add(start);
+                blockSizes.add(i - start);
+            }
+        }
+
+        for (int b = 0; b < blockStarts.size(); b++) {
+            int start = blockStarts.get(b);
+            int blockSize = blockSizes.get(b);
+            if (from >= 0 && from < blockSize && to >= 0 && to < blockSize) {
+                moveTrack(start + from, start + to);
+            }
         }
     }
 
@@ -265,6 +398,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.tracks.clear();
         this.shuffledTracks.clear();
         this.blockIds.clear();
+        this.blockSources.clear();
         this.currentIndex = -1;
         this.nextBlockId = 0;
     }

@@ -15,6 +15,8 @@ import java.time.Year;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -81,9 +83,16 @@ public class MusicPlayerFacade implements PlaybackObserver {
     }
 
     public void saveLibrary() {
-        ioExecutor.submit(() -> {
-            library.save();
-        });
+        if (ioExecutor == null || ioExecutor.isShutdown()) {
+            return;
+        }
+        try {
+            ioExecutor.submit(() -> {
+                library.save();
+            });
+        } catch (RejectedExecutionException ignored) {
+            // Executor is shutting down (e.g. application/test teardown): skip the save.
+        }
     }
 
     /**
@@ -380,7 +389,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
         playlist.incrementPlayCount();
         savePlaylists();
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
-        playbackService.loadSource(tracks);
+        playbackService.loadSource(tracks, playlist);
     }
 
     /**
@@ -390,7 +399,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
      */
     public void appendPlaylistToQueue(Playlist playlist) {
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
-        playbackService.appendSource(tracks);
+        playbackService.appendSource(tracks, playlist);
     }
 
     /**
@@ -428,7 +437,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
         }
         this.activePlaylist = playlist;
         List<Track> tracks = new ArrayList<>(playlist.getTracks());
-        playbackService.loadSourceFrom(tracks, track);
+        playbackService.loadSourceFrom(tracks, track, playlist);
     }
 
     /**
@@ -567,6 +576,13 @@ public class MusicPlayerFacade implements PlaybackObserver {
 
         if (ioExecutor != null && !ioExecutor.isShutdown()) {
             ioExecutor.shutdown();
+            try {
+                // Drain pending saves so no background write touches the data files
+                // after this point (prevents I/O races on shutdown/teardown).
+                ioExecutor.awaitTermination(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -595,6 +611,27 @@ public class MusicPlayerFacade implements PlaybackObserver {
     public void onTrackRemovedFromPlaylist(Playlist playlist, Track track) {
         if (playlist != null && playlist.equals(this.activePlaylist)) {
             playbackService.removeTrackFromQueue(track);
+        }
+    }
+
+    /**
+     * Synchronises the live playback queue after a track has been reordered within
+     * a playlist (US-027). The move is propagated to <b>every</b> block in the queue
+     * that was added from this playlist — the active playback source as well as any
+     * copies appended to the queue — so all queued instances stay aligned with the
+     * playlist. The currently playing track keeps playing without interruption.
+     *
+     * <p>When shuffle is active the queue order is randomised and the acceptance
+     * criteria concern sequential playback only, so the queue is left untouched
+     * (the new order is still persisted on disk).</p>
+     *
+     * @param playlist The playlist whose tracks were reordered.
+     * @param from     The previous index of the moved track.
+     * @param to       The new index of the moved track.
+     */
+    public void onTrackReorderedInPlaylist(Playlist playlist, int from, int to) {
+        if (playlist != null && !isShuffleActive()) {
+            playbackService.reorderInPlaylistBlocks(playlist, from, to);
         }
     }
 
