@@ -151,4 +151,59 @@ public class Playlist extends TrackCollection {
     public Collection<Track> getTracks(){
         return super.getTracks();
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        loadedTrackIds.clear();
+    }
+
+    /**
+     * Inserts a track at the specified position, shifting the track currently at that
+     * position (and any subsequent tracks) to the right. Used to restore a track to
+     * its original index when an undo is performed.
+     *
+     * @param index the position at which to insert the track.
+     * @param track the track to insert.
+     */
+
+    @JsonIgnore
+    public void insertTrack(int index, Track track){
+        ((List<Track>) this.tracks).add(index, track);
+    }
+
+    /**
+     * Returns the position of the given track in the playlist, or -1 if absent.
+     *
+     * @param track the track to locate.
+     * @return the zero-based index of the track, or -1 if not found.
+     */
+    @JsonIgnore
+    public int indexOf(Track track) {
+        return ((List<Track>) this.tracks).indexOf(track);
+    }
+
+    /**
+     * Captures the current ordered tracks of the playlist into an immutable memento,
+     * for later restoration on undo.
+     *
+     * @return a snapshot of the playlist's track list.
+     */
+    @JsonIgnore
+    public PlaylistMemento snapshot() {
+        return new PlaylistMemento(this.tracks);
+    }
+
+    /**
+     * Restores the playlist to a previously captured state, replacing its tracks
+     * (and their order) with the snapshot's.
+     *
+     * @param memento the state to restore; ignored if null.
+     */
+    @JsonIgnore
+    public void restore(PlaylistMemento memento) {
+        if (memento == null) return;
+        this.tracks.clear();
+        this.tracks.addAll(memento.getTracks());
+    }
 }

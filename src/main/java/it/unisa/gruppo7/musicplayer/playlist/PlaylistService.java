@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.YearGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
@@ -10,6 +11,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
 
 /**
  * Manages the collection of playlists in the music player,
@@ -19,9 +23,11 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  */
 public class PlaylistService implements PersistenceService, TrackObserver {
     private static final String DEFAULT_PATH = "data/playlist.json";
+    private static final String RULES_PATH = "data/automatic-playlists.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;
+    private final Map<String, AutomaticPlaylistRule> automaticRules = new HashMap<>();
 
     /**
      * Default constructor that initializes the service with the default file path.
@@ -38,6 +44,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         this.path = path;
         this.mapper = new ObjectMapper();
         this.load();
+        this.loadAutomaticRules();
     }
 
     /**
@@ -53,7 +60,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
 
         if (existsByName(name)) {
-            throw new IllegalArgumentException("This playlist name already exists");
+            throw new IllegalArgumentException("Esiste già una playlist con questo nome");
         }
 
         Playlist newPlaylist = new Playlist(name, new ArrayList<>());
@@ -81,6 +88,12 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         if (!removed)
             return Optional.of("No playlist found: " + playlist.getName());
 
+        AutomaticPlaylistRule removedRule = automaticRules.remove(playlist.getName());
+
+        if (removedRule != null) {
+            saveAutomaticRules();
+        }
+
         save();
         return Optional.empty();
     }
@@ -106,7 +119,16 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         if (existsByName(newName))
             return Optional.of("A playlist with this name already exists");
 
+        String oldName = playlist.getName();
         playlist.setName(newName);
+
+        AutomaticPlaylistRule rule = automaticRules.remove(oldName);
+
+        if (rule != null) {
+            automaticRules.put(newName, rule);
+            saveAutomaticRules();
+        }
+
         save();
         return Optional.empty();
     }
@@ -131,20 +153,20 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
         List<Track>  alreadyIn     = (List<Track>) playlist.getTracks();
         List<String> skippedTitles = new ArrayList<>();
-        int          added         = 0;
+        List<Track>  addedTracks   = new ArrayList<>();
 
         for (Track t : tracks) {
             if (alreadyIn.contains(t)) {
                 skippedTitles.add(t.getTitle());
             } else {
                 playlist.addTrack(t);
-                added++;
+                addedTracks.add(t);
             }
         }
 
-        if (added > 0) save(); // single save only if something actually changed
+        if (!addedTracks.isEmpty()) save(); // single save only if something actually changed
 
-        return new AdditionResult(added, skippedTitles);
+        return new AdditionResult(addedTracks, skippedTitles);
     }
 
     /**
@@ -311,5 +333,201 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     @Override
     public void onTrackEdit(Track track) {
 
+            refreshAutomaticPlaylists(Library.getInstance().getTracks());
     }
+
+
+    /**
+     * Removes the given tracks from the playlist and persists the change.
+     * Used to undo a previous batch addition.
+     *
+     * @param playlist the playlist to remove the tracks from
+     * @param tracks   the tracks to remove
+     */
+    public void removeTracksFromPlaylist(Playlist playlist, List<Track> tracks) {
+        if (playlist == null || tracks == null || tracks.isEmpty()) return;
+
+        boolean changed = false;
+        for (Track t : tracks) {
+            if (playlist.removeTrack(t)) changed = true;
+        }
+
+        if (changed) save();
+    }
+
+    /**
+     * Re-inserts a track into the playlist at the given index and persists the change.
+     * The index is clamped to the current bounds in case the playlist size changed.
+     * Used to undo a previous removal, restoring the track to its original position.
+     *
+     * @param playlist the playlist to insert the track into
+     * @param track    the track to re-insert
+     * @param index    the original position of the track
+     */
+    public void insertTrackAt(Playlist playlist, Track track, int index) {
+        if (playlist == null || track == null) return;
+
+        int size = playlist.getTrackCount();
+        int safeIndex = Math.max(0, Math.min(index, size));
+        playlist.insertTrack(safeIndex, track);
+        save();
+    }
+
+    /**
+     * Captures a snapshot of every playlist that currently contains the given track.
+     * Used to undo a cascading library removal: only the affected playlists are
+     * recorded, so each can be restored to its exact previous content and order.
+     *
+     * @param track the track to look for
+     * @return a map from each affected playlist to its snapshot (empty if none)
+     */
+    public Map<Playlist, PlaylistMemento> capturePlaylistsContaining(Track track) {
+        Map<Playlist, PlaylistMemento> snapshots = new HashMap<>();
+        if (track == null) return snapshots;
+
+        for (Playlist p : playlists) {
+            if (p.getTracks().contains(track)) {
+                snapshots.put(p, p.snapshot());
+            }
+        }
+        return snapshots;
+    }
+
+    /**
+     * Restores the given playlists from their snapshots and persists once.
+     * Used to undo a cascading library removal.
+     *
+     * @param snapshots the playlist snapshots to restore
+     */
+    public void restorePlaylists(Map<Playlist, PlaylistMemento> snapshots) {
+        if (snapshots == null || snapshots.isEmpty()) return;
+
+        for (Map.Entry<Playlist, PlaylistMemento> entry : snapshots.entrySet()) {
+            entry.getKey().restore(entry.getValue());
+        }
+        save();
+    }
+
+    /**
+     * Re-inserts a playlist at the given position and persists the change.
+     * The index is clamped to the current bounds. Used to undo a playlist deletion,
+     * restoring it to its original place in the list.
+     *
+     * @param index    the original position of the playlist
+     * @param playlist the playlist to re-insert
+     */
+    public void insertPlaylistAt(int index, Playlist playlist) {
+        if (playlist == null) return;
+
+        int safeIndex = Math.max(0, Math.min(index, playlists.size()));
+        playlists.add(safeIndex, playlist);
+        save();
+    }
+
+    //*Automatic rules */
+
+    public void registerAutomaticPlaylist( Playlist playlist, AutomaticPlaylistRule rule) {
+        if (playlist == null || rule == null) {
+            throw new IllegalArgumentException("Playlist e regola devono essere specificate");
+        }
+        automaticRules.put(playlist.getName(), rule);
+        saveAutomaticRules();
+    }
+
+    private void saveAutomaticRules() {
+        File file = new File(RULES_PATH);
+        File parent = file.getParentFile();
+
+        if (parent != null) {
+            parent.mkdirs();
+        }
+
+        try {
+            mapper.writeValue(file, automaticRules);
+        } catch (IOException e) {
+            throw new RuntimeException("Impossibile salvare le regole automatiche", e);
+        }
+    }
+
+    private void loadAutomaticRules() {
+        File file = new File(RULES_PATH);
+
+        if (!file.exists()) {
+            return;
+        }
+
+        try {
+            Map<String, AutomaticPlaylistRule> loaded =
+                    mapper.readValue(
+                            file,
+                            new TypeReference<Map<String, AutomaticPlaylistRule>>() {}
+                    );
+
+            automaticRules.clear();
+
+            if (loaded != null) {
+                automaticRules.putAll(loaded);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Impossibile caricare le regole automatiche", e);
+        }
+    }
+
+    private PlaylistGenerationStrategy createStrategy(AutomaticPlaylistRule rule) {
+        switch (rule.criterion) {
+            case "TAG":
+                return new TagGenerationStrategy(
+                        rule.tags,
+                        rule.combinationMode
+                );
+
+            case "GENRE":
+                return new GenreGenerationStrategy(rule.target);
+
+            case "YEAR":
+                return new YearGenerationStrategy(Integer.parseInt(rule.target));
+
+            default:
+                throw new IllegalArgumentException(
+                        "Criterio automatico non supportato: "
+                                + rule.criterion
+                );
+        }
+    }
+
+    public void refreshAutomaticPlaylists(Collection<Track> allTracks) {
+        boolean changed = false;
+
+        for (Map.Entry<String, AutomaticPlaylistRule> entry
+                : automaticRules.entrySet()) {
+
+            Playlist playlist = getPlaylist(entry.getKey());
+
+            if (playlist == null) {
+                continue;
+            }
+
+            PlaylistGenerationStrategy strategy =
+                    createStrategy(entry.getValue());
+
+            List<Track> matchingTracks =
+                    strategy.generate(allTracks);
+
+            List<Track> currentTracks =
+                    new ArrayList<>(playlist.getTracks());
+
+            if (!currentTracks.equals(matchingTracks)) {
+                playlist.clear();
+                matchingTracks.forEach(playlist::addTrack);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            save();
+        }
+    }
+
+
+
 }

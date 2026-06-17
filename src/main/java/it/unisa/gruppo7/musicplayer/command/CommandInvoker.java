@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.errorHandling.PopupErrorStrategy;
+import it.unisa.gruppo7.musicplayer.undo.UndoManager;
 
 /**
  * Class responsible for invoking commands.
@@ -14,7 +15,7 @@ import it.unisa.gruppo7.musicplayer.errorHandling.PopupErrorStrategy;
 public class CommandInvoker {
 
     private static final ErrorHandlingStrategy DEFAULT_STRATEGY = new PopupErrorStrategy();
-
+    private static final UndoManager UNDO_MANAGER = new UndoManager();
     /**
      * Executes a command using the default error handling strategy.
      *
@@ -36,12 +37,24 @@ public class CommandInvoker {
      */
     public static <T> Optional<T> execute(Command<T> command, ErrorHandlingStrategy errorStrategy) {
         try {
-            return Optional.ofNullable(command.execute());
+            T result = command.execute();
+            if (command instanceof UndoableCommand) {
+                UNDO_MANAGER.push((UndoableCommand<?>) command);
+            }
+            return Optional.ofNullable(result);
         } catch (Exception e) {
             if (errorStrategy != null) {
                 errorStrategy.handleError(e);
             }
             return Optional.empty();
         }
+    }
+
+    /**
+     * Getter for the undo manager.
+     * @return The current instance of the undo manager.
+     */
+    public static UndoManager getUndoManager() {
+        return UNDO_MANAGER;
     }
 }

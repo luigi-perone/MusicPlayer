@@ -17,6 +17,13 @@
     <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="section-head">
         <Label styleClass="section-title" text="Playlists" />
         <Region HBox.hgrow="ALWAYS" />
+
+        <Button text="✨" styleClass="icon-btn" onAction="#onPlaylistGeneratorToggle">
+            <tooltip>
+                <Tooltip text="Generatore di Playlist"/>
+            </tooltip>
+        </Button>
+
         <Button fx:id="addBtn" onAction="#onAddToggle" styleClass="icon-btn" text="+">
             <tooltip>
                 <Tooltip text="New Playlist" />

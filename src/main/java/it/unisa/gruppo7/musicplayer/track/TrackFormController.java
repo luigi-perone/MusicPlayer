@@ -1,5 +1,6 @@
 package it.unisa.gruppo7.musicplayer.track;
 
+import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -7,6 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.time.Year;
+import java.util.Optional;
 
 /**
  * Manages the communication between the model and the view of the track form.
@@ -101,7 +103,18 @@ public class TrackFormController {
             if(trackToModify != null){
                 success = musicplayer.modifyTrack(trackToModify, title, author, duration, genre, pubYear);
             } else {
-                success = musicplayer.addNewTrackToLibrary(title, author, duration, genre, pubYear);
+                /*
+                Route the library insertion through the command pipeline. The custom
+                strategy keeps validation errors inline in the form instead of showing
+                the default error pop-up.
+                */
+                Optional<Boolean> result = CommandInvoker.execute(
+                        new AddTrackToLibraryCommand(musicplayer, title, author, duration, genre, pubYear),
+                        e -> showError(e.getMessage()));
+                if (!result.isPresent()) {
+                    return;
+                }
+                success = result.get();
             }
 
             if(success){

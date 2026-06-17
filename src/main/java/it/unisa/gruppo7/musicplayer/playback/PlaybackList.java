@@ -6,14 +6,15 @@ import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.undo.QueueMemento;
 
 /**
  * Represents the playback queue of the music player.
  * Extends {@link TrackCollection} and observes track changes via {@link TrackObserver}.
  *
- * <p>This class is the single owner of the playback cursor ({@code currentIndex}).
+ * This class is the single owner of the playback cursor ({@code currentIndex}).
  * All index arithmetic lives here so that callers (the service, controllers) never
- * have to set the cursor by hand and risk de-syncing it from the playing track.</p>
+ * have to set the cursor by hand and risk de-syncing it from the playing track.
  */
 public class PlaybackList extends TrackCollection implements TrackObserver {
     private static final String DEFAULT_PATH = null;
@@ -600,5 +601,32 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     @Override
     public void onTrackEdit(Track track) {
 
+    }
+
+    /**
+     * Captures the full state of the queue (canonical order, shuffled order, cursor
+     * and shuffle flag) into an immutable memento, for later restoration on undo.
+     *
+     * @return a snapshot of the current queue state.
+     */
+    public QueueMemento snapshot() {
+        return new QueueMemento(canonicalList(), this.shuffledTracks,
+                this.currentIndex, this.isShuffleActive);
+    }
+
+    /**
+     * Restores the queue to a previously captured state, replacing the canonical and
+     * shuffled lists, the cursor and the shuffle flag with the snapshot's values.
+     * Only the queue structure is restored; the audio currently playing is not changed.
+     *
+     * @param memento the state to restore; ignored if null.
+     */
+    public void restore(QueueMemento memento) {
+        if (memento == null) return;
+        this.tracks.clear();
+        this.tracks.addAll(memento.getCanonicalTracks());
+        this.shuffledTracks  = memento.getShuffledTracks();
+        this.isShuffleActive = memento.isShuffleActive();
+        this.currentIndex    = memento.getCurrentIndex();
     }
 }

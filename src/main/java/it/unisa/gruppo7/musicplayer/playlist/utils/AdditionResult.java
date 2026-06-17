@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import it.unisa.gruppo7.musicplayer.track.Track;
+
 /**
  * Immutable result of a batch track-addition operation.
  * Carries both the counts and the duplicate titles so the UI
@@ -13,18 +15,18 @@ import java.util.List;
  */
 public class AdditionResult {
 
-    private final int        added;
+    private final List<Track>  addedTracks;
     private final List<String> skippedTitles;
 
     /**
      * Constructs an AdditionResult with the specified number of added tracks
      * and the list of skipped track titles.
      *
-     * @param added         the number of tracks successfully added
+     * @param addedTracks   the trucks that were successfully added
      * @param skippedTitles the list of track titles that were skipped
      */
-    public AdditionResult(int added, List<String> skippedTitles) {
-        this.added         = added;
+    public AdditionResult(List<Track> added, List<String> skippedTitles) {
+        this.addedTracks   = Collections.unmodifiableList(new ArrayList<>(added));
         this.skippedTitles = Collections.unmodifiableList(new ArrayList<>(skippedTitles));
     }
 
@@ -32,7 +34,7 @@ public class AdditionResult {
      * Gets the number of tracks successfully added.
      * * @return the number of inserted tracks
      */
-    public int getAdded() { return added; }
+    public int getAdded() { return addedTracks.size(); }
 
     /** * Gets the titles of tracks that were already in the playlist and therefore skipped.
      * * @return an unmodifiable list of skipped track titles
@@ -43,11 +45,13 @@ public class AdditionResult {
      * Checks if any tracks were successfully added.
      * * @return true if at least one track was added, false otherwise
      */
-    public boolean hasAdded()   { return added > 0; }
+    public boolean hasAdded()   { return !addedTracks.isEmpty(); }
 
     /**
      * Checks if any tracks were skipped during the addition process.
      * * @return true if at least one track was skipped, false otherwise
      */
     public boolean hasSkipped() { return !skippedTitles.isEmpty(); }
+
+    public List<Track> getAddedTracks() { return addedTracks; }
 }

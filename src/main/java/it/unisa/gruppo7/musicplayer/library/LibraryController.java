@@ -2,17 +2,21 @@ package it.unisa.gruppo7.musicplayer.library;
 
 import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.dialog.DialogTag;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
+import it.unisa.gruppo7.musicplayer.playback.AddToQueueCommand;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
+import it.unisa.gruppo7.musicplayer.track.RemoveTrackFromLibraryCommand;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.track.TrackFormController;
+import it.unisa.gruppo7.musicplayer.undo.UndoToast;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -102,7 +106,9 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
         addToQueueItem.setOnAction(event -> {
             Track selectedTrack = trackTable.getSelectionModel().getSelectedItem();
             if (selectedTrack != null) {
-                musicPlayer.appendTrackToQueue(selectedTrack);
+                CommandInvoker.execute(new AddToQueueCommand(
+                        musicPlayer.getPlaybackService(),
+                        () -> musicPlayer.appendTrackToQueue(selectedTrack)));
                 mainController.refreshQueueView();
                 PlaybackState playbackState = musicPlayer.getPlaybackState();
                 if (playbackState == PlaybackState.STOPPED || playbackState == PlaybackState.START_UP){
@@ -342,10 +348,20 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            int undoableCount = 0;
             for (Track track : selectedTracks) {
-                musicPlayer.removeTrackFromLibrary(track);
+                if (CommandInvoker.execute(new RemoveTrackFromLibraryCommand(musicPlayer, track)).isPresent()) {
+                    undoableCount++;
+                }
             }
             observableTracks.removeAll(selectedTracks);
+
+            if (undoableCount > 0) {
+                String undoMessage = selectedTracks.size() == 1
+                        ? "Traccia eliminata dalla libreria"
+                        : selectedTracks.size() + " tracce eliminate dalla libreria";
+                showUndoToast(undoMessage, undoableCount);
+            }
         }
     }
 
@@ -401,6 +417,34 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
+    }
+
+    /**
+     * Shows the transient undo toast over the current window. Pressing "Annulla"
+     * reverts the last {@code steps} undoable actions (a multi-delete produces
+     * several) and refreshes the library table.
+     *
+     * @param message the message to display.
+     * @param steps   how many undoable actions the gesture produced.
+     */
+    private void showUndoToast(String message, int steps) {
+        if (trackTable.getScene() == null) return;
+        UndoToast.show(trackTable.getScene().getWindow(), message, () -> {
+            for (int i = 0; i < steps; i++) {
+                musicPlayer.undoLastAction();
+            }
+            if (mainController != null) {
+                mainController.refreshAllViews();
+            } else {
+                observableTracks.setAll(musicPlayer.getTracksFromLibrary());
+                trackTable.refresh();
+            }
+        });
+    }
+
+    public void reload() {
+        observableTracks.setAll(musicPlayer.getTracksFromLibrary());
+        trackTable.refresh();
     }
 
     @Override
