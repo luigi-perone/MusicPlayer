@@ -14,6 +14,7 @@ import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -79,34 +80,52 @@ public class PlaylistSidebarController {
         dialog.showAndWait().ifPresent(request -> {
             String criterion = request.criterion;
             String target = request.target;
+            String defaultPlaylistName = request.playlistName;
 
-            if (target.isEmpty()) {
+            if (!"Tag".equals(criterion) && target.isEmpty()) {
                 DialogUtils.showWarning("Dati mancanti", "Inserisci un valore per procedere.");
                 return;
             }
 
             // Default playlist name
-            String formattedTarget = target.substring(0, 1).toUpperCase() + target.substring(1).toLowerCase();
-            String defaultPlaylistName = "Playlist " + formattedTarget;
+
+            if (defaultPlaylistName.isEmpty()) {
+                DialogUtils.showWarning("Dati mancanti", "Il nome della playlist non può essere vuoto");
+                return;
+            }
+
+            if ("Tag".equals(criterion) && request.selectedTags.isEmpty()) {
+                DialogUtils.showWarning("Dati mancanti", "Seleziona almeno un tag");
+                return;
+            }
 
             // Selecting strategy
             PlaylistGenerationStrategy strategy = null;
+            AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
 
             try {
                 switch (criterion) {
                     case "Genere":
                         strategy = new GenreGenerationStrategy(target);
+                        rule.criterion = "GENRE";
+                        rule.target = target;
                         break;
                     case "Anno":
                         //strategy
                         break;
                     case "Tag":
-                        //strategy
+                        strategy = new TagGenerationStrategy(request.selectedTags, request.combinationMode);
+                        rule.criterion = "TAG";
+                        rule.tags = request.selectedTags;
+                        rule.combinationMode =
+                        request.combinationMode;
                         break;
+                    default: 
+                        throw new IllegalArgumentException("Criterio non supportato");
                 }
 
                 // Execution from facade
-                MusicPlayerFacade.getInstance().createAutoPlaylist(defaultPlaylistName, strategy);
+                MusicPlayerFacade.getInstance().createAutoPlaylist(defaultPlaylistName, strategy, rule);
 
                 DialogUtils.showInfo("Completato", "La '" + defaultPlaylistName + "' è stata creata con successo!");
                 refreshList();
@@ -119,7 +138,9 @@ public class PlaylistSidebarController {
                 if (errorMessage != null && errorMessage.equals("Nessuna traccia trovata")) {
                     DialogUtils.showWarning(
                             "Creazione Annullata",
-                            "Nessun brano trovato per questo " + criterion.toLowerCase() + " nella tua libreria."
+                            "Tag".equals(criterion)
+                                    ? "Nessun brano corrisponde alla combinazione di tag selezionata"
+                                    : "Nessun brano trovato per questo " + criterion.toLowerCase() + " nella tua libreria."
                     );
                 }else if (errorMessage != null && errorMessage.equals("Esiste già una playlist con questo nome")) {
                     DialogUtils.showWarning(

@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
 
 /**
  * Manages the collection of playlists in the music player,
@@ -19,9 +22,11 @@ import it.unisa.gruppo7.musicplayer.core.PersistenceService;
  */
 public class PlaylistService implements PersistenceService, TrackObserver {
     private static final String DEFAULT_PATH = "data/playlist.json";
+    private static final String RULES_PATH = "data/automatic-playlists.json";
     private final String path;
     private final List<Playlist> playlists = new ArrayList<>();
     private final ObjectMapper mapper;
+    private final Map<String, AutomaticPlaylistRule> automaticRules = new HashMap<>();
 
     /**
      * Default constructor that initializes the service with the default file path.
@@ -38,6 +43,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         this.path = path;
         this.mapper = new ObjectMapper();
         this.load();
+        this.loadAutomaticRules();
     }
 
     /**
@@ -81,6 +87,12 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         if (!removed)
             return Optional.of("No playlist found: " + playlist.getName());
 
+        AutomaticPlaylistRule removedRule = automaticRules.remove(playlist.getName());
+
+        if (removedRule != null) {
+            saveAutomaticRules();
+        }
+
         save();
         return Optional.empty();
     }
@@ -94,6 +106,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      * containing an error message otherwise.
      */
     public Optional<String> renamePlaylist(Playlist playlist, String newName) {
+
+
         if (playlist == null || !playlists.contains(playlist))
             return Optional.of("Playlist to rename not found");
 
@@ -106,7 +120,16 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         if (existsByName(newName))
             return Optional.of("A playlist with this name already exists");
 
+        String oldName = playlist.getName();
         playlist.setName(newName);
+
+        AutomaticPlaylistRule rule = automaticRules.remove(oldName);
+        
+        if (rule != null) {
+            automaticRules.put(newName, rule);
+            saveAutomaticRules();
+        }
+
         save();
         return Optional.empty();
     }
@@ -310,6 +333,113 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     @Override
     public void onTrackEdit(Track track) {
-
+            refreshAutomaticPlaylists(Library.getInstance().getTracks());
     }
+    //*Automatic rules */
+
+    public void registerAutomaticPlaylist( Playlist playlist, AutomaticPlaylistRule rule) {
+        if (playlist == null || rule == null) {
+            throw new IllegalArgumentException("Playlist e regola devono essere specificate");
+        }
+
+        automaticRules.put(playlist.getName(), rule);
+        saveAutomaticRules();
+    }
+
+    private void saveAutomaticRules() {
+        File file = new File(RULES_PATH);
+        File parent = file.getParentFile();
+
+        if (parent != null) {
+            parent.mkdirs();
+        }
+
+        try {
+            mapper.writeValue(file, automaticRules);
+        } catch (IOException e) {
+            throw new RuntimeException("Impossibile salvare le regole automatiche", e);
+        }
+    }
+
+    private void loadAutomaticRules() {
+        File file = new File(RULES_PATH);
+
+        if (!file.exists()) {
+            return;
+        }
+
+        try {
+            Map<String, AutomaticPlaylistRule> loaded =
+                    mapper.readValue(
+                            file,
+                            new TypeReference<Map<String, AutomaticPlaylistRule>>() {}
+                    );
+
+            automaticRules.clear();
+
+            if (loaded != null) {
+                automaticRules.putAll(loaded);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Impossibile caricare le regole automatiche", e);
+        }
+    }
+
+    private PlaylistGenerationStrategy createStrategy(AutomaticPlaylistRule rule) {
+        switch (rule.criterion) {
+            case "TAG":
+                return new TagGenerationStrategy(
+                        rule.tags,
+                        rule.combinationMode
+                );
+
+            case "GENRE":
+                return new GenreGenerationStrategy(rule.target);
+
+            //case "YEAR":
+                //return new YearGenerationStrategy(rule.target);
+
+            default:
+                throw new IllegalArgumentException(
+                        "Criterio automatico non supportato: "
+                                + rule.criterion
+                );
+        }
+    }
+
+    public void refreshAutomaticPlaylists(Collection<Track> allTracks) {
+        boolean changed = false;
+
+        for (Map.Entry<String, AutomaticPlaylistRule> entry
+                : automaticRules.entrySet()) {
+
+            Playlist playlist = getPlaylist(entry.getKey());
+
+            if (playlist == null) {
+                continue;
+            }
+
+            PlaylistGenerationStrategy strategy =
+                    createStrategy(entry.getValue());
+
+            List<Track> matchingTracks =
+                    strategy.generate(allTracks);
+
+            List<Track> currentTracks =
+                    new ArrayList<>(playlist.getTracks());
+
+            if (!currentTracks.equals(matchingTracks)) {
+                playlist.clear();
+                matchingTracks.forEach(playlist::addTrack);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            save();
+        }
+    }
+
+
+
 }

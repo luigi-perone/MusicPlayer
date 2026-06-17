@@ -6,7 +6,9 @@ package it.unisa.gruppo7.musicplayer.track;
 public enum TrackTag {
     FAVOURITE("Preferita", "Fav"),
     EXPLICIT("Esplicita", "Exp"),
-    NEW_RELEASE("Nuova uscita", "New");
+    NEW_RELEASE("Nuova uscita", "New"),
+    BEST("best","best"),
+    WORST("worst","worst");
 
     private final String displayName;
     private final String shortLabel;
