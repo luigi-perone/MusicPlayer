@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.YearGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
@@ -396,8 +397,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
             case "GENRE":
                 return new GenreGenerationStrategy(rule.target);
 
-            //case "YEAR":
-                //return new YearGenerationStrategy(rule.target);
+            case "YEAR":
+                return new YearGenerationStrategy(Integer.parseInt(rule.target));
 
             default:
                 throw new IllegalArgumentException(

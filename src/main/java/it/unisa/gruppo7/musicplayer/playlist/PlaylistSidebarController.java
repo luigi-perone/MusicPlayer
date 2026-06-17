@@ -15,6 +15,7 @@ import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.YearGenerationStrategy;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -111,7 +112,9 @@ public class PlaylistSidebarController {
                         rule.target = target;
                         break;
                     case "Anno":
-                        //strategy
+                        strategy = new YearGenerationStrategy(Integer.parseInt(target));
+                        rule.criterion = "YEAR";
+                        rule.target = target;
                         break;
                     case "Tag":
                         strategy = new TagGenerationStrategy(request.selectedTags, request.combinationMode);
