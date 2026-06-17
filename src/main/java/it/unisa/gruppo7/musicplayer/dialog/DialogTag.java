@@ -16,6 +16,8 @@ import java.util.Set;
 
 /**
  * Dialog for assigning predefined visual tags to a track.
+ * 
+ * @author Matteo Postiglione
  */
 public final class DialogTag {
 

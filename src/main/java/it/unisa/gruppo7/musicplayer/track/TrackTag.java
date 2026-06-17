@@ -2,6 +2,8 @@ package it.unisa.gruppo7.musicplayer.track;
 
 /**
  * Predefined visual tags assignable to tracks.
+ * 
+ * @author Matteo Postiglione
  */
 public enum TrackTag {
     FAVOURITE("Preferita", "Fav"),
