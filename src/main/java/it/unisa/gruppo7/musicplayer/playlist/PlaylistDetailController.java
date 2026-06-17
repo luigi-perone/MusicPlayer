@@ -408,7 +408,18 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
      */
     @Override
     public void onTrackEdit(Track track) {
-        Platform.runLater(() -> playlistTrackTable.refresh());
+        Platform.runLater(() -> {
+            if (currentPlaylist == null || adapter == null) {
+                return;
+            }
+
+            adapter.getItems().setAll(
+                    currentPlaylist.getPlaylist()
+            );
+
+            playlistTrackTable.refresh();
+            refreshLabels();
+        });
     }
 
     /**

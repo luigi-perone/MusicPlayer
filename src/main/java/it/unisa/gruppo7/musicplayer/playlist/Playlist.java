@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 
+
 /**
  * * Models a playlist in the music player, identified by a name 
  * and holding a collection of tracks.
@@ -35,6 +36,7 @@ public class Playlist extends TrackCollection {
             @JsonProperty("name") String playlistName,
             @JsonProperty("trackIds") List<UUID> trackIds,
             @JsonProperty("playCount") Integer playCount) {
+        
         super("", new ArrayList<>());
         this.playlistName = playlistName;
         if (trackIds != null) {
@@ -48,9 +50,10 @@ public class Playlist extends TrackCollection {
      * @param playlistName  the name of the playlist
      * @param trackIds      the list of track IDs loaded from storage
      */
+
     public Playlist(String playlistName, List<UUID> trackIds) {
-        this(playlistName, trackIds, null);
-    }
+    this(playlistName, trackIds, null);
+}
 
     /**
      * Gets the list of track IDs in the playlist.
@@ -150,5 +153,11 @@ public class Playlist extends TrackCollection {
     @JsonIgnore
     public Collection<Track> getTracks(){
         return super.getTracks();
+    }
+    
+    @Override
+    public void clear() {
+        super.clear();
+        loadedTrackIds.clear();
     }
 }

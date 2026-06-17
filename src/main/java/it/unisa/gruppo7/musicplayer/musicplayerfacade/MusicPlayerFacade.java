@@ -8,8 +8,10 @@ import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
+import it.unisa.gruppo7.musicplayer.playlist.AutomaticPlaylistRule;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
@@ -340,7 +342,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
     /**
      * Generates and saves automatically a playlist (uses Strategy Pattern)
      */
-    public Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy) {
+    public Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy, AutomaticPlaylistRule rule) {
         // Apply filter to the library
         List<Track> selectedTracks = strategy.generate(this.getTracksFromLibrary());
 
@@ -348,7 +350,6 @@ public class MusicPlayerFacade implements PlaybackObserver {
         if (selectedTracks.isEmpty()) {
             throw new IllegalArgumentException("Nessuna traccia trovata");
         }
-
         Playlist targetPlaylist = playlistService.getPlaylist(playlistName);
         if ( targetPlaylist == null) {
             targetPlaylist = playlistService.createPlaylist(playlistName);
@@ -357,8 +358,9 @@ public class MusicPlayerFacade implements PlaybackObserver {
         playlistService.addTracksToPlaylist(targetPlaylist, selectedTracks);
         savePlaylists();
 
-        return targetPlaylist;
+        playlistService.registerAutomaticPlaylist(targetPlaylist, rule);
 
+        return targetPlaylist;
     }
 
 

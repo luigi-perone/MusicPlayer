@@ -567,3 +567,24 @@
     -fx-background-color: #e5e5ea; /* Grigio evidenziazione sobrio */
     -fx-text-fill: #000000; /* Testo nero scuro per massima leggibilità */
 }
+
+.tag-combination-radio .radio {
+    -fx-background-color: white;
+    -fx-border-color: #8e8e93;
+    -fx-border-width: 2px;
+    -fx-border-radius: 50%;
+}
+
+.tag-combination-radio:selected .radio {
+    -fx-border-color: #e0592b;
+}
+
+.tag-combination-radio:selected .dot {
+    -fx-background-color: #e0592b;
+    -fx-background-insets: 0;
+}
+
+.tag-combination-radio:selected {
+    -fx-text-fill: #e0592b;
+    -fx-font-weight: bold;
+}
