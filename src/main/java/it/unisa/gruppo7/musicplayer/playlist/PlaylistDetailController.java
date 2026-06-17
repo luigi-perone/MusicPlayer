@@ -14,10 +14,12 @@ import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.*;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.undo.UndoToast;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Window;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +49,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     private Runnable             onBackAction;
     private Runnable             onDeleteAction;
     private Runnable             onRenameAction;
+    private Runnable             onPlaylistRestored;
     private PlaylistTableAdapter adapter;
     private MusicPlayerFacade    facade;
     private Playlist             currentPlaylist;
@@ -251,6 +254,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
         dialog.showAndWait().ifPresent(selectedTracks -> {
             Command<AdditionResult> addCommand = new AddTracksCommand(
                     facade.getPlaylistService(),
+                    facade.getPlaybackService(),
                     currentPlaylist,
                     selectedTracks
             );
@@ -283,7 +287,12 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
         boolean confirmed = DialogUtils.showConfirmation("Conferma eliminazione", "Eliminazione traccia", msg);
 
         if (confirmed) {
-            Command<Void> removeCommand = new RemoveTrackCommand(currentPlaylist, selectedTrack);
+            Command<Void> removeCommand = new RemoveTrackCommand(
+                    facade.getPlaylistService(),
+                    facade.getPlaybackService(),
+                    currentPlaylist, 
+                    selectedTrack
+            );
             CommandInvoker.execute(removeCommand);
 
             if (adapter != null) {
@@ -291,6 +300,8 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
                 playlistTrackTable.getSelectionModel().clearSelection();
                 facade.onTrackRemovedFromPlaylist(currentPlaylist, selectedTrack);
             }
+
+            showUndoToast("Traccia rimossa dalla playlist");
         }
     }
 
@@ -345,6 +356,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
         );
 
         if (confirmed) {
+            Window window = (playlistNameLabel.getScene() != null) ? playlistNameLabel.getScene().getWindow() : null;
             Command<Void> deleteCommand = new DeletePlaylistCommand(
                     facade.getPlaylistService(),
                     currentPlaylist
@@ -354,6 +366,14 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
 
             if (onDeleteAction != null) {
                 Platform.runLater(() -> onDeleteAction.run());
+            }
+
+            if (window != null) {
+                UndoToast.show(window, "Playlist eliminata", () -> {
+                    if (facade.undoLastAction() && onPlaylistRestored != null) {
+                        onPlaylistRestored.run();
+                    }
+                });
             }
         }
     }
@@ -432,5 +452,42 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
             playlistTrackTable.getSelectionModel().clearSelection();
             playlistTrackTable.refresh();
         });
+    }
+
+    private void showUndoToast(String message) {
+        if (playlistTrackTable.getScene() == null) return;
+        UndoToast.show(playlistTrackTable.getScene().getWindow(), message, () -> {
+            if (facade.undoLastAction()) {
+                reload();
+            }
+        });
+    }
+
+    /**
+     * Sets the callback run after an undone playlist deletion (to refresh the sidebar).
+     *
+     * @param onPlaylistRestored The action to execute.
+     */
+    public void setOnPlaylistRestored(Runnable onPlaylistRestored) {
+        this.onPlaylistRestored = onPlaylistRestored;
+    }
+
+    /**
+     * Re-syncs the table with the playlist model. Used after an undo (including a
+     * global Ctrl/Cmd+Z) so the view reflects the restored state.
+     */
+    public void reload() {
+        if (adapter == null || currentPlaylist == null) return;
+        adapter.getItems().setAll(currentPlaylist.getTracks());
+        playlistTrackTable.getSelectionModel().clearSelection();
+        playlistTrackTable.refresh();
+        refreshLabels();
+    }
+
+    /**
+     * @return the playlist currently shown by this controller, or null.
+     */
+    public Playlist getCurrentPlaylist() {
+        return currentPlaylist;
     }
 }

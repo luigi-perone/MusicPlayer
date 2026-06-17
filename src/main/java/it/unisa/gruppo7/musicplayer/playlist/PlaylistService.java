@@ -107,8 +107,6 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      * containing an error message otherwise.
      */
     public Optional<String> renamePlaylist(Playlist playlist, String newName) {
-
-
         if (playlist == null || !playlists.contains(playlist))
             return Optional.of("Playlist to rename not found");
 
@@ -125,7 +123,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         playlist.setName(newName);
 
         AutomaticPlaylistRule rule = automaticRules.remove(oldName);
-        
+
         if (rule != null) {
             automaticRules.put(newName, rule);
             saveAutomaticRules();
@@ -155,20 +153,20 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
         List<Track>  alreadyIn     = (List<Track>) playlist.getTracks();
         List<String> skippedTitles = new ArrayList<>();
-        int          added         = 0;
+        List<Track>  addedTracks   = new ArrayList<>();
 
         for (Track t : tracks) {
             if (alreadyIn.contains(t)) {
                 skippedTitles.add(t.getTitle());
             } else {
                 playlist.addTrack(t);
-                added++;
+                addedTracks.add(t);
             }
         }
 
-        if (added > 0) save(); // single save only if something actually changed
+        if (!addedTracks.isEmpty()) save(); // single save only if something actually changed
 
-        return new AdditionResult(added, skippedTitles);
+        return new AdditionResult(addedTracks, skippedTitles);
     }
 
     /**
@@ -334,15 +332,104 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     @Override
     public void onTrackEdit(Track track) {
+
             refreshAutomaticPlaylists(Library.getInstance().getTracks());
     }
+
+
+    /**
+     * Removes the given tracks from the playlist and persists the change.
+     * Used to undo a previous batch addition.
+     *
+     * @param playlist the playlist to remove the tracks from
+     * @param tracks   the tracks to remove
+     */
+    public void removeTracksFromPlaylist(Playlist playlist, List<Track> tracks) {
+        if (playlist == null || tracks == null || tracks.isEmpty()) return;
+
+        boolean changed = false;
+        for (Track t : tracks) {
+            if (playlist.removeTrack(t)) changed = true;
+        }
+
+        if (changed) save();
+    }
+
+    /**
+     * Re-inserts a track into the playlist at the given index and persists the change.
+     * The index is clamped to the current bounds in case the playlist size changed.
+     * Used to undo a previous removal, restoring the track to its original position.
+     *
+     * @param playlist the playlist to insert the track into
+     * @param track    the track to re-insert
+     * @param index    the original position of the track
+     */
+    public void insertTrackAt(Playlist playlist, Track track, int index) {
+        if (playlist == null || track == null) return;
+
+        int size = playlist.getTrackCount();
+        int safeIndex = Math.max(0, Math.min(index, size));
+        playlist.insertTrack(safeIndex, track);
+        save();
+    }
+
+    /**
+     * Captures a snapshot of every playlist that currently contains the given track.
+     * Used to undo a cascading library removal: only the affected playlists are
+     * recorded, so each can be restored to its exact previous content and order.
+     *
+     * @param track the track to look for
+     * @return a map from each affected playlist to its snapshot (empty if none)
+     */
+    public Map<Playlist, PlaylistMemento> capturePlaylistsContaining(Track track) {
+        Map<Playlist, PlaylistMemento> snapshots = new HashMap<>();
+        if (track == null) return snapshots;
+
+        for (Playlist p : playlists) {
+            if (p.getTracks().contains(track)) {
+                snapshots.put(p, p.snapshot());
+            }
+        }
+        return snapshots;
+    }
+
+    /**
+     * Restores the given playlists from their snapshots and persists once.
+     * Used to undo a cascading library removal.
+     *
+     * @param snapshots the playlist snapshots to restore
+     */
+    public void restorePlaylists(Map<Playlist, PlaylistMemento> snapshots) {
+        if (snapshots == null || snapshots.isEmpty()) return;
+
+        for (Map.Entry<Playlist, PlaylistMemento> entry : snapshots.entrySet()) {
+            entry.getKey().restore(entry.getValue());
+        }
+        save();
+    }
+
+    /**
+     * Re-inserts a playlist at the given position and persists the change.
+     * The index is clamped to the current bounds. Used to undo a playlist deletion,
+     * restoring it to its original place in the list.
+     *
+     * @param index    the original position of the playlist
+     * @param playlist the playlist to re-insert
+     */
+    public void insertPlaylistAt(int index, Playlist playlist) {
+        if (playlist == null) return;
+
+        int safeIndex = Math.max(0, Math.min(index, playlists.size()));
+        playlists.add(safeIndex, playlist);
+        save();
+    }
+
     //*Automatic rules */
 
     public void registerAutomaticPlaylist( Playlist playlist, AutomaticPlaylistRule rule) {
         if (playlist == null || rule == null) {
             throw new IllegalArgumentException("Playlist e regola devono essere specificate");
         }
-
         automaticRules.put(playlist.getName(), rule);
         saveAutomaticRules();
     }

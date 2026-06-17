@@ -10,6 +10,7 @@ import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.dialog.PlaylistGeneratorDialogBuilder;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.AddToQueueCommand;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
@@ -229,7 +230,9 @@ public class PlaylistSidebarController {
                 alert.showAndWait();
                 return;
             }
-            MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist);
+            CommandInvoker.execute(new AddToQueueCommand(
+                    MusicPlayerFacade.getInstance().getPlaybackService(),
+                    () -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist)));
 
             // Update the queue UI
             if (mainController != null) {

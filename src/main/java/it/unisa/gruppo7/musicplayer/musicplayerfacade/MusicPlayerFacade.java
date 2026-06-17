@@ -1,7 +1,9 @@
 package it.unisa.gruppo7.musicplayer.musicplayerfacade;
 
+import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.library.Library;
+import it.unisa.gruppo7.musicplayer.library.LibraryMemento;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
@@ -712,6 +714,44 @@ public class MusicPlayerFacade implements PlaybackObserver {
             observer.onTrackEdit(track);
         }
     }
+
+
+    /**
+     * Captures the current state of the library for later restoration on undo.
+     *
+     * @return a snapshot of the library.
+     */
+    public LibraryMemento captureLibraryState() {
+        return library.snapshot();
+    }
+
+    /**
+     * Restores the library to a previously captured state and persists the change.
+     * Used to undo a track addition or removal.
+     *
+     * @param memento the library state to restore; ignored if null.
+     */
+    public void restoreLibraryState(LibraryMemento memento) {
+        if (memento == null) return;
+        library.restore(memento);
+        library.save();
+    }
+
+    /**
+     * Reverts the most recent undoable action within the undo time window, if any.
+     * Delegates to the shared {@link CommandInvoker} undo history.
+     *
+     * @return true if an action was undone, false otherwise.
+     */
+    public boolean undoLastAction() {
+        try {
+            return CommandInvoker.getUndoManager().undoLast();
+        } catch (Exception e) {
+            System.err.println("Undo failed: " + e.getMessage());
+            return false;
+        }
+    }
+
 
     // HomePage methods
 

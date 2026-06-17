@@ -2,7 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist.command;
 
 import java.util.Optional;
 
-import it.unisa.gruppo7.musicplayer.command.Command;
+import it.unisa.gruppo7.musicplayer.command.UndoableCommand;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
@@ -11,9 +11,10 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
  *
  * @author Maxim Makhovskyy, Luigi Perone
  */
-public class DeletePlaylistCommand implements Command<Void> {
+public class DeletePlaylistCommand implements UndoableCommand<Void> {
     private final PlaylistService service;
     private final Playlist playlist;
+    private int originalIndex = -1;
 
     /**
      * Constructs a new DeletePlaylistCommand.
@@ -33,10 +34,18 @@ public class DeletePlaylistCommand implements Command<Void> {
      * @throws Exception If the playlist cannot be deleted or an error occurs.
      */
     public Void execute() throws Exception {
+        this.originalIndex = service.getPlaylists().indexOf(playlist);
         Optional<String> error = service.deletePlaylist(playlist);
         if (error.isPresent()) {
             throw new Exception("Impossible to delete: " + error.get());
         }
         return null;
+    }
+
+    @Override
+    public void undo() {
+        if (originalIndex >= 0) {
+            service.insertPlaylistAt(originalIndex, playlist);
+        }
     }
 }

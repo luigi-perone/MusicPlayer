@@ -231,6 +231,32 @@ public class Library extends TrackCollection implements PersistenceService {
     }
 
     /**
+     * Captures the current contents of the library into an immutable memento,
+     * for later restoration on undo.
+     *
+     * @return a snapshot of the library state.
+     */
+    public LibraryMemento snapshot() {
+        return new LibraryMemento(this.tracks);
+    }
+
+    /**
+     * Restores the library to a previously captured state, replacing the current
+     * tracks and rebuilding the uniqueness signatures from them.
+     *
+     * @param memento the state to restore; ignored if null.
+     */
+    public void restore(LibraryMemento memento) {
+        if (memento == null) return;
+        this.tracks.clear();
+        this.signatures.clear();
+        this.tracks.addAll(memento.getTracks());
+        for (Track t : this.tracks) {
+            this.signatures.add(generateSignature(t));
+        }
+    }
+
+    /**
      * Returns a string representation of the track library, formatting each contained track item.
      *
      * @return A formatted detail text listing all current tracks.
