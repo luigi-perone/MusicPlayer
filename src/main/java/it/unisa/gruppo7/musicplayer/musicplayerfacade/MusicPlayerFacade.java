@@ -349,14 +349,16 @@ public class MusicPlayerFacade implements PlaybackObserver {
             throw new IllegalArgumentException("Nessuna traccia trovata");
         }
 
-        // otherwise, create the playlist with the selected tracks
-        Playlist newPlaylist = playlistService.createPlaylist(playlistName);
-        playlistService.addTracksToPlaylist(newPlaylist, selectedTracks);
+        Playlist targetPlaylist = playlistService.getPlaylist(playlistName);
+        if ( targetPlaylist == null) {
+            targetPlaylist = playlistService.createPlaylist(playlistName);
 
-        // Saves the new playlist
+        }
+        playlistService.addTracksToPlaylist(targetPlaylist, selectedTracks);
         savePlaylists();
 
-        return newPlaylist;
+        return targetPlaylist;
+
     }
 
 
