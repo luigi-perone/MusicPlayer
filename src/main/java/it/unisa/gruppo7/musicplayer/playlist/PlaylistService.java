@@ -2,7 +2,6 @@ package it.unisa.gruppo7.musicplayer.playlist;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.YearGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.library.Library;
@@ -11,9 +10,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import it.unisa.gruppo7.musicplayer.core.PersistenceService;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategyFactory;
 
 /**
  * Manages the collection of playlists in the music player,
@@ -206,6 +204,21 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      */
     public List<Playlist> getPlaylists() {
         return playlists;
+    }
+
+    /**
+     * Returns the most played playlists, ordered by descending play count.
+     * Playlists that have never been played are excluded.
+     *
+     * @param limit the maximum number of playlists to return.
+     * @return the most played playlists, at most {@code limit} entries.
+     */
+    public List<Playlist> getMostPlayed(int limit) {
+        return playlists.stream()
+                .filter(playlist -> playlist.getPlayCount() > 0)
+                .sorted(Comparator.comparingInt(Playlist::getPlayCount).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -515,25 +528,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
      * @throws IllegalArgumentException if the rule's criterion is not supported
      */
     private PlaylistGenerationStrategy createStrategy(AutomaticPlaylistRule rule) {
-        switch (rule.criterion) {
-            case "TAG":
-                return new TagGenerationStrategy(
-                        rule.tags,
-                        rule.combinationMode
-                );
-
-            case "GENRE":
-                return new GenreGenerationStrategy(rule.target);
-
-            case "YEAR":
-                return new YearGenerationStrategy(Integer.parseInt(rule.target));
-
-            default:
-                throw new IllegalArgumentException(
-                        "Criterio automatico non supportato: "
-                                + rule.criterion
-                );
-        }
+        return PlaylistGenerationStrategyFactory.from(rule);
     }
 
     /**

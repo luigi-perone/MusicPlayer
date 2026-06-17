@@ -13,10 +13,9 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.AddToQueueCommand;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.GenreGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
-import it.unisa.gruppo7.musicplayer.playlist.strategy.YearGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategyFactory;
 import javafx.scene.Node;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -113,31 +112,17 @@ public class PlaylistSidebarController {
                 return;
             }
 
-            // Selecting strategy
-            PlaylistGenerationStrategy strategy = null;
+            // Build the rule from the dialog choice; the matching strategy is then derived
+            // from it by the factory (single source of truth — no per-criterion switch here).
             AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
 
             try {
-                switch (criterion) {
-                    case "Genere":
-                        strategy = new GenreGenerationStrategy(target);
-                        rule.setCriterion("GENRE");
-                        rule.setTarget(target);
-                        break;
-                    case "Anno":
-                        strategy = new YearGenerationStrategy(Integer.parseInt(target));
-                        rule.setCriterion("YEAR");
-                        rule.setTarget(target);
-                        break;
-                    case "Tag":
-                        strategy = new TagGenerationStrategy(request.selectedTags, request.combinationMode);
-                        rule.setCriterion("TAG");
-                        rule.setTags(request.selectedTags);
-                        rule.setCombinationMode(request.combinationMode);
-                        break;
-                    default: 
-                        throw new IllegalArgumentException("Criterio non supportato");
-                }
+                rule.setCriterion(GenerationCriterion.fromLabel(criterion));
+                rule.setTarget(target);
+                rule.setTags(request.selectedTags);
+                rule.setCombinationMode(request.combinationMode);
+
+                PlaylistGenerationStrategy strategy = PlaylistGenerationStrategyFactory.from(rule);
 
                 // Execution from facade
                 MusicPlayerFacade.getInstance().createAutoPlaylist(defaultPlaylistName, strategy, rule);

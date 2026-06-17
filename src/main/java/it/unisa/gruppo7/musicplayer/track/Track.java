@@ -396,4 +396,73 @@ public class Track {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+    // -- Builder --
+
+    /**
+     * Starts building a {@link Track} with the mandatory fields. Optional fields
+     * (genre, publication year) can be supplied fluently before {@link Builder#build()}.
+     * Replaces the set of telescoping constructors when creating tracks in code.
+     *
+     * @param title    the track title (mandatory).
+     * @param author   the track author (mandatory).
+     * @param duration the track duration in seconds (mandatory).
+     * @return a new {@link Builder}.
+     */
+    public static Builder builder(String title, String author, int duration) {
+        return new Builder(title, author, duration);
+    }
+
+    /**
+     * Fluent builder for {@link Track}. Domain validation is delegated to the
+     * {@link Track} constructor invoked by {@link #build()}, so the same
+     * constraints apply as for direct construction.
+     */
+    public static class Builder {
+        private final String title;
+        private final String author;
+        private final int duration;
+        private String genre;
+        private Year publicationYear;
+
+        private Builder(String title, String author, int duration) {
+            this.title = title;
+            this.author = author;
+            this.duration = duration;
+        }
+
+        /**
+         * Sets the genre. A {@code null} or blank value falls back to "not-specified".
+         *
+         * @param genre the music genre.
+         * @return this builder.
+         */
+        public Builder genre(String genre) {
+            this.genre = genre;
+            return this;
+        }
+
+        /**
+         * Sets the publication year.
+         *
+         * @param publicationYear the release year, or {@code null} if unspecified.
+         * @return this builder.
+         */
+        public Builder publicationYear(Year publicationYear) {
+            this.publicationYear = publicationYear;
+            return this;
+        }
+
+        /**
+         * Builds the {@link Track}, applying the "not-specified" genre default and
+         * running the domain validation enforced by the constructor.
+         *
+         * @return the constructed, validated track.
+         * @throws IllegalArgumentException if any field violates the domain constraints.
+         */
+        public Track build() {
+            String resolvedGenre = (genre == null || genre.trim().isEmpty()) ? "not-specified" : genre;
+            return new Track(title, author, duration, resolvedGenre, publicationYear);
+        }
+    }
 }

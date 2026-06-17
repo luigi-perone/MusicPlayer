@@ -5,6 +5,7 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playlist.AutomaticPlaylistRule;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagCombinationMode;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.track.Track;
@@ -153,7 +154,7 @@ class AutomaticTagPlaylistIntegrationTest {
     /** Builds an ALL-mode tag rule matching the given tag. */
     private AutomaticPlaylistRule tagRule(TrackTag tag) {
         AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
-        rule.criterion = "TAG";
+        rule.criterion = GenerationCriterion.TAG;
         rule.tags = EnumSet.of(tag);
         rule.combinationMode = TagCombinationMode.ALL;
         return rule;

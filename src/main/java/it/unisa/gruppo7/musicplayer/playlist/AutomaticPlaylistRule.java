@@ -2,6 +2,7 @@ package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.Set;
 
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagCombinationMode;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 
@@ -14,8 +15,8 @@ import it.unisa.gruppo7.musicplayer.track.TrackTag;
  * {@link TagCombinationMode} that controls how they are combined.
  */
 public class AutomaticPlaylistRule {
-    /** The generation criterion (e.g. {@code GENRE}, {@code YEAR} or {@code TAG}). */
-    public String criterion;
+    /** The generation criterion ({@link GenerationCriterion#GENRE}, {@code YEAR} or {@code TAG}). */
+    public GenerationCriterion criterion;
     /** The target value for the criterion (e.g. the genre name or year). */
     public String target;
     /** The tags used by a tag-based rule. */
@@ -35,7 +36,7 @@ public class AutomaticPlaylistRule {
      *
      * @return the criterion identifier
      */
-    public String getCriterion() {
+    public GenerationCriterion getCriterion() {
         return criterion;
     }
 
@@ -44,7 +45,7 @@ public class AutomaticPlaylistRule {
      *
      * @param criterion the criterion identifier
      */
-    public void setCriterion(String criterion) {
+    public void setCriterion(GenerationCriterion criterion) {
         this.criterion = criterion;
     }
 

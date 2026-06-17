@@ -36,4 +36,15 @@ public enum RepeatMode {
     public RepeatStrategy getStrategy() {
         return strategy;
     }
+
+    /**
+     * Returns the next repeat mode in the cycle
+     * OFF &rarr; REPEAT_PLAYLIST &rarr; REPEAT_ONE &rarr; OFF.
+     *
+     * @return the next repeat mode
+     */
+    public RepeatMode next() {
+        RepeatMode[] modes = values();
+        return modes[(ordinal() + 1) % modes.length];
+    }
 }

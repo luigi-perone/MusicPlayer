@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagCombinationMode;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class AutomaticPlaylistRuleTest {
     @Test
     void tagRuleSurvivesJsonRoundTrip() throws Exception {
         AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
-        rule.criterion = "TAG";
+        rule.criterion = GenerationCriterion.TAG;
         rule.tags = EnumSet.of(TrackTag.FAVOURITE, TrackTag.NEW_RELEASE);
         rule.combinationMode = TagCombinationMode.ALL;
 
@@ -33,7 +34,7 @@ class AutomaticPlaylistRuleTest {
         AutomaticPlaylistRule restored = mapper.readValue(
                 json, AutomaticPlaylistRule.class);
 
-        assertEquals("TAG", restored.criterion);
+        assertEquals(GenerationCriterion.TAG, restored.criterion);
         assertEquals(rule.tags, restored.tags);
         assertEquals(TagCombinationMode.ALL, restored.combinationMode);
         assertNull(restored.target);
@@ -43,14 +44,14 @@ class AutomaticPlaylistRuleTest {
     @Test
     void genreRuleSurvivesJsonRoundTrip() throws Exception {
         AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
-        rule.criterion = "GENRE";
+        rule.criterion = GenerationCriterion.GENRE;
         rule.target = "Rock";
 
         String json = mapper.writeValueAsString(rule);
         AutomaticPlaylistRule restored = mapper.readValue(
                 json, AutomaticPlaylistRule.class);
 
-        assertEquals("GENRE", restored.criterion);
+        assertEquals(GenerationCriterion.GENRE, restored.criterion);
         assertEquals("Rock", restored.target);
         assertNull(restored.tags);
         assertNull(restored.combinationMode);

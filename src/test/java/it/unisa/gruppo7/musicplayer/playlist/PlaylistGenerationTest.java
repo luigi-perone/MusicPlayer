@@ -4,6 +4,7 @@ import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.AutomaticPlaylistRule;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import org.junit.jupiter.api.AfterEach;
@@ -107,7 +108,7 @@ public class PlaylistGenerationTest {
 
             // Create a valid rule instance (adjust parameters if your constructor is different)
             AutomaticPlaylistRule rockRule = new AutomaticPlaylistRule();
-            rockRule.criterion = "GENRE";
+            rockRule.criterion = GenerationCriterion.GENRE;
             rockRule.target = "Rock";
 
             // Act
@@ -138,7 +139,7 @@ public class PlaylistGenerationTest {
 
             // Create a valid rule instance
             AutomaticPlaylistRule classicalRule = new AutomaticPlaylistRule();
-            classicalRule.criterion = "GENRE";
+            classicalRule.criterion = GenerationCriterion.GENRE;
             classicalRule.target = "Classical";
 
             // Act & Assert
@@ -175,7 +176,7 @@ public class PlaylistGenerationTest {
 
             // Create a valid rule instance
             AutomaticPlaylistRule yearRule = new AutomaticPlaylistRule();
-            yearRule.criterion = "YEAR";
+            yearRule.criterion = GenerationCriterion.YEAR;
             yearRule.target = "2010";
 
             // Act
@@ -207,7 +208,7 @@ public class PlaylistGenerationTest {
 
             // Create a valid rule instance
             AutomaticPlaylistRule yearRule = new AutomaticPlaylistRule();
-            yearRule.criterion = "YEAR";
+            yearRule.criterion = GenerationCriterion.YEAR;
             yearRule.target = "1980";
 
             // Act & Assert

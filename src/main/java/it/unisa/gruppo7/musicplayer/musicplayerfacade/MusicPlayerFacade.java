@@ -1,6 +1,7 @@
 package it.unisa.gruppo7.musicplayer.musicplayerfacade;
 
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
+import it.unisa.gruppo7.musicplayer.core.TimeFormatUtil;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.library.LibraryMemento;
@@ -18,11 +19,11 @@ import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Structural Facade that centralizes and coordinates core music player sub-systems
@@ -31,10 +32,10 @@ import java.util.stream.Collectors;
  *
  * @author Francesco Lemmo
  */
-public class MusicPlayerFacade implements PlaybackObserver {
+public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, PlaybackFacade, PlaybackObserver {
 
     /** Single instance of the MusicPlayerFacade. */
-    private static MusicPlayerFacade instance;
+    private static volatile MusicPlayerFacade instance;
 
     /** The core library database managing all tracks. */
     private final Library library;
@@ -52,7 +53,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
     private Playlist activePlaylist;
 
     /** List of registered observers listening for track data changes. */
-    private final List<TrackObserver> observers = new ArrayList<>();
+    private final List<TrackObserver> observers = new CopyOnWriteArrayList<>();
 
     /** * Executor dedicated to Input/Output file operations.
      * Uses a single thread in background.
@@ -77,10 +78,11 @@ public class MusicPlayerFacade implements PlaybackObserver {
 
     /**
      * Retrieves the global thread-safe singleton state interface context.
+     * Synchronized to guarantee a single instance even under concurrent access.
      *
      * @return The active MusicPlayerFacade context runtime.
      */
-    public static MusicPlayerFacade getInstance() {
+    public static synchronized MusicPlayerFacade getInstance() {
         if (instance == null) {
             instance = new MusicPlayerFacade();
         }
@@ -122,18 +124,10 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * @return A validated track metadata object wrapper.
      */
     private Track createTrack(String title, String author, int duration, String genre, Year publicationYear) {
-        boolean isGenreEmpty = (genre == null || genre.trim().isEmpty());
-        boolean isYearEmpty = (publicationYear == null);
-
-        if (isGenreEmpty && isYearEmpty) {
-            return new Track(title, author, duration);
-        } else if (isGenreEmpty) {
-            return new Track(title, author, duration, publicationYear);
-        } else if (isYearEmpty) {
-            return new Track(title, author, duration, genre);
-        } else {
-            return new Track(title, author, duration, genre, publicationYear);
-        }
+        return Track.builder(title, author, duration)
+                .genre(genre)
+                .publicationYear(publicationYear)
+                .build();
     }
 
     /**
@@ -385,9 +379,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * @return A padded string structured format presentation.
      */
     public String formatDuration(int totalSeconds) {
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-        return String.format("%02d:%02d", minutes, seconds);
+        return TimeFormatUtil.formatDuration(totalSeconds);
     }
 
     /**
@@ -571,14 +563,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * Cycles the playback repeat mode through its available states: OFF, REPEAT_PLAYLIST, and REPEAT_ONE.
      */
     public void changeRepeatMode() {
-        RepeatMode currentRepeatMode = playbackService.getRepeatMode();
-        if (currentRepeatMode == RepeatMode.OFF) {
-            playbackService.setRepeatMode(RepeatMode.REPEAT_PLAYLIST);
-        } else if (currentRepeatMode == RepeatMode.REPEAT_PLAYLIST) {
-            playbackService.setRepeatMode(RepeatMode.REPEAT_ONE);
-        } else if (currentRepeatMode == RepeatMode.REPEAT_ONE) {
-            playbackService.setRepeatMode(RepeatMode.OFF);
-        }
+        playbackService.setRepeatMode(playbackService.getRepeatMode().next());
     }
 
     /**
@@ -777,11 +762,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * @return the most played tracks, ordered by descending play count
      */
     public List<Track> getMostPlayedTracks(int limit) {
-        return library.getTracks().stream()
-                .filter(track -> track.getPlayCount() > 0) // Ignores the tracks never played
-                .sorted(Comparator.comparingInt(Track::getPlayCount).reversed()) // Decreasing order
-                .limit(limit) // Take the first N (limit) tracks
-                .collect(Collectors.toList());
+        return library.getMostPlayed(limit);
     }
 
     /**
@@ -790,11 +771,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
      * @return the most played playlists, ordered by descending play count
      */
     public List<Playlist> getMostPlayedPlaylists(int limit) {
-        return playlistService.getPlaylists().stream()
-                .filter(playlist -> playlist.getPlayCount() > 0)
-                .sorted(Comparator.comparingInt(Playlist::getPlayCount).reversed())
-                .limit(limit)
-                .collect(Collectors.toList());
+        return playlistService.getMostPlayed(limit);
     }
     // -- Playback Observer methods --
 

@@ -8,8 +8,8 @@ import it.unisa.gruppo7.musicplayer.playback.strategy.TrackSkipStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -65,7 +65,7 @@ public class PlaybackService implements TrackObserver{
         this.simulatedTimeSeconds = new AtomicInteger(0);
         this.timer = Executors.newScheduledThreadPool(1);
         this.queue = new PlaybackList();
-        this.observers = new ArrayList<>();
+        this.observers = new CopyOnWriteArrayList<>();
         this.repeatMode = RepeatMode.OFF;
     }
 
@@ -78,6 +78,16 @@ public class PlaybackService implements TrackObserver{
      */
     public void addObserver(PlaybackObserver observer) {
         if (!observers.contains(observer)) observers.add(observer);
+    }
+
+    /**
+     * Detaches a previously registered observer so it stops receiving playback
+     * notifications. Safe to call with an observer that was never registered.
+     *
+     * @param observer the observer to remove.
+     */
+    public void removeObserver(PlaybackObserver observer) {
+        observers.remove(observer);
     }
 
     /**
