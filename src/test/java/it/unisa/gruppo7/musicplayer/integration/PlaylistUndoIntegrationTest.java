@@ -37,6 +37,7 @@ class PlaylistUndoIntegrationTest {
 
     private Track trackA, trackB, trackC, trackD;
 
+    /** Resets singletons, builds the facade and starts a three-track playlist as the active source. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -60,6 +61,7 @@ class PlaylistUndoIntegrationTest {
         service.stopTimer();
     }
 
+    /** Shuts down playback, clears the undo stack, deletes test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -69,10 +71,12 @@ class PlaylistUndoIntegrationTest {
         resetSingletons();
     }
 
+    /** Scenarios undoing a track removal from a playlist. */
     @Nested
     @DisplayName("Undo of a removal")
     class WhenUndoingRemoval {
 
+        /** Verifies that undoing a removal restores the track's index in the model, file and queue. */
         @Test
         @DisplayName("restores the track at its original index, in the model, file and queue")
         void undoRemove_restoresIndexFileAndQueue() throws Exception {
@@ -94,10 +98,12 @@ class PlaylistUndoIntegrationTest {
         }
     }
 
+    /** Scenarios undoing a track addition to a playlist. */
     @Nested
     @DisplayName("Undo of an addition")
     class WhenUndoingAddition {
 
+        /** Verifies that undoing an addition removes the added track from the model, file and queue. */
         @Test
         @DisplayName("removes the added track from the model, file and queue")
         void undoAdd_removesAddedTrackEverywhere() throws Exception {
@@ -116,6 +122,7 @@ class PlaylistUndoIntegrationTest {
             assertFalse(reloadPlaylist().getTracks().contains(trackD),"D must be absent from the persisted playlist file");
         }
 
+        /** Verifies that undoing an addition removes only the newly added tracks, not pre-existing ones. */
         @Test
         @DisplayName("removes only the newly added tracks, not pre-existing duplicates")
         void undoAdd_removesOnlyAddedSubset() throws Exception {
@@ -133,10 +140,12 @@ class PlaylistUndoIntegrationTest {
         }
     }
 
+    /** Scenarios undoing through the CommandInvoker and the UndoManager stack. */
     @Nested
     @DisplayName("Undo through the CommandInvoker and the UndoManager stack")
     class WhenUndoingThroughStack {
 
+        /** Verifies that execute pushes the command and undoLast reverts it end-to-end. */
         @Test
         @DisplayName("execute pushes the command and undoLast reverts it end-to-end")
         void invokerPushes_andUndoLastReverts() throws Exception {
@@ -153,14 +162,17 @@ class PlaylistUndoIntegrationTest {
         }
     }
     
+    /** Returns the current queue tracks as a new list for assertions. */
     private List<Track> queueTracks() {
         return new ArrayList<>(service.getQueue().getTracks());
     }
 
+    /** Reloads the test playlist from disk to verify persistence. */
     private Playlist reloadPlaylist() {
         return new PlaylistService(TEST_PLAYLIST_PATH).getPlaylist(PLAYLIST_NAME);
     }
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -177,6 +189,7 @@ class PlaylistUndoIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -190,6 +203,7 @@ class PlaylistUndoIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

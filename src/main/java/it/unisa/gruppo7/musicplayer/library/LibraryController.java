@@ -415,6 +415,11 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
         return String.join(", ", labels);
     }
 
+    /**
+     * Sets the main controller used to refresh the other views.
+     *
+     * @param mainController the application's main controller
+     */
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
@@ -442,6 +447,9 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
         });
     }
 
+    /**
+     * Reloads the library table from the current library contents.
+     */
     public void reload() {
         observableTracks.setAll(musicPlayer.getTracksFromLibrary());
         trackTable.refresh();

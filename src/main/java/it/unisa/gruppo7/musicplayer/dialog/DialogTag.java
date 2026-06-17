@@ -24,6 +24,12 @@ public final class DialogTag {
     private DialogTag() {
     }
 
+    /**
+     * Shows the tag-management dialog for the given track and returns the chosen tags.
+     *
+     * @param track the track whose tags are being edited
+     * @return the selected tags if confirmed, or an empty {@link Optional} if cancelled
+     */
     public static Optional<Set<TrackTag>> show(Track track) {
         Dialog<Set<TrackTag>> dialog = new Dialog<>();
         dialog.setTitle("Gestisci Tag");

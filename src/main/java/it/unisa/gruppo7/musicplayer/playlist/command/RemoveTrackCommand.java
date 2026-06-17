@@ -58,6 +58,10 @@ public class RemoveTrackCommand implements UndoableCommand<Void> {
         return null;
     }
 
+    /**
+     * Undoes the removal by re-inserting the track at its original position
+     * and restoring the playback queue to its captured state.
+     */
     @Override
     public void undo() {
         if (originalIndex >= 0) {

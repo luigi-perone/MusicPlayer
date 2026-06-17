@@ -23,6 +23,7 @@ class QueueMementoTest {
     private PlaybackService service;
     private Track trackA, trackB, trackC, trackD;
 
+    /** Sets up a playback service with a no-op timer and a few sample tracks. */
     @BeforeEach
     void setUp() {
         service = new PlaybackService();
@@ -34,11 +35,13 @@ class QueueMementoTest {
         trackD = new Track("Delta", "Artist4", 120);
     }
 
+    /** Clears the queue after each test. */
     @AfterEach
     void tearDown() {
         service.getQueue().clear();
     }
 
+    /** Verifies that restoring a snapshot recovers the exact content and order after mutations. */
     @Test
     @DisplayName("Restore recovers the exact content and order after mutations")
     void restore_recoversContentAndOrder() {
@@ -54,6 +57,7 @@ class QueueMementoTest {
         assertEquals(Arrays.asList(trackA, trackB, trackC), queueTracks(),"the queue content and order must match the snapshot");
     }
 
+    /** Verifies that restoring a snapshot recovers the cursor position. */
     @Test
     @DisplayName("Restore recovers the cursor position")
     void restore_recoversCursor() {
@@ -70,6 +74,7 @@ class QueueMementoTest {
         assertSame(trackB, service.getQueue().getCurrentTrack(),"the cursor must point back at B");
     }
 
+    /** Verifies that restoring a snapshot recovers the shuffle flag and canonical order. */
     @Test
     @DisplayName("Restore recovers the shuffle flag and canonical order")
     void restore_recoversShuffleState() {
@@ -85,10 +90,12 @@ class QueueMementoTest {
         assertEquals(Arrays.asList(trackA, trackB, trackC), queueTracks(), "the canonical order must be restored");
     }
 
+    /** Returns the current queue tracks as a new list for assertions. */
     private List<Track> queueTracks() {
         return new ArrayList<>(service.getQueue().getTracks());
     }
 
+    /** Scheduler test double that never runs the periodic playback timer. */
     static class NoOpScheduler extends ScheduledThreadPoolExecutor {
         NoOpScheduler() { super(1); }
 
@@ -98,6 +105,7 @@ class QueueMementoTest {
         }
     }
 
+    /** Inert {@link ScheduledFuture} returned by {@link NoOpScheduler}. */
     static class DummyScheduledFuture<V> implements ScheduledFuture<V> {
         @Override public long getDelay(TimeUnit unit) { return 0; }
         @Override public int compareTo(Delayed o) { return 0; }

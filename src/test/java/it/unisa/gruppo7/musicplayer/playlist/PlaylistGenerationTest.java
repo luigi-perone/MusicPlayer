@@ -25,6 +25,12 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tests for automatic playlist generation through {@link MusicPlayerFacade},
+ * covering generation by genre and by year, including the failure case when no
+ * track matches the rule. Real production data files are backed up and restored
+ * around each test so the suite never corrupts the user's library.
+ */
 public class PlaylistGenerationTest {
 
     private MusicPlayerFacade facade;
@@ -35,6 +41,7 @@ public class PlaylistGenerationTest {
     private static final Path BACKUP_TRACK_FILE = Paths.get("data/track-library.json.bak");
     private static final Path BACKUP_PLAYLIST_FILE = Paths.get("data/playlist.json.bak");
 
+    /** Backs up the production data files and resets the facade to a clean state. */
     @BeforeEach
     void setUp() throws IOException {
         if (Files.exists(REAL_TRACK_FILE)) {
@@ -53,6 +60,7 @@ public class PlaylistGenerationTest {
         }
     }
 
+    /** Flushes background IO, clears in-memory data and restores the production files. */
     @AfterEach
     void tearDown() throws IOException {
         try {
@@ -81,10 +89,11 @@ public class PlaylistGenerationTest {
         }
     }
 
-    // Playlist Generation by Genre
+    /** Tests covering automatic playlist generation by genre. */
     @Nested
     class GenrePlaylistGeneration {
 
+        /** Verifies that generating by genre filters the matching tracks into a new playlist. */
         @Test
         void testCreateByGenre_FiltersCorrectlyAndGeneratesPlaylist() {
             // Arrange
@@ -116,6 +125,7 @@ public class PlaylistGenerationTest {
             }
         }
 
+        /** Verifies that generating by genre with no matching tracks throws and creates no playlist. */
         @Test
         void testCreateByGenre_ThrowsExceptionWhenNoTracksFound() {
             // Arrange
@@ -141,10 +151,11 @@ public class PlaylistGenerationTest {
         }
     }
 
-    // Playlist Generation by Year
+    /** Tests covering automatic playlist generation by publication year. */
     @Nested
     class YearPlaylistGeneration {
 
+        /** Verifies that generating by year filters matching tracks and sorts them alphabetically. */
         @Test
         void testCreateByYear_FiltersCorrectlyAndSortsAlphabetically() {
             // Arrange
@@ -183,6 +194,7 @@ public class PlaylistGenerationTest {
             assertEquals("Zebra Track", playlistTracks.get(2).getTitle(), "Third track must be sorted alphabetically (Z)");
         }
 
+        /** Verifies that generating by year with no matching tracks throws and creates no playlist. */
         @Test
         void testCreateByYear_ThrowsExceptionWhenNoTracksFound() {
             // Arrange

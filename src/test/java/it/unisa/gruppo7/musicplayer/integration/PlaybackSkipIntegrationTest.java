@@ -39,6 +39,7 @@ class PlaybackSkipIntegrationTest {
     // Lifecycle
     // ------------------------------------------------------------------
 
+    /** Resets singletons and starts playback of a three-track playlist from track A. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -60,6 +61,7 @@ class PlaybackSkipIntegrationTest {
         stopTimerAndResetExecutor();
     }
 
+    /** Shuts down playback, deletes the test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -71,10 +73,12 @@ class PlaybackSkipIntegrationTest {
     // ------------------------------------------------------------------
     // Nested: Skip Next Tests
     // ------------------------------------------------------------------
+    /** Integration scenarios for skipping to the next track. */
     @Nested
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class WhenSkippingNext {
 
+        /** Verifies that skipping next from the middle of the queue advances one track. */
         @Test
         @Order(1)
         void fromMiddleOfQueue_advancesToNextTrack() {
@@ -87,6 +91,7 @@ class PlaybackSkipIntegrationTest {
                     "Player must remain in PLAYING state after skip");
         }
 
+        /** Verifies that skipping next twice reaches the last track. */
         @Test
         @Order(2)
         void twice_reachesTailTrack() {
@@ -101,6 +106,7 @@ class PlaybackSkipIntegrationTest {
                     "Player must remain in PLAYING state after reaching tail");
         }
 
+        /** Verifies that skipping next past the last track with repeat OFF stops playback. */
         @Test
         @Order(3)
         void fromLastTrack_repeatOff_stopsPlayback() {
@@ -121,6 +127,7 @@ class PlaybackSkipIntegrationTest {
                     "Current track must be null after playback stops");
         }
 
+        /** Verifies that skipping next past the last track with repeat-playlist wraps to the first. */
         @Test
         @Order(4)
         void fromLastTrack_repeatPlaylist_wrapsToFirst() {
@@ -142,6 +149,7 @@ class PlaybackSkipIntegrationTest {
                     "Player must remain in PLAYING state after wrap");
         }
 
+        /** Verifies that skipping next with repeat-one replays the current track. */
         @Test
         @Order(5)
         void repeatOne_replaysCurrentTrack() {
@@ -160,10 +168,12 @@ class PlaybackSkipIntegrationTest {
     // ------------------------------------------------------------------
     // Nested: Skip Previous Tests
     // ------------------------------------------------------------------
+    /** Integration scenarios for skipping to the previous track. */
     @Nested
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class WhenSkippingPrevious {
 
+        /** Verifies that skipping previous from the middle of the queue goes back one track. */
         @Test
         @Order(1)
         void fromMiddleOfQueue_goesBackOneTrack() {
@@ -181,6 +191,7 @@ class PlaybackSkipIntegrationTest {
                     "Player must remain in PLAYING state after skip previous");
         }
 
+        /** Verifies that skipping previous from the first track restarts it instead of wrapping. */
         @Test
         @Order(2)
         void fromFirstTrack_restartsCurrentTrack() {
@@ -195,6 +206,7 @@ class PlaybackSkipIntegrationTest {
                     "Player must remain in PLAYING state");
         }
 
+        /** Verifies that skipping previous while stopped plays the last track in the queue. */
         @Test
         @Order(3)
         void whenStopped_playsLastTrack() {
@@ -223,6 +235,7 @@ class PlaybackSkipIntegrationTest {
     // Helpers
     // ------------------------------------------------------------------
 
+    /** Stops the playback timer and replaces its executor if it was shut down. */
     private void stopTimerAndResetExecutor() {
         service.stopTimer();
         try {
@@ -238,6 +251,7 @@ class PlaybackSkipIntegrationTest {
         }
     }
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -254,6 +268,7 @@ class PlaybackSkipIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -267,6 +282,7 @@ class PlaybackSkipIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

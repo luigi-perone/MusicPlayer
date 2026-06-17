@@ -1,7 +1,7 @@
 package it.unisa.gruppo7.musicplayer.playlist;
 
 import java.util.function.BiConsumer;
-import java.util.function.Supplier; // Aggiunto import
+import java.util.function.Supplier;
 
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.track.Track;
@@ -34,6 +34,17 @@ public class PlaylistTableConfigurator {
     private final TableColumn<Track, Void>   indexColumn;
     private final MusicPlayerFacade          facade;
 
+    /**
+     * Creates a configurator bound to the given table and its columns.
+     *
+     * @param table          the table view displaying the playlist tracks
+     * @param titleColumn    the column showing the track title
+     * @param authorColumn   the column showing the track author
+     * @param durationColumn the column showing the formatted track duration
+     * @param tagColumn      the column showing the track tags
+     * @param indexColumn    the column showing the row index
+     * @param facade         the facade used to format durations
+     */
     public PlaylistTableConfigurator(TableView<Track> table,
                                      TableColumn<Track, String> titleColumn,
                                      TableColumn<Track, String> authorColumn,
@@ -87,10 +98,16 @@ public class PlaylistTableConfigurator {
         });
 
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        // Passa il supplier a buildRow
+        // Pass the supplier to buildRow
         table.setRowFactory(tv -> buildRow(playingTrackSupplier, onDoubleClick, onReorder));
     }
 
+    /**
+     * Builds the comma-separated short labels of the tags assigned to a track.
+     *
+     * @param track the track whose tags are formatted (may be {@code null})
+     * @return the joined short labels, or an empty string when there are none
+     */
     private String formatTags(Track track) {
         if (track == null || track.getTags().isEmpty()) {
             return "";

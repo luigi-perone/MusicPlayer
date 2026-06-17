@@ -16,6 +16,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * Controller for the home page view.
+ * Builds the "most played" sections by loading the top playlists and tracks
+ * as media cards and wiring their click actions to playback.
+ *
  * @author francescoLemmo
  */
 
@@ -31,12 +35,19 @@ public class HomePageController {
 
     private MusicPlayerFacade musicPlayer = MusicPlayerFacade.getInstance();
 
+    /**
+     * Initializes the view by loading the top playlists and top tracks.
+     * Invoked automatically by the JavaFX loader.
+     */
     @FXML
     public void initialize() {
         loadTopPlaylists();
         loadTopTracks();
     }
 
+    /**
+     * Clears and reloads both "most played" sections, making them visible again.
+     */
     public void refreshHomePage() {
         topPlaylistsContainer.getChildren().clear();
         topTracksContainer.getChildren().clear();
@@ -52,10 +63,19 @@ public class HomePageController {
         loadTopTracks();
     }
 
+    /**
+     * Sets the main controller used for navigation between views.
+     *
+     * @param mainController the application's main controller
+     */
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
 
+    /**
+     * Loads up to the ten most played playlists as media cards.
+     * Hides the playlists section when there are none to display.
+     */
     private void loadTopPlaylists() {
 
         List<Playlist> topPlaylists = musicPlayer.getMostPlayedPlaylists(10);
@@ -90,6 +110,10 @@ public class HomePageController {
         }
     }
 
+    /**
+     * Loads up to the ten most played tracks as media cards.
+     * Hides the tracks section when there are none to display.
+     */
     private void loadTopTracks() {
         List<Track> topTracks = musicPlayer.getMostPlayedTracks(10);
 

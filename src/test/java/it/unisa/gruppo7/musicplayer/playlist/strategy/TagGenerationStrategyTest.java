@@ -26,6 +26,7 @@ class TagGenerationStrategyTest {
     private Track favouriteExplicit;
     private Track withoutTags;
 
+    /** Creates sample tracks with and without tags before each test. */
     @BeforeEach
     void setUp() {
         favourite = track("Favourite");
@@ -37,9 +38,8 @@ class TagGenerationStrategyTest {
 
         withoutTags = track("Without tags");
     }
-    /** 
-    * Verifies that ALL returns only tracks containing every selected tag. */
 
+    /** Verifies that ALL returns only tracks containing every selected tag. */
     @Test
     void allReturnsOnlyTracksContainingEverySelectedTag() {
         TagGenerationStrategy strategy = new TagGenerationStrategy(
@@ -50,9 +50,8 @@ class TagGenerationStrategyTest {
                 Collections.singletonList(favouriteExplicit),
                 strategy.generate(allTracks()));
     }
-    /** 
-    * Verifies that ALL accepts tracks containing additional non-required tags. */
 
+    /** Verifies that ALL accepts tracks containing additional non-required tags. */
     @Test
     void allAllowsTracksContainingAdditionalTags() {
         TagGenerationStrategy strategy = new TagGenerationStrategy(
@@ -63,10 +62,8 @@ class TagGenerationStrategyTest {
                 Arrays.asList(favourite, favouriteExplicit),
                 strategy.generate(allTracks()));
     }
-    /** 
-    * Verifies that ANY returns tracks containing at least one selected tag. */
 
-
+    /** Verifies that ANY returns tracks containing at least one selected tag. */
     @Test
     void anyReturnsTracksContainingAtLeastOneSelectedTag() {
         TagGenerationStrategy strategy = new TagGenerationStrategy(
@@ -77,10 +74,8 @@ class TagGenerationStrategyTest {
                 Collections.singletonList(favouriteExplicit),
                 strategy.generate(allTracks()));
     }
-    /** 
-     * Verifies that tracks without tags do not match the selected criteria. */
 
-
+    /** Verifies that tracks without tags do not match the selected criteria. */
     @Test
     void tracksWithoutTagsDoNotMatch() {
         TagGenerationStrategy strategy = new TagGenerationStrategy(
@@ -91,9 +86,8 @@ class TagGenerationStrategyTest {
                 Collections.emptyList(),
                 strategy.generate(Collections.singletonList(withoutTags)));
     }
-    /** 
-     * Verifies that no matching tracks produce an empty result. */
 
+    /** Verifies that an empty tag selection is rejected with the expected message. */
     @Test
     void emptySelectionIsRejected() {
         IllegalArgumentException exception = assertThrows(
@@ -103,10 +97,8 @@ class TagGenerationStrategyTest {
 
         assertEquals("Seleziona almeno un tag", exception.getMessage());
     }
-    /** 
-     * Verifies that an empty tag selection is rejected with the expected message. */
 
-
+    /** Verifies that a null tag selection is rejected. */
     @Test
     void nullSelectionIsRejected() {
         assertThrows(
@@ -114,16 +106,17 @@ class TagGenerationStrategyTest {
                 () -> new TagGenerationStrategy(null, TagCombinationMode.ALL));
     }
 
+    /** Returns all sample tracks used by the tests. */
     private List<Track> allTracks() {
         return Arrays.asList(favourite, favouriteExplicit, withoutTags);
     }
 
+    /** Creates a Pop track with the given title and a default artist and duration. */
     private Track track(String title) {
         return new Track(title, "Artist", 180, "Pop");
     }
-    /** 
-     * Verifies that a null tag selection is rejected. */
 
+    /** Verifies that a selection matching no track produces an empty result. */
     @Test
     void noMatchingTracksReturnsEmptyResult() {
         TagGenerationStrategy strategy = new TagGenerationStrategy(

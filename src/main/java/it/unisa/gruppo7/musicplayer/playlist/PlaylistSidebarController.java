@@ -30,7 +30,8 @@ import javafx.scene.layout.*;
  * Manages the communication between the model and the view of the playlist's sidebar.
  * Handles displaying the list of available playlists and providing an inline interface
  * to create new playlists.
- * * @author Maxim Makhovskyy, Luigi Perone
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class PlaylistSidebarController {
     @FXML private VBox listBox;
@@ -58,6 +59,9 @@ public class PlaylistSidebarController {
         addBtn.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> committing = true);
     }
 
+    /**
+     * Handles the home navigation button, switching the main view to the home page.
+     */
     @FXML
     private void onHomeClick() {
         if (mainController != null) {
@@ -65,6 +69,9 @@ public class PlaylistSidebarController {
         }
     }
 
+    /**
+     * Handles the library navigation button, switching the main view to the library.
+     */
     @FXML
     private void onLibraryClick() {
         if (mainController != null) {
@@ -72,6 +79,11 @@ public class PlaylistSidebarController {
         }
     }
 
+    /**
+     * Opens the automatic-playlist generator dialog, validates the user's input,
+     * builds the matching {@link PlaylistGenerationStrategy} and rule, and creates
+     * the playlist through the facade, refreshing the sidebar on success.
+     */
     @FXML
     private void onPlaylistGeneratorToggle() {
         DialogDirector director = new DialogDirector();
@@ -410,6 +422,11 @@ public class PlaylistSidebarController {
         return b;
     }
 
+    /**
+     * Sets the main controller used to trigger navigation and UI refreshes.
+     *
+     * @param mainController the application's main controller
+     */
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }

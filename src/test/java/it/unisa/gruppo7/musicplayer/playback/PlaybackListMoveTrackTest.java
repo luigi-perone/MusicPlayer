@@ -24,6 +24,7 @@ class PlaybackListMoveTrackTest {
     private PlaybackList queue;
     private Track a, b, c, d, e;
 
+    /** Loads a single five-track block [A B C D E] before each test. */
     @BeforeEach
     void setUp() {
         queue = new PlaybackList();
@@ -36,9 +37,11 @@ class PlaybackListMoveTrackTest {
         queue.loadTracks(new ArrayList<>(Arrays.asList(a, b, c, d, e)));
     }
 
+    /** Tests that the cursor keeps pointing at the same logical track after a move. */
     @Nested
     class CursorFollowsTheSameTrack {
 
+        /** Verifies that moving the current track makes the cursor follow it. */
         @Test
         void movingTheCurrentTrack_cursorFollowsIt() {
             queue.jumpTo(c); // cursor on C (index 2)
@@ -50,6 +53,7 @@ class PlaybackListMoveTrackTest {
             assertEquals(4, queue.getCurrentIndex());
         }
 
+        /** Verifies that moving a track from before to after the cursor keeps the current track. */
         @Test
         void movingATrackFromBeforeToAfterCursor_keepsCurrentTrack() {
             queue.jumpTo(c); // cursor on C (index 2)
@@ -60,6 +64,7 @@ class PlaybackListMoveTrackTest {
             assertSame(c, queue.getCurrentTrack(), "cursor still points at C");
         }
 
+        /** Verifies that moving a track from after to before the cursor keeps the current track. */
         @Test
         void movingATrackFromAfterToBeforeCursor_keepsCurrentTrack() {
             queue.jumpTo(c); // cursor on C (index 2)
@@ -70,6 +75,7 @@ class PlaybackListMoveTrackTest {
             assertSame(c, queue.getCurrentTrack(), "cursor still points at C");
         }
 
+        /** Verifies that moving tracks that do not cross the cursor leaves it unchanged. */
         @Test
         void movingTwoTracksThatDoNotCrossTheCursor_leavesCursorUnchanged() {
             queue.jumpTo(c); // cursor on C (index 2)
@@ -82,9 +88,11 @@ class PlaybackListMoveTrackTest {
         }
     }
 
+    /** Tests that playlist block boundaries stay aligned after a reorder. */
     @Nested
     class BlockIdsStayAligned {
 
+        /** Verifies that playlist-block navigation still works after moving a track within a block. */
         @Test
         void afterMoving_playlistBlockNavigationStillWorks() {
             // Rebuild as two blocks: [A B | C D E]
@@ -102,9 +110,11 @@ class PlaybackListMoveTrackTest {
         }
     }
 
+    /** Tests that invalid move requests are ignored. */
     @Nested
     class InvalidMovesAreNoOps {
 
+        /** Verifies that moving a track to its own index does nothing. */
         @Test
         void sameIndexDoesNothing() {
             List<Track> before = new ArrayList<>(queue.getActiveList());
@@ -112,6 +122,7 @@ class PlaybackListMoveTrackTest {
             assertEquals(before, queue.getActiveList());
         }
 
+        /** Verifies that out-of-range indices leave the queue unchanged. */
         @Test
         void outOfRangeIndicesDoNothing() {
             List<Track> before = new ArrayList<>(queue.getActiveList());

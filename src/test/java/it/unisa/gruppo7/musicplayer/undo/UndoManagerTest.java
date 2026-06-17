@@ -20,6 +20,7 @@ class UndoManagerTest {
 
     private MutableClock clock;
 
+    /** Initializes a mutable clock at a fixed instant before each test. */
     @BeforeEach
     void setUp() {
         clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
@@ -29,10 +30,12 @@ class UndoManagerTest {
     // Stack behaviour
     // ------------------------------------------------------------------
 
+    /** Tests covering the undo stack's LIFO ordering, availability and clearing. */
     @Nested
     @DisplayName("Stack behaviour")
     class StackBehaviour {
 
+        /** Verifies that undoLast reverts the most recent command and reports success. */
         @Test
         @DisplayName("undoLast reverts the most recent command and reports success")
         void undoLast_revertsMostRecent() throws Exception {
@@ -46,6 +49,7 @@ class UndoManagerTest {
             assertTrue(command.undone, "the command's undo() must have been invoked");
         }
 
+        /** Verifies that undoLast on an empty stack reports failure. */
         @Test
         @DisplayName("undoLast on an empty stack reports failure")
         void undoLast_emptyStack_returnsFalse() throws Exception {
@@ -53,6 +57,7 @@ class UndoManagerTest {
             assertFalse(manager.undoLast(), "undoLast must return false when there is nothing to undo");
         }
 
+        /** Verifies that commands are undone in last-in-first-out order. */
         @Test
         @DisplayName("commands are undone in LIFO order")
         void undo_isLifo() throws Exception {
@@ -70,6 +75,7 @@ class UndoManagerTest {
             assertTrue(first.undone, "the earlier command must be undone on the second call");
         }
 
+        /** Verifies that clear discards every pending action. */
         @Test
         @DisplayName("clear discards every pending action")
         void clear_emptiesStack() {
@@ -88,10 +94,12 @@ class UndoManagerTest {
     // Time-to-live expiry
     // ------------------------------------------------------------------
 
+    /** Tests covering the time-to-live expiry of pending undo actions. */
     @Nested
     @DisplayName("Time-to-live expiry")
     class TimeToLiveExpiry {
 
+        /** Verifies that an action is still undoable within the TTL window. */
         @Test
         @DisplayName("an action is still undoable within the TTL window")
         void withinTtl_stillAvailable() {
@@ -104,6 +112,7 @@ class UndoManagerTest {
                     "the action must still be undoable before the TTL elapses");
         }
 
+        /** Verifies that an action expires and is dropped once the TTL is exceeded. */
         @Test
         @DisplayName("an action expires once the TTL is exceeded")
         void pastTtl_expiresAndIsDropped() throws Exception {

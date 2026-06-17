@@ -56,6 +56,7 @@ class PlaylistBlockSkipIntegrationTest {
         }
     };
 
+    /** Builds two appended playlists in the queue and registers the observer spy. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -83,6 +84,7 @@ class PlaylistBlockSkipIntegrationTest {
         stopTimerAndResetExecutor();
     }
 
+    /** Shuts down playback, deletes the test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -91,6 +93,7 @@ class PlaylistBlockSkipIntegrationTest {
         resetSingletons();
     }
 
+    /** Verifies that skipping next jumps to the first track of the next playlist block. */
     @Test
     void skipNext_jumpsToFirstTrackOfNextPlaylist() {
         assertSame(p1a, facade.getCurrentPlayingTrack(), "playback starts on the first playlist");
@@ -103,6 +106,7 @@ class PlaylistBlockSkipIntegrationTest {
         assertEquals(PlaybackState.PLAYING, facade.getPlaybackState());
     }
 
+    /** Verifies that skipping next past the last playlist is ignored and notifies the observer. */
     @Test
     void skipNext_pastLastPlaylist_isIgnoredAndNotifiesObserver() {
         facade.skipToNextPlaylist();          // -> p2a (last block)
@@ -119,6 +123,7 @@ class PlaylistBlockSkipIntegrationTest {
         assertFalse(facade.hasNextPlaylist());
     }
 
+    /** Verifies that skipping previous jumps to the first track of the previous playlist block. */
     @Test
     void skipPrevious_jumpsToFirstTrackOfPreviousPlaylist() {
         facade.skipToNextPlaylist();          // -> p2a
@@ -132,6 +137,7 @@ class PlaylistBlockSkipIntegrationTest {
         assertEquals(PlaybackState.PLAYING, facade.getPlaybackState());
     }
 
+    /** Verifies that skipping previous on the first playlist is ignored and notifies the observer. */
     @Test
     void skipPrevious_onFirstPlaylist_isIgnoredAndNotifiesObserver() {
         assertSame(p1a, facade.getCurrentPlayingTrack());
@@ -143,6 +149,7 @@ class PlaylistBlockSkipIntegrationTest {
         assertEquals(1, blockedCount, "observer must be notified the skip was blocked");
     }
 
+    /** Verifies that skipping next fires a single display-update notification with the new playlist's data. */
     @Test
     void skipNext_firesDisplayUpdateNotificationWithNewPlaylistData() {
         trackChangedCount = 0;
@@ -157,6 +164,7 @@ class PlaylistBlockSkipIntegrationTest {
                 "the display must be refreshed with the first track of the new playlist");
     }
 
+    /** Verifies that skipping previous fires a single display-update notification with the new playlist's data. */
     @Test
     void skipPrevious_firesDisplayUpdateNotificationWithNewPlaylistData() {
         facade.skipToNextPlaylist();   // -> p2a
@@ -174,6 +182,7 @@ class PlaylistBlockSkipIntegrationTest {
                 "the display must be refreshed with the first track of the previous playlist");
     }
 
+    /** Verifies that a blocked skip does not fire a display-update notification. */
     @Test
     void blockedSkip_doesNotFireDisplayUpdateNotification() {
         // Already on the first playlist: skip previous is blocked.
@@ -186,6 +195,7 @@ class PlaylistBlockSkipIntegrationTest {
         assertEquals(1, blockedCount, "a blocked skip must notify observers");
     }
 
+    /** Verifies that appending a playlist to a non-empty queue notifies observers and enables the next-playlist skip. */
     @Test
     void appendingPlaylistToNonEmptyQueue_notifiesObserversAndEnablesNextPlaylist() {
         // Playing the first track of playlist 1, with only playlist 2 after it.
@@ -213,6 +223,7 @@ class PlaylistBlockSkipIntegrationTest {
                 "a following playlist block now exists, so skip-next must be available");
     }
 
+    /** Verifies that a playlist skip is blocked while shuffle mode is active. */
     @Test
     void skip_whileShuffleActive_isBlocked() {
         facade.shuffleQueue(true, facade.getCurrentPlayingTrack());
@@ -226,6 +237,7 @@ class PlaylistBlockSkipIntegrationTest {
     // Helpers (mirrors PlaybackSkipIntegrationTest)
     // ------------------------------------------------------------------
 
+    /** Stops the playback timer and replaces its executor if it was shut down. */
     private void stopTimerAndResetExecutor() {
         service.stopTimer();
         try {
@@ -241,6 +253,7 @@ class PlaylistBlockSkipIntegrationTest {
         }
     }
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -257,6 +270,7 @@ class PlaylistBlockSkipIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -270,6 +284,7 @@ class PlaylistBlockSkipIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, int duration) {
         facade.addNewTrackToLibrary(title, "Artist", duration, null, null);
         return facade.getTracksFromLibrary().stream()

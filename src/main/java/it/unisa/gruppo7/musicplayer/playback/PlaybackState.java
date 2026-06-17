@@ -3,7 +3,8 @@ package it.unisa.gruppo7.musicplayer.playback;
 /**
  * Enumeration detailing the specific valid operational run states
  * of the application playback subsystem engine.
- * * @author Francesco Lemmo
+ *
+ * @author Francesco Lemmo
  */
 public enum PlaybackState {
     /**

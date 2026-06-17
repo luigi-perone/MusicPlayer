@@ -28,7 +28,8 @@ import java.util.List;
  * Controller for the playlist detail view.
  * Manages the display of tracks within a selected playlist, updates track metadata,
  * and handles UI actions such as adding/removing tracks, renaming, or deleting the playlist.
- * * @author Maxim Makhovskyy, Luigi Perone
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 public class PlaylistDetailController implements PlaybackObserver, TrackObserver {
 
@@ -305,6 +306,10 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
         }
     }
 
+    /**
+     * Handles the "manage tags" button by opening the tag dialog for the
+     * currently selected track, if any.
+     */
         @FXML
     private void onManageTagsClick() {
         Track selectedTrack = playlistTrackTable.getSelectionModel().getSelectedItem();
@@ -313,6 +318,12 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
         }
     }
 
+    /**
+     * Shows the tag selection dialog for the given track and applies the chosen
+     * tags, refreshing the table to reflect the change.
+     *
+     * @param track the track whose tags are edited
+     */
     private void showTagDialog(Track track) {
         DialogTag.show(track).ifPresent(selectedTags -> {
             facade.updateTrackTags(track, selectedTags);

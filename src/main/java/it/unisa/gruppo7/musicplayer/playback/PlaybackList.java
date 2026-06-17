@@ -75,10 +75,20 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return isShuffleActive() ? this.shuffledTracks : canonicalList();
     }
 
+    /**
+     * Sets the cursor position directly.
+     *
+     * @param index the new cursor index
+     */
     public void setCurrentIndex(int index) {
         this.currentIndex = index;
     }
 
+    /**
+     * Returns the current cursor position.
+     *
+     * @return the current index
+     */
     public int getCurrentIndex() {
         return currentIndex;
     }
@@ -86,6 +96,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     /**
      * Returns the track the cursor currently points at, or null if the cursor is
      * out of range (e.g. the queue is empty or playback has run off the end).
+     *
+     * @return the current track, or {@code null} if the cursor is out of range
      */
     public Track getCurrentTrack() {
         List<Track> trackList = getActiveList();
@@ -112,6 +124,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return false;
     }
 
+    /**
+     * Advances the cursor to the next track and returns it.
+     *
+     * @return the next track, or {@code null} if already at the end
+     */
     public Track getNextTrack() {
         List<Track> trackList = getActiveList();
         if (trackList == null || trackList.isEmpty()) return null;
@@ -120,6 +137,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return trackList.get(currentIndex);
     }
 
+    /**
+     * Moves the cursor to the previous track and returns it.
+     *
+     * @return the previous track, or {@code null} if already at the start
+     */
     public Track getPreviousTrack() {
         List<Track> trackList = getActiveList();
         if (trackList == null || trackList.isEmpty()) return null;
@@ -420,6 +442,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
 
+    /**
+     * Returns the tracks queued after the current one (the "up next" view).
+     *
+     * @return the upcoming tracks, or an empty list if none
+     */
     public List<Track> getUpNextQueue() {
         List<Track> trackList = getActiveList();
 

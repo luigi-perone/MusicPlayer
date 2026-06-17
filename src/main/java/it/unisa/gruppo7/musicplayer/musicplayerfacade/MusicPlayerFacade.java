@@ -87,6 +87,10 @@ public class MusicPlayerFacade implements PlaybackObserver {
         return instance;
     }
 
+    /**
+     * Asynchronously persists the library, unless the IO executor is unavailable
+     * (e.g. during shutdown).
+     */
     public void saveLibrary() {
         if (ioExecutor == null || ioExecutor.isShutdown()) {
             return;
@@ -342,7 +346,14 @@ public class MusicPlayerFacade implements PlaybackObserver {
     }
 
     /**
-     * Generates and saves automatically a playlist (uses Strategy Pattern)
+     * Generates and saves an automatic playlist by filtering the library with the
+     * given strategy (Strategy pattern), then registers its generation rule.
+     *
+     * @param playlistName the name of the playlist to create
+     * @param strategy     the strategy used to select the matching tracks
+     * @param rule         the rule describing how the playlist is generated
+     * @return the created playlist
+     * @throws IllegalArgumentException if no track matches the strategy
      */
     public Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy, AutomaticPlaylistRule rule) {
         // Apply filter to the library
@@ -487,6 +498,11 @@ public class MusicPlayerFacade implements PlaybackObserver {
         playbackService.playFromQueue(track);
     }
 
+    /**
+     * Returns the upcoming tracks in the playback queue, after the current one.
+     *
+     * @return the list of tracks queued to play next
+     */
     public List<Track> getUpNextQueueFrom() {
         return playbackService.getQueue().getUpNextQueue();
     }
@@ -757,7 +773,8 @@ public class MusicPlayerFacade implements PlaybackObserver {
 
     /**
      * Returns the list with the most played tracks.
-     * @param limit maximum number of tracks to return (es. 5 o 10)
+     * @param limit maximum number of tracks to return (e.g. 5 or 10)
+     * @return the most played tracks, ordered by descending play count
      */
     public List<Track> getMostPlayedTracks(int limit) {
         return library.getTracks().stream()
@@ -769,7 +786,8 @@ public class MusicPlayerFacade implements PlaybackObserver {
 
     /**
      * Returns the list with the most played playlists.
-     * @param limit maximum number of playlists to return (es. 5 o 10)
+     * @param limit maximum number of playlists to return (e.g. 5 or 10)
+     * @return the most played playlists, ordered by descending play count
      */
     public List<Playlist> getMostPlayedPlaylists(int limit) {
         return playlistService.getPlaylists().stream()
@@ -780,6 +798,12 @@ public class MusicPlayerFacade implements PlaybackObserver {
     }
     // -- Playback Observer methods --
 
+    /**
+     * Observer callback invoked when the currently playing track changes.
+     * Increments the new track's play count and persists the library.
+     *
+     * @param currentTrack the newly playing track, or {@code null} if playback stopped
+     */
     @Override
     public void onTrackChanged(Track currentTrack) {
         if (currentTrack != null){

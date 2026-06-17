@@ -26,6 +26,7 @@ public class PlaylistReorderFacadeIntegrationTest {
     private Playlist playlist;
     private Track t1, t2, t3, t4;
 
+    /** Clears the library and playlists and seeds a four-track playlist before each test. */
     @BeforeEach
     void setUp() {
         facade = MusicPlayerFacade.getInstance();
@@ -49,6 +50,7 @@ public class PlaylistReorderFacadeIntegrationTest {
         playlistService.addTracksToPlaylist(playlist, java.util.Arrays.asList(t1, t2, t3, t4));
     }
 
+    /** Pauses playback and clears the queue, keeping the shared singleton alive for other tests. */
     @AfterEach
     void tearDown() {
         // Pause ticking but keep the shared singleton's timer executor alive for other tests.
@@ -56,6 +58,7 @@ public class PlaylistReorderFacadeIntegrationTest {
         facade.getPlaybackService().getQueue().clear();
     }
 
+    /** Finds a track by title in the given list, throwing if it is absent. */
     private static Track byTitle(List<Track> tracks, String title) {
         return tracks.stream().filter(t -> t.getTitle().equals(title)).findFirst().orElseThrow(NoSuchElementException::new);
     }
@@ -66,6 +69,7 @@ public class PlaylistReorderFacadeIntegrationTest {
         facade.onTrackReorderedInPlaylist(playlist, from, to);
     }
 
+    /** Verifies that moving the playing track keeps it playing and realigns the queue. */
     @Test
     @DisplayName("Spostando la traccia in riproduzione, continua e la coda si riallinea")
     void movingPlayingTrack_continuesAndQueueReorders() {
@@ -87,6 +91,7 @@ public class PlaylistReorderFacadeIntegrationTest {
                 "Il cursore della coda deve seguire T2");
     }
 
+    /** Verifies that moving a future track realigns the queue while the playing track continues. */
     @Test
     @DisplayName("Spostando una traccia futura, la coda si riallinea e T1 continua")
     void movingFutureTrack_queueReorders() {

@@ -183,6 +183,12 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         }
     }
 
+    /**
+     * Handles the shuffle button: toggles shuffle mode for the queue, refreshes
+     * the queue view and updates the shuffle button's visual state.
+     *
+     * @param event The action event context.
+     */
     @FXML
     void onShuffle(ActionEvent event) {
         boolean newShuffleState = !musicPlayer.isShuffleActive();
@@ -196,6 +202,12 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         updateShuffleButtonState();
     }
 
+    /**
+     * Handles the repeat button: advances to the next repeat mode and updates
+     * the repeat button's visual state.
+     *
+     * @param event The action event context.
+     */
     @FXML
     void onRepeat(ActionEvent event) {
         musicPlayer.changeRepeatMode();
@@ -203,6 +215,10 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     }
 
 
+    /**
+     * Updates the shuffle button's style class and tooltip to reflect whether
+     * shuffle mode is currently active.
+     */
     private void updateShuffleButtonState() {
         boolean isActive = musicPlayer.isShuffleActive();
         shuffleButton.setText("⇄");
@@ -217,6 +233,10 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         shuffleButton.setTooltip(new Tooltip(isActive ? "Casuale: attivo" : "Casuale: disattivo"));
     }
 
+    /**
+     * Updates the repeat button's text, style class and tooltip to reflect the
+     * current {@link RepeatMode}.
+     */
     private void updateRepeatButtonState() {
         RepeatMode repeatMode = musicPlayer.getCurrentRepeatMode();
 
@@ -358,10 +378,21 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         Platform.runLater(this::updatePlaylistSkipButtonsState);
     }
 
+    /**
+     * Sets the main controller used to toggle and refresh the queue view.
+     *
+     * @param mainController the application's main controller
+     */
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
 
+    /**
+     * Reacts to a track being deleted from the library by blanking the track-info
+     * panel only when nothing is playing any more.
+     *
+     * @param track the track that was deleted
+     */
     @Override
     public void onTrackDeleted(Track track) {
         Platform.runLater(() -> {
@@ -374,6 +405,12 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
         });
     }
 
+    /**
+     * Reacts to a track being edited by refreshing the displayed metadata when
+     * the edited track is the one currently shown.
+     *
+     * @param track the track that was edited
+     */
     @Override
     public void onTrackEdit(Track track) {
         Platform.runLater(() -> {

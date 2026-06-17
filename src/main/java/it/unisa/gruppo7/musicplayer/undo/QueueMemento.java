@@ -8,7 +8,7 @@ import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
- * Immatable Memento of a {@link PlaybackList}'s state, used to
+ * Immutable Memento of a {@link PlaybackList}'s state, used to
  * restore the playback queue exactly as it was before an operation, including the
  * canonical track order, the shuffled order and the cursor position.
  *
@@ -39,11 +39,31 @@ public final class QueueMemento {
         this.shuffleActive   = shuffleActive;
     }
 
+    /**
+     * Returns a copy of the captured canonical (non-shuffled) track order.
+     *
+     * @return a defensive copy of the canonical tracks
+     */
     public List<Track> getCanonicalTracks() { return new ArrayList<>(canonicalTracks); }
 
+    /**
+     * Returns a copy of the captured shuffled track order.
+     *
+     * @return a defensive copy of the shuffled tracks
+     */
     public List<Track> getShuffledTracks() { return new ArrayList<>(shuffledTracks); }
 
+    /**
+     * Returns the captured cursor position.
+     *
+     * @return the current index at capture time
+     */
     public int getCurrentIndex() { return currentIndex; }
 
+    /**
+     * Returns whether shuffle was active at capture time.
+     *
+     * @return {@code true} if shuffle was active
+     */
     public boolean isShuffleActive() { return shuffleActive; }
 }

@@ -42,6 +42,9 @@ public class DeletePlaylistCommand implements UndoableCommand<Void> {
         return null;
     }
 
+    /**
+     * Undoes the deletion by re-inserting the playlist at its original position.
+     */
     @Override
     public void undo() {
         if (originalIndex >= 0) {

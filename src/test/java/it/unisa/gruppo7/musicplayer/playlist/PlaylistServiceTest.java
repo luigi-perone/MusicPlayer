@@ -591,6 +591,7 @@ class PlaylistServiceTest {
         private Playlist playlist;
         private Track t1, t2, t3;
 
+        /** Creates a playlist with three ordered tracks before each test. */
         @BeforeEach
         void setUp() {
             playlist = service.createPlaylist("Reorder Playlist");
@@ -602,6 +603,7 @@ class PlaylistServiceTest {
             playlist.addTrack(t3);
         }
 
+        /** Verifies that moving a track changes the playlist model order. */
         @Test
         void movingTrackChangesTheModelOrder() {
             Optional<String> error = service.reorderTrack(playlist, 0, 2);
@@ -610,6 +612,7 @@ class PlaylistServiceTest {
             assertEquals(java.util.Arrays.asList(t2, t3, t1), playlist.getPlaylist());
         }
 
+        /** Verifies that reordering to the same index is a no-op. */
         @Test
         void sameIndexIsANoOp() {
             Optional<String> error = service.reorderTrack(playlist, 1, 1);
@@ -618,17 +621,20 @@ class PlaylistServiceTest {
             assertEquals(java.util.Arrays.asList(t1, t2, t3), playlist.getPlaylist());
         }
 
+        /** Verifies that reordering a null playlist returns an error. */
         @Test
         void returnsErrorForNullPlaylist() {
             assertTrue(service.reorderTrack(null, 0, 1).isPresent());
         }
 
+        /** Verifies that reordering an unmanaged playlist returns an error. */
         @Test
         void returnsErrorForUnmanagedPlaylist() {
             Playlist ghost = new Playlist("Ghost", null);
             assertTrue(service.reorderTrack(ghost, 0, 0).isPresent());
         }
 
+        /** Verifies that reordering with out-of-range indices returns an error and keeps the order. */
         @Test
         void returnsErrorForOutOfRangeIndices() {
             assertTrue(service.reorderTrack(playlist, -1, 1).isPresent());
@@ -646,6 +652,7 @@ class PlaylistServiceTest {
             @TempDir
             Path tempDir;
 
+            /** Verifies that the reordered sequence is restored after a save/reload cycle. */
             @Test
             void reorderedSequenceIsRestoredAfterReload() {
                 Path tempFile = tempDir.resolve("reorder-playlists.json");

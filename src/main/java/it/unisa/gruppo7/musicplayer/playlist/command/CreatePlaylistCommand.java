@@ -38,6 +38,9 @@ public class CreatePlaylistCommand implements UndoableCommand<Playlist> {
         return created;
     }
 
+    /**
+     * Undoes the creation by deleting the playlist that was created.
+     */
     @Override
     public void undo() {
         if (created != null) {

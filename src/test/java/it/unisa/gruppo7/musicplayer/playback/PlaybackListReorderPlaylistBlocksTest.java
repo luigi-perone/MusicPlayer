@@ -24,6 +24,7 @@ class PlaybackListReorderPlaylistBlocksTest {
     private Playlist p1, p2;
     private Track a, b, c, d, e;
 
+    /** Creates an empty queue, two playlists and five sample tracks before each test. */
     @BeforeEach
     void setUp() {
         queue = new PlaybackList();
@@ -37,6 +38,7 @@ class PlaybackListReorderPlaylistBlocksTest {
         e = new Track("E", "Artist", 100, "Rock", Year.of(2000));
     }
 
+    /** Verifies that a reorder propagates to every copy of the playlist in the queue. */
     @Test
     void reorderPropagatesToEveryCopyOfThePlaylistInTheQueue() {
         // [A B C | A B C | D E]  ->  two P1 blocks plus one P2 block
@@ -51,6 +53,7 @@ class PlaybackListReorderPlaylistBlocksTest {
                 "the reorder must apply to every P1 block, leaving the P2 block untouched");
     }
 
+    /** Verifies that reordering one playlist leaves other playlists' blocks untouched. */
     @Test
     void reorderLeavesOtherPlaylistsUntouched() {
         queue.loadTracks(new ArrayList<>(Arrays.asList(a, b, c)), p1);
@@ -62,6 +65,7 @@ class PlaybackListReorderPlaylistBlocksTest {
         assertEquals(Arrays.asList(a, b, c, e, d), queue.getActiveList());
     }
 
+    /** Verifies that the cursor follows the playing track inside a reordered block. */
     @Test
     void cursorFollowsThePlayingTrackInsideAReorderedBlock() {
         queue.loadTracks(new ArrayList<>(Arrays.asList(a, b, c)), p1); // block 0
@@ -75,6 +79,7 @@ class PlaybackListReorderPlaylistBlocksTest {
         assertEquals(0, queue.getCurrentIndex());
     }
 
+    /** Verifies that blocks not covering both indices are skipped during a reorder. */
     @Test
     void blocksThatDoNotCoverBothIndicesAreSkipped() {
         // Two P1 blocks of different sizes: [A B C | A B]
@@ -87,6 +92,7 @@ class PlaybackListReorderPlaylistBlocksTest {
         assertEquals(Arrays.asList(b, c, a, a, b), queue.getActiveList());
     }
 
+    /** Verifies that a null source or a no-op move leaves the queue unchanged. */
     @Test
     void nullSourceOrNoOpMoveDoesNothing() {
         queue.loadTracks(new ArrayList<>(Arrays.asList(a, b, c)), p1);

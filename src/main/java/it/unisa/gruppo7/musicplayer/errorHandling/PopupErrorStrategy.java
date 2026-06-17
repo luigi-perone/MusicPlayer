@@ -5,7 +5,8 @@ import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 /**
  * An error handling strategy that displays exception messages to the user
  * via a graphical pop-up dialog.
- * * @author Maxim Makhovskyy
+ *
+ * @author Maxim Makhovskyy
  */
 public class PopupErrorStrategy implements ErrorHandlingStrategy {
 

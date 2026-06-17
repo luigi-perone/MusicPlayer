@@ -16,6 +16,11 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration tests for US-020: undoing the last action through
+ * {@link MusicPlayerFacade#undoLastAction()}, including the empty-stack and
+ * repeated-undo cases.
+ */
 class FacadeUndoActionIntegrationTest {
 
     private static final String TEST_LIBRARY_PATH  = "data/test-it-us020-facade-library.json";
@@ -29,6 +34,7 @@ class FacadeUndoActionIntegrationTest {
 
     private Track trackA, trackB, trackC;
 
+    /** Resets singletons, builds the facade and seeds a three-track playlist. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -48,6 +54,7 @@ class FacadeUndoActionIntegrationTest {
         playlistService.addTracksToPlaylist(playlist, Arrays.asList(trackA, trackB, trackC));
     }
 
+    /** Shuts down playback, clears the undo stack, deletes test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -57,6 +64,7 @@ class FacadeUndoActionIntegrationTest {
         resetSingletons();
     }
 
+    /** Verifies that undoLastAction reverts the most recent undoable command. */
     @Test
     @DisplayName("undoLastAction reverts the most recent undoable command")
     void undoLastAction_revertsLastCommand() {
@@ -70,6 +78,7 @@ class FacadeUndoActionIntegrationTest {
         assertEquals(1, playlist.indexOf(trackB), "B must be restored at its original index");
     }
 
+    /** Verifies that undoLastAction returns false when there is nothing to undo. */
     @Test
     @DisplayName("undoLastAction returns false when there is nothing to undo")
     void undoLastAction_emptyStack_returnsFalse() {
@@ -77,6 +86,7 @@ class FacadeUndoActionIntegrationTest {
         assertFalse(facade.undoLastAction(), "with an empty stack undoLastAction must return false");
     }
 
+    /** Verifies that a second consecutive undoLastAction returns false. */
     @Test
     @DisplayName("a second consecutive undoLastAction returns false")
     void undoLastAction_secondCall_returnsFalse() {
@@ -88,6 +98,7 @@ class FacadeUndoActionIntegrationTest {
         assertFalse(facade.undoLastAction(), "the second undo must find nothing left to revert");
     }
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -104,6 +115,7 @@ class FacadeUndoActionIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -117,6 +129,7 @@ class FacadeUndoActionIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

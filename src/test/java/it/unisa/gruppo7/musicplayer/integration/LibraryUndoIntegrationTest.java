@@ -32,6 +32,7 @@ class LibraryUndoIntegrationTest {
     private PlaybackService   service;
     private PlaylistService   playlistService;
 
+    /** Resets singletons and builds the facade with an empty library and playlist service. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -43,6 +44,7 @@ class LibraryUndoIntegrationTest {
         service = facade.getPlaybackService();
     }
 
+    /** Shuts down playback, deletes the test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -51,10 +53,12 @@ class LibraryUndoIntegrationTest {
         resetSingletons();
     }
 
+    /** Scenarios undoing a library addition. */
     @Nested
     @DisplayName("Undo of a library addition")
     class WhenUndoingAddition {
 
+        /** Verifies that undoing an add removes the freshly added track from the library. */
         @Test
         @DisplayName("removes the freshly added track from the library")
         void undoAdd_removesTrackFromLibrary() throws Exception {
@@ -72,10 +76,12 @@ class LibraryUndoIntegrationTest {
         }
     }
 
+    /** Scenarios undoing a cascading library removal. */
     @Nested
     @DisplayName("Undo of a library removal (cascade)")
     class WhenUndoingRemoval {
 
+        /** Verifies that undoing a removal restores the track in the library, playlist and queue. */
         @Test
         @DisplayName("restores the track in the library, in the affected playlist (at its index) and in the queue")
         void undoRemove_restoresCascade() throws Exception {
@@ -111,14 +117,17 @@ class LibraryUndoIntegrationTest {
         }
     }
 
+    /** Returns the current queue tracks as a new list for assertions. */
     private List<Track> queueTracks() {
         return new ArrayList<>(service.getQueue().getTracks());
     }
 
+    /** Reloads the test playlist from disk to verify persistence. */
     private Playlist reloadPlaylist() {
         return new PlaylistService(TEST_PLAYLIST_PATH).getPlaylist(PLAYLIST_NAME);
     }
 
+    /** Finds a track by title in the library, or returns null if absent. */
     private Track findInLibrary(String title) {
         return facade.getTracksFromLibrary().stream()
                 .filter(t -> t.getTitle().equals(title))
@@ -126,6 +135,7 @@ class LibraryUndoIntegrationTest {
                 .orElse(null);
     }
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -142,6 +152,7 @@ class LibraryUndoIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -155,6 +166,7 @@ class LibraryUndoIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

@@ -124,6 +124,11 @@ public class UndoManager {
         }
     }
 
+    /**
+     * Returns the time-to-live applied to pushed undo actions.
+     *
+     * @return the undo time-to-live
+     */
     public Duration getTtl() {
         return ttl;
     }

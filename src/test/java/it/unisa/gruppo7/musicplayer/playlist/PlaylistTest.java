@@ -13,7 +13,8 @@ import java.util.ArrayList;
  * Unit test suite for the {@link Playlist} model class.
  * Verifies initial creation states, track addition behaviors, dynamic duration aggregation,
  * and removal mutations.
- * * @author Maxim Makhovskyy, Luigi Perone
+ *
+ * @author Maxim Makhovskyy, Luigi Perone
  */
 class PlaylistTest {
 

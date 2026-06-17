@@ -13,7 +13,9 @@ import java.util.Collection;
  */
 public abstract class TrackCollection {
 
+    /** The file path used to persist this collection, or {@code null} if not set. */
     protected String path = null;
+    /** The in-memory collection backing the tracks. */
     protected Collection<Track> tracks;
 
     /**
@@ -65,6 +67,9 @@ public abstract class TrackCollection {
         return tracks;
     }
 
+    /**
+     * Removes all tracks from the underlying memory collection.
+     */
     public void clear() {
         this.tracks.clear();
     }

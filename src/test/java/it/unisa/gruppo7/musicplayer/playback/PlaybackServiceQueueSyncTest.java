@@ -167,6 +167,9 @@ class PlaybackServiceQueueSyncTest {
         }
     }
 
+    /**
+     * Test scenarios evaluating enqueueing of single tracks and playlist blocks.
+     */
     @Nested
 	class WhenEnqueuingTracks {
 		/**

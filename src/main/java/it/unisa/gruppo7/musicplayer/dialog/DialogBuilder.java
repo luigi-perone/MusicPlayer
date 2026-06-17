@@ -18,7 +18,8 @@ public interface DialogBuilder<T>{
      */
     void buildHeader();
 
-    /** * Registers the operational standard ButtonTypes on the UI DialogPane.
+    /**
+     * Registers the operational standard ButtonTypes on the UI DialogPane.
      * Must be called before buildContent() and buildResultConverter().
      */
     void buildButtons();

@@ -29,6 +29,7 @@ public class AddTracksCommand implements UndoableCommand<AdditionResult> {
      * Constructs a new AddTracksCommand.
      *
      * @param playlistService The service for managing playlists.
+     * @param playbackService The service managing the playback queue, used to snapshot/restore it on undo.
      * @param playlist        The playlist to add the tracks to.
      * @param tracks          The list of tracks to add.
      */
@@ -56,6 +57,10 @@ public class AddTracksCommand implements UndoableCommand<AdditionResult> {
         return result;
     }
 
+    /**
+     * Undoes the addition by removing the previously added tracks from the playlist
+     * and restoring the playback queue to its captured state.
+     */
     @Override
     public void undo() {
         if (addedTracks != null && !addedTracks.isEmpty()) {

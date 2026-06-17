@@ -18,8 +18,9 @@ public class PlayTrackCommand implements Command<Void> {
     /**
      * Constructs a new PlayTrackCommand.
      *
-     * @param facade The facade interface of the music player.
-     * @param track  The track to play.
+     * @param facade   The facade interface of the music player.
+     * @param playlist The playlist the track is played from.
+     * @param track    The track to play.
      */
     public PlayTrackCommand(MusicPlayerFacade facade, Playlist playlist, Track track) {
         this.facade = facade;

@@ -23,6 +23,14 @@ import javafx.stage.Popup;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+/**
+ * Utility that displays a transient "undo" toast popup over a window.
+ * <p>
+ * The toast shows a message together with an undo button and a progress bar
+ * that depletes over the undo time-to-live. Only a single toast is shown at a
+ * time; showing a new one dismisses the previous one. All methods are static
+ * and the popup is created on the JavaFX application thread.
+ */
 public final class UndoToast {
     private static final String ACCENT = "#1474ce";
 
@@ -32,13 +40,24 @@ public final class UndoToast {
     private static Runnable currentOnUndo;
     private static Node bottomBar;
 
+    /** Prevents instantiation of this utility class. */
     private UndoToast(){}
 
+    /**
+     * Shows an undo toast over the given window.
+     *
+     * @param owner   the window the toast is anchored to; ignored when {@code null}
+     * @param message the message displayed in the toast
+     * @param onUndo  the action run when the user triggers undo
+     */
     public static void show(Window owner, String message, Runnable onUndo) {
         if (owner == null) return;
         Platform.runLater(() -> display(owner, message, onUndo));
     }
 
+    /**
+     * Hides the currently displayed toast, if any, and releases its resources.
+     */
     public static void hide() {
         if (currentTimeline != null) { currentTimeline.stop(); currentTimeline = null; }
         if (currentFade != null)     { currentFade.stop();     currentFade = null; }
@@ -46,6 +65,9 @@ public final class UndoToast {
         currentOnUndo = null;
     }
 
+    /**
+     * Triggers the undo action of the currently displayed toast, if any, and hides it.
+     */
     public static void triggerUndo() {
         if (currentPopup != null && currentOnUndo != null) {
             currentOnUndo.run();
@@ -53,6 +75,13 @@ public final class UndoToast {
         }
     }
 
+    /**
+     * Builds and displays the toast on the JavaFX application thread.
+     *
+     * @param owner   the window the toast is anchored to
+     * @param message the message displayed in the toast
+     * @param onUndo  the action run when the user triggers undo
+     */
     private static void display(Window owner, String message, Runnable onUndo) {
         hide();
 
@@ -125,6 +154,13 @@ public final class UndoToast {
         timeline.play();
     }
 
+    /**
+     * Positions the toast horizontally centred and just above the playback bar.
+     *
+     * @param owner the window the toast is anchored to
+     * @param card  the toast content node, used to measure its size
+     * @param popup the popup whose position is updated
+     */
     private static void reposition(Window owner, Region card, Popup popup) {
         double cardWidth  = card.getWidth()  > 0 ? card.getWidth()  : card.getPrefWidth();
         double cardHeight = card.getHeight() > 0 ? card.getHeight() : 64;
@@ -140,6 +176,11 @@ public final class UndoToast {
         popup.setY(owner.getY() + owner.getHeight() - cardHeight - bottomInset);
     }
 
+    /**
+     * Returns the toast lifetime, derived from the undo manager's time-to-live.
+     *
+     * @return the toast duration, defaulting to 10 seconds when unavailable
+     */
     private static Duration ttl() {
         try {
             return Duration.millis(CommandInvoker.getUndoManager().getTtl().toMillis());
@@ -148,10 +189,20 @@ public final class UndoToast {
         }
     }
 
+    /**
+     * Returns whether a toast is currently displayed.
+     *
+     * @return {@code true} if a toast is showing
+     */
     public static boolean isShowing() {
         return currentPopup != null;
     }
 
+    /**
+     * Sets the playback bar node used to compute the toast's bottom offset.
+     *
+     * @param bar the playback bar node, or {@code null} to use the default offset
+     */
     public static void setBottomBar(Node bar) {
         bottomBar = bar;
     }

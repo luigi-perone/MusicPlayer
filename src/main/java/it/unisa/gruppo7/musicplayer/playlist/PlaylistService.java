@@ -38,7 +38,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Constructor that initializes the service with a custom file path.
-     * * @param path the file path where playlists will be saved and loaded from
+     *
+     * @param path the file path where playlists will be saved and loaded from
      */
     public PlaylistService(String path) {
         this.path = path;
@@ -200,7 +201,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Retrieves the list of all playlists managed by this service.
-     * * @return a list of {@link Playlist} objects
+     *
+     * @return a list of {@link Playlist} objects
      */
     public List<Playlist> getPlaylists() {
         return playlists;
@@ -208,7 +210,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Retrieves a playlist by its exact name.
-     * * @param name the name of the playlist to find
+     *
+     * @param name the name of the playlist to find
      * @return the {@link Playlist} if found, or null if it does not exist
      */
     public Playlist getPlaylist(String name) {
@@ -220,7 +223,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Retrieves the names of all managed playlists.
-     * * @return a list of strings representing the playlist names
+     *
+     * @return a list of strings representing the playlist names
      */
     public List<String> getPlaylistNames() {
         return playlists.stream()
@@ -244,7 +248,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Checks if a playlist with the given name already exists.
-     * * @param name the name to verify
+     *
+     * @param name the name to verify
      * @return true if the playlist name exists, false otherwise
      */
     private boolean existsByName(String name) {
@@ -302,7 +307,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     /**
      * Returns a string representation of the PlaylistService,
      * including its save path and the list of managed playlists.
-     * * @return a formatted string describing the service
+     *
+     * @return a formatted string describing the service
      */
     @Override
     public String toString() {
@@ -320,7 +326,8 @@ public class PlaylistService implements PersistenceService, TrackObserver {
     /**
      * Observer method triggered when a track is deleted from the library.
      * Removes the deleted track from all playlists and saves the changes.
-     * * @param track the track that was deleted
+     *
+     * @param track the track that was deleted
      */
     @Override
     public void onTrackDeleted(Track track) {
@@ -330,6 +337,13 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         this.save();
     }
 
+    /**
+     * Observer method triggered when a track is edited in the library.
+     * Re-evaluates all automatic playlists so their contents stay consistent
+     * with the updated track metadata.
+     *
+     * @param track the track that was edited
+     */
     @Override
     public void onTrackEdit(Track track) {
 
@@ -424,8 +438,16 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         save();
     }
 
-    //*Automatic rules */
+    /* Automatic rules */
 
+    /**
+     * Registers an automatic generation rule for the given playlist and persists it.
+     * From now on the playlist's contents can be (re)generated from the rule.
+     *
+     * @param playlist the playlist the rule applies to
+     * @param rule     the generation rule to associate with the playlist
+     * @throws IllegalArgumentException if the playlist or the rule is {@code null}
+     */
     public void registerAutomaticPlaylist( Playlist playlist, AutomaticPlaylistRule rule) {
         if (playlist == null || rule == null) {
             throw new IllegalArgumentException("Playlist e regola devono essere specificate");
@@ -434,6 +456,12 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         saveAutomaticRules();
     }
 
+    /**
+     * Persists the automatic playlist rules to their JSON file,
+     * creating the parent directory if necessary.
+     *
+     * @throws RuntimeException if the rules cannot be written
+     */
     private void saveAutomaticRules() {
         File file = new File(RULES_PATH);
         File parent = file.getParentFile();
@@ -449,6 +477,11 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
     }
 
+    /**
+     * Loads the automatic playlist rules from their JSON file, if it exists.
+     *
+     * @throws RuntimeException if the rules file exists but cannot be read
+     */
     private void loadAutomaticRules() {
         File file = new File(RULES_PATH);
 
@@ -473,6 +506,14 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
     }
 
+    /**
+     * Creates the generation strategy matching the rule's criterion
+     * ({@code TAG}, {@code GENRE} or {@code YEAR}).
+     *
+     * @param rule the rule describing the generation criterion
+     * @return the corresponding {@link PlaylistGenerationStrategy}
+     * @throws IllegalArgumentException if the rule's criterion is not supported
+     */
     private PlaylistGenerationStrategy createStrategy(AutomaticPlaylistRule rule) {
         switch (rule.criterion) {
             case "TAG":
@@ -495,6 +536,13 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         }
     }
 
+    /**
+     * Re-evaluates every registered automatic playlist against the given tracks,
+     * replacing the contents of any playlist whose matching tracks have changed,
+     * and persists once if at least one playlist was updated.
+     *
+     * @param allTracks the tracks to evaluate the rules against
+     */
     public void refreshAutomaticPlaylists(Collection<Track> allTracks) {
         boolean changed = false;
 

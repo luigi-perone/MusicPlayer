@@ -63,6 +63,7 @@ public class TrackTest {
         });
     }
     
+    /** Verifies that a newly created track has no tags. */
     @Test
     public void newTrackHasNoTags() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -70,6 +71,7 @@ public class TrackTest {
         assertTrue(track.getTags().isEmpty());
     }
 
+    /** Verifies that adding a tag makes the track report it as present. */
     @Test
     public void addTagAddsTagToTrack() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -79,6 +81,7 @@ public class TrackTest {
         assertTrue(track.hasTag(TrackTag.FAVOURITE));
     }
 
+    /** Verifies that removing a tag makes the track no longer report it. */
     @Test
     public void removeTagRemovesTagFromTrack() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -89,6 +92,7 @@ public class TrackTest {
         assertFalse(track.hasTag(TrackTag.EXPLICIT));
     }
 
+    /** Verifies that hasTag returns true only for tags actually present on the track. */
     @Test
     public void hasTagReturnsTrueOnlyWhenTagIsPresent() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -98,6 +102,7 @@ public class TrackTest {
         assertFalse(track.hasTag(TrackTag.FAVOURITE));
     }
 
+    /** Verifies that adding the same tag twice does not create duplicates. */
     @Test
     public void addingSameTagTwiceDoesNotCreateDuplicates() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -108,6 +113,7 @@ public class TrackTest {
         assertEquals(1, track.getTags().size());
     }
 
+    /** Verifies that setting tags to null clears them without throwing. */
     @Test
     public void setTagsWithNullClearsTagsWithoutException() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));
@@ -117,6 +123,7 @@ public class TrackTest {
         assertTrue(track.getTags().isEmpty());
     }
 
+    /** Verifies that setTags replaces the current set of tags entirely. */
     @Test
     public void setTagsReplacesCurrentTags() {
         Track track = new Track("Faithfully", "Journey", 266, "Rock", Year.of(1983));

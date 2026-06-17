@@ -24,6 +24,12 @@ public final class PlaylistMemento {
         this.tracks = new ArrayList<>(tracks);
     }
 
+    /**
+     * Returns a copy of the captured track list. Package-private: consumed by
+     * {@link Playlist#restore(PlaylistMemento)}.
+     *
+     * @return a defensive copy of the snapshot's ordered tracks
+     */
     List<Track> getTracks() {
         return new ArrayList<>(tracks);
     }

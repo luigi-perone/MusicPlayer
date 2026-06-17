@@ -13,7 +13,8 @@ import java.util.Optional;
 /**
  * Manages the communication between the model and the view of the track form.
  * Handles both creating a new track and modifying an existing track record.
- * * @author Matteo Postiglione
+ *
+ * @author Matteo Postiglione
  */
 public class TrackFormController {
 

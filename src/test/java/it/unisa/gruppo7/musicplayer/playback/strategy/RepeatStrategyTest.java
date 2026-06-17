@@ -25,6 +25,7 @@ class RepeatStrategyTest {
     private Track trk3;
     private final SkipStrategy skip = new TrackSkipStrategy();
 
+    /** Builds a three-track queue with the cursor at the first track before each test. */
     @BeforeEach
     void setUp() {
         trk1 = new Track("Song 1", "Artist", 120);
@@ -36,11 +37,13 @@ class RepeatStrategyTest {
         queue.loadTracks(tracks); // cursor starts at index 0
     }
 
+    /** Tests the sequential (no-repeat) advance behaviour. */
     @Nested
     class NoRepeat {
 
         private final RepeatStrategy strategy = new SequentialStrategy();
 
+        /** Verifies that advancing from the middle returns the next track. */
         @Test
         void advanceFromMiddleReturnsNextTrack() {
             queue.setCurrentIndex(0);
@@ -48,6 +51,7 @@ class RepeatStrategyTest {
             assertEquals(1, queue.getCurrentIndex());
         }
 
+        /** Verifies that advancing past the last track returns null. */
         @Test
         void advanceFromLastReturnsNull() {
             queue.setCurrentIndex(2);
@@ -56,11 +60,13 @@ class RepeatStrategyTest {
         }
     }
 
+    /** Tests the repeat-all advance behaviour. */
     @Nested
     class RepeatAll {
 
         private final RepeatStrategy strategy = new RepeatAllStrategy();
 
+        /** Verifies that advancing from the middle returns the next track. */
         @Test
         void advanceFromMiddleReturnsNextTrack() {
             queue.setCurrentIndex(1);
@@ -68,6 +74,7 @@ class RepeatStrategyTest {
             assertEquals(2, queue.getCurrentIndex());
         }
 
+        /** Verifies that advancing past the last track wraps to the first one. */
         @Test
         void advanceFromLastWrapsToFirstTrack() {
             queue.setCurrentIndex(2);
@@ -78,11 +85,13 @@ class RepeatStrategyTest {
         }
     }
 
+    /** Tests the repeat-one advance behaviour. */
     @Nested
     class RepeatOne {
 
         private final RepeatStrategy strategy = new RepeatOneStrategy();
 
+        /** Verifies that advancing returns the same track without moving the cursor. */
         @Test
         void advanceReturnsSameTrackWithoutMovingCursor() {
             queue.setCurrentIndex(1);
@@ -93,9 +102,11 @@ class RepeatStrategyTest {
         }
     }
 
+    /** Tests that each {@link RepeatMode} is mapped to its expected strategy. */
     @Nested
     class EnumMapping {
 
+        /** Verifies that each repeat mode carries the matching strategy implementation. */
         @Test
         void eachModeCarriesItsStrategy() {
             assertTrue(RepeatMode.OFF.getStrategy() instanceof SequentialStrategy);

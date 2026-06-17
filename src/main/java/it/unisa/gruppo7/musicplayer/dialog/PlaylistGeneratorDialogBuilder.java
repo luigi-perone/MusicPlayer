@@ -11,6 +11,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.application.Platform;
 /**
+ * Builder for the "smart playlist" generator dialog.
+ * Assembles the dialog that lets the user choose a generation criterion
+ * (genre, year or tags) and returns the choice as a {@link GenerationRequest}.
+ *
  * @author francescoLemmo
  */
 public class PlaylistGeneratorDialogBuilder implements DialogBuilder<PlaylistGeneratorDialogBuilder.GenerationRequest> {
@@ -25,13 +29,31 @@ public class PlaylistGeneratorDialogBuilder implements DialogBuilder<PlaylistGen
     private final Map<TrackTag, CheckBox> tagCheckBoxes =
         new EnumMap<>(TrackTag.class);
 
+    /**
+     * Immutable value object carrying the user's playlist-generation choices
+     * collected from the dialog.
+     */
     public static class GenerationRequest {
+        /** The chosen generation criterion (genre, year or tag). */
         public final String criterion;
+        /** The target value for genre/year criteria. */
         public final String target;
+        /** The name to give the generated playlist. */
         public final String playlistName;
+        /** The tags selected for a tag-based criterion. */
         public final Set<TrackTag> selectedTags;
+        /** How the selected tags must be combined. */
         public final TagCombinationMode combinationMode;
 
+        /**
+         * Creates a generation request.
+         *
+         * @param criterion       the chosen criterion (genre, year or tag)
+         * @param target          the target value for genre/year criteria
+         * @param playlistName    the name to give the generated playlist
+         * @param selectedTags    the tags selected for a tag-based criterion
+         * @param combinationMode how the selected tags must be combined
+         */
         public GenerationRequest(String criterion, String target, String playlistName,
                                  Set<TrackTag> selectedTags, TagCombinationMode combinationMode) {
             this.criterion = criterion;
@@ -42,6 +64,7 @@ public class PlaylistGeneratorDialogBuilder implements DialogBuilder<PlaylistGen
         }
     }
 
+    /** Creates the builder and initializes the underlying dialog with its stylesheet. */
     public PlaylistGeneratorDialogBuilder() {
         this.dialog = new Dialog<>();
 
@@ -50,7 +73,7 @@ public class PlaylistGeneratorDialogBuilder implements DialogBuilder<PlaylistGen
             String cssPath = getClass().getResource("/it/unisa/gruppo7/musicplayer/playlist/Playlist.css").toExternalForm();
             this.dialog.getDialogPane().getStylesheets().add(cssPath);
 
-            // Opzionale: puoi dare una classe generale a tutto il pannello del Dialog
+            // Optional: a general style class could be applied to the whole Dialog pane
             //this.dialog.getDialogPane().getStyleClass().add("custom-dialog-pane");
         } catch (NullPointerException e) {
             System.err.println("Attenzione: File CSS non trovato per il Dialog.");
@@ -225,6 +248,10 @@ Runnable updateTagControls = () -> {
         return dialog;
     }
 
+    /**
+     * Updates the playlist name field with a default name derived from the
+     * current criterion and target value.
+     */
         private void updateDefaultPlaylistName() {
     String target = targetField.getText().trim();
 

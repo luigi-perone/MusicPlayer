@@ -20,6 +20,7 @@ class PlaybackServiceLoadShuffleTest {
 
     private PlaybackService service;
 
+    /** Shuts down the service's timer after each test, if a service was created. */
     @AfterEach
     void tearDown() {
         if (service != null) service.shutdownTimer();

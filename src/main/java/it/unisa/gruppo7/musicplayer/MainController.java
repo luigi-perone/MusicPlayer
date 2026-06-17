@@ -160,7 +160,7 @@ public class MainController {
     }
 
     /**
-     * Mostra o nasconde il pannello laterale della coda.
+     * Shows or hides the side queue panel.
      */
     public void toggleQueueVisibility() {
         if (queue != null) {
@@ -168,7 +168,7 @@ public class MainController {
             queue.setVisible(isNowVisible);
             queue.setManaged(isNowVisible);
 
-            // Se la coda diventa visibile, aggiorniamola per sicurezza
+            // If the queue becomes visible, refresh it to be safe
             if (isNowVisible && queueController != null) {
                 queueController.refreshQueue();
             }
@@ -176,7 +176,7 @@ public class MainController {
     }
 
     /**
-     * Forza l'aggiornamento grafico della lista dei brani in coda.
+     * Forces a visual refresh of the queued tracks list.
      */
     public void refreshQueueView() {
         if (queueController != null && queue != null && queue.isVisible()) {
@@ -200,6 +200,11 @@ public class MainController {
         });
     }
 
+    /**
+     * Installs the Ctrl/Cmd+Z accelerator on the given scene, mapping it to the undo action.
+     *
+     * @param scene the scene to install the accelerator on
+     */
     private void installUndoAccelerator(Scene scene) {
         scene.getAccelerators().put(
                 new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN),
@@ -220,6 +225,11 @@ public class MainController {
         }
     }
 
+    /**
+     * Refreshes every visible view (sidebar, library, open playlist detail and queue)
+     * after a global change such as an undo, navigating back to the library if the
+     * playlist currently shown no longer exists.
+     */
     public void refreshAllViews() {
         if (playlistSidebarController != null) {
             playlistSidebarController.refreshList();

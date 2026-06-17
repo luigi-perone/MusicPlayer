@@ -6,7 +6,8 @@ import javafx.collections.ObservableList;
 /**
  * Implements the adapter pattern between the Playlist and the PlaylistDetailController.
  * It provides an ObservableList to seamlessly bind the underlying Playlist data to JavaFX UI components.
- * * @author Maxim Makhovskyy
+ *
+ * @author Maxim Makhovskyy
  */
 public class PlaylistTableAdapter {
     private final Playlist playlist;

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 
 /**
- * * Models a playlist in the music player, identified by a name 
+ * Models a playlist in the music player, identified by a name
  * and holding a collection of tracks.
  *
  * @author Maxim Makhovskyy, Luigi Perone
@@ -54,7 +54,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Gets the list of track IDs in the playlist.
-     * * @return a list of {@link UUID} representing the tracks
+     *
+     * @return a list of {@link UUID} representing the tracks
      */
     public List<UUID> getTrackIds() {
         if (this.tracks != null && !this.tracks.isEmpty()) {
@@ -67,7 +68,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Retrieves the list of tracks contained in the playlist.
-     * * @return a list of {@link Track} objects
+     *
+     * @return a list of {@link Track} objects
      */
     @JsonIgnore
     public List<Track> getPlaylist() {
@@ -76,7 +78,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Retrieves a list containing the titles of all tracks in the playlist.
-     * * @return a list of strings representing the track names
+     *
+     * @return a list of strings representing the track names
      */
     @JsonIgnore
     public List<String> getTrackNames() {
@@ -87,7 +90,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Calculates the total duration of the playlist by summing the durations of all its tracks.
-     * * @return the total duration of the playlist
+     *
+     * @return the total duration of the playlist
      */
     @JsonIgnore
     public int getTotalDuration(){
@@ -98,7 +102,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Gets the name of the playlist.
-     * * @return the playlist name
+     *
+     * @return the playlist name
      */
     public String getName(){
         return this.playlistName;
@@ -106,7 +111,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Sets the name of the playlist.
-     * * @param name the new name for the playlist
+     *
+     * @param name the new name for the playlist
      */
     public void setName(String name) {
         this.playlistName = name;
@@ -131,7 +137,8 @@ public class Playlist extends TrackCollection {
 
     /**
      * Returns a string representation of the playlist, including its name and track count.
-     * * @return a formatted string with the playlist name and number of songs
+     *
+     * @return a formatted string with the playlist name and number of songs
      */
     @Override
     public String toString() {
@@ -143,8 +150,9 @@ public class Playlist extends TrackCollection {
 
     /**
      * Gets the collection of tracks.
-     * Overridden and annotated with @JsonIgnore to prevent serialization of the base collection.
-     * * @return a collection of {@link Track} objects
+     * Overridden and annotated with {@code @JsonIgnore} to prevent serialization of the base collection.
+     *
+     * @return a collection of {@link Track} objects
      */
     @Override
     @JsonIgnore
@@ -152,6 +160,10 @@ public class Playlist extends TrackCollection {
         return super.getTracks();
     }
 
+    /**
+     * Removes all tracks from the playlist, clearing both the live track
+     * collection and the cached list of loaded track IDs.
+     */
     @Override
     public void clear() {
         super.clear();

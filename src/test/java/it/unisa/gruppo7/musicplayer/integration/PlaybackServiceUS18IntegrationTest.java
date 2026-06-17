@@ -11,18 +11,24 @@ import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration tests for US-018: modifying the playback queue during active playback.
+ * Uses hand-written stubs (instead of a mocking framework) for tracks, the timer and
+ * an observer, and covers standard additions, additions under shuffle, removal of a
+ * future track, removal of the playing track (auto-skip) and observer notifications.
+ */
 @DisplayName("US-018 — Modifica della playlist durante la riproduzione")
 public class PlaybackServiceUS18IntegrationTest {
 
     private static final int TRACK_DURATION = 200;
 
     // =========================================================================
-    // Stubs manuali per sostituire Mockito
+    // Manual stubs replacing Mockito
     // =========================================================================
 
     /**
-     * Stub manuale di Track.
-     * Nota: se Track è un'interfaccia nel tuo progetto, cambia "extends" in "implements".
+     * Manual stub of Track.
+     * Note: if Track is an interface in your project, change "extends" to "implements".
      */
     static class StubTrack extends Track {
         private final String title;
@@ -45,7 +51,7 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     /**
-     * Future fittizio per evitare eccezioni quando si ferma il timer.
+     * Dummy future used to avoid exceptions when the timer is stopped.
      */
     static class DummyScheduledFuture<V> implements ScheduledFuture<V> {
         @Override public long getDelay(TimeUnit unit) { return 0; }
@@ -58,7 +64,7 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     /**
-     * Scheduler fittizio che non esegue mai il task in background.
+     * Dummy scheduler that never runs the background task.
      */
     static class NoOpScheduler extends ScheduledThreadPoolExecutor {
         public NoOpScheduler() {
@@ -72,9 +78,10 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Observer di cattura
+    // Capturing observer
     // =========================================================================
 
+    /** Observer that records the track, state and queue-change notifications it receives. */
     static class CapturingObserver implements PlaybackObserver {
 
         final List<Track> trackChanges = new ArrayList<>();
@@ -101,43 +108,47 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Fixture comune
+    // Common fixture
     // =========================================================================
 
     private PlaybackService service;
     private CapturingObserver observer;
     private Track trackA, trackB, trackC, trackD;
 
+    /** Builds a playback service with a no-op timer, a capturing observer and stub tracks. */
     @BeforeEach
     void setUp() {
         service = new PlaybackService();
 
-        // Iniezione dello stub del timer
+        // Inject the timer stub
         service.setTimer(new NoOpScheduler());
 
         observer = new CapturingObserver();
         service.addObserver(observer);
 
-        // Creazione degli stub delle tracce
+        // Create the stub tracks
         trackA = new StubTrack("Alpha");
         trackB = new StubTrack("Beta");
         trackC = new StubTrack("Gamma");
         trackD = new StubTrack("Delta");
     }
 
+    /** Clears the queue after each test. */
     @AfterEach
     void tearDown() {
         service.getQueue().clear();
     }
 
     // =========================================================================
-    // Scenario 1 — Aggiunta standard (shuffle disattivo)
+    // Scenario 1 — Standard addition (shuffle off)
     // =========================================================================
 
+    /** Scenario 1: adding tracks with shuffle disabled. */
     @Nested
     @DisplayName("Scenario 1 — Aggiunta standard (shuffle off)")
     class AggiuntaStandard {
 
+        /** Verifies that an added track is appended to the end of the canonical queue. */
         @Test
         @DisplayName("La traccia viene inserita in fondo alla coda canonica")
         void inserisceInFondo() {
@@ -158,6 +169,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onQueueChanged deve essere notificato esattamente una volta");
         }
 
+        /** Verifies that the insertion order is preserved for multiple additions. */
         @Test
         @DisplayName("L'ordine di inserimento è preservato per aggiunte multiple")
         void ordineInserimentoPreservato() {
@@ -174,6 +186,7 @@ public class PlaybackServiceUS18IntegrationTest {
             assertSame(trackD, canonical.get(3), "D deve essere in posizione 3");
         }
 
+        /** Verifies that adding to an empty queue starts playback automatically. */
         @Test
         @DisplayName("Con coda vuota, l'aggiunta avvia automaticamente la riproduzione")
         void codaVuota_avviaRiproduzioneAutomatica() {
@@ -189,13 +202,15 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Scenario 2 — Aggiunta con shuffle attivo
+    // Scenario 2 — Addition with shuffle active
     // =========================================================================
 
+    /** Scenario 2: adding tracks while shuffle is active. */
     @Nested
     @DisplayName("Scenario 2 — Aggiunta con shuffle attivo")
     class AggiuntaConShuffle {
 
+        /** Verifies that the track is inserted after position 0 in the shuffled list. */
         @Test
         @DisplayName("La traccia viene inserita dopo la posizione 0 nella shuffled list")
         void inserisceDopoLaTraciaInCorso() {
@@ -215,6 +230,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "D non deve trovarsi in posizione 0, riservata alla traccia in corso");
         }
 
+        /** Verifies that both the canonical queue and the shuffled list grow correctly. */
         @Test
         @DisplayName("Sia la coda canonica sia la shuffled list crescono correttamente")
         void entrambeLeListeCrescono() {
@@ -230,6 +246,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "La shuffled list deve contenere 4 tracce");
         }
 
+        /** Verifies that the playing track always stays at the head of the shuffled list. */
         @Test
         @DisplayName("La traccia in corso rimane sempre in testa alla shuffled list")
         void traciaInCorsoRimanteInTesta() {
@@ -244,13 +261,15 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Scenario 3 — Rimozione traccia futura
+    // Scenario 3 — Removing a future track
     // =========================================================================
 
+    /** Scenario 3: removing a future (not currently playing) track. */
     @Nested
     @DisplayName("Scenario 3 — Rimozione traccia futura (non in riproduzione)")
     class RimozioneTracciaFutura {
 
+        /** Verifies that the track is removed and the remaining order is correct. */
         @Test
         @DisplayName("La traccia viene rimossa e l'ordine residuo è corretto")
         void rimozioneAggiorna_ordineResiduo() {
@@ -269,6 +288,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "D deve ora occupare la posizione 2");
         }
 
+        /** Verifies that the currently playing track is not interrupted. */
         @Test
         @DisplayName("La traccia in riproduzione non viene interrotta")
         void riproduzioneCorrenteNonInterrotta() {
@@ -282,6 +302,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "Lo stato deve rimanere PLAYING");
         }
 
+        /** Verifies that subsequent navigation correctly skips the removed track. */
         @Test
         @DisplayName("La navigazione successiva salta correttamente la traccia rimossa")
         void navigazioneSuccessiva_saltoCorretto() {
@@ -294,6 +315,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "Dopo la rimozione di B, playNext deve portare a C");
         }
 
+        /** Verifies that onQueueChanged is notified but onTrackChanged is not. */
         @Test
         @DisplayName("Notifica onQueueChanged ma non onTrackChanged")
         void notificaCorretta_soloQueueChanged() {
@@ -310,13 +332,15 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Scenario 4 — Rimozione traccia in riproduzione con auto-skip
+    // Scenario 4 — Removing the playing track with auto-skip
     // =========================================================================
 
+    /** Scenario 4: removing the currently playing track (auto-skip). */
     @Nested
     @DisplayName("Scenario 4 — Rimozione traccia in riproduzione (auto-skip)")
     class RimozioneTracciaInCorso {
 
+        /** Verifies that removing the playing track auto-skips to the next one. */
         @Test
         @DisplayName("Auto-skip al brano successivo quando la traccia in corso viene rimossa")
         void autoSkip_AlBranoSuccessivo() {
@@ -334,6 +358,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onTrackChanged deve essere stato notificato con B");
         }
 
+        /** Verifies that playback stops when there is no following track. */
         @Test
         @DisplayName("Stop della riproduzione quando non ci sono brani successivi")
         void stop_QuandoCodaRimanteVuota() {
@@ -347,6 +372,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onTrackChanged(null) deve essere notificato quando la coda si svuota");
         }
 
+        /** Verifies that the queue is empty after removing the only track. */
         @Test
         @DisplayName("La coda è vuota dopo la rimozione dell'unica traccia")
         void codaVuota_DopoRimozioneUnicaTraccia() {
@@ -360,6 +386,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "La upNext queue deve essere vuota");
         }
 
+        /** Verifies that with REPEAT_ONE the auto-skip advances to the next available track. */
         @Test
         @DisplayName("Con REPEAT_ONE, l'auto-skip avanza al brano successivo disponibile")
         void repeatOne_autoSkipAlSuccessivo_SeTracciaRimossa() {
@@ -373,6 +400,7 @@ public class PlaybackServiceUS18IntegrationTest {
             assertEquals(PlaybackState.PLAYING, service.getCurrentState());
         }
 
+        /** Verifies that with REPEAT_PLAYLIST and an empty queue playback stops. */
         @Test
         @DisplayName("Con REPEAT_PLAYLIST e coda vuota, la riproduzione si ferma")
         void repeatPlaylist_stop_SeRimozioneUnicaTraccia() {
@@ -387,13 +415,15 @@ public class PlaybackServiceUS18IntegrationTest {
     }
 
     // =========================================================================
-    // Propagazione eventi agli observer
+    // Event propagation to observers
     // =========================================================================
 
+    /** Verifies the events propagated to observers across queue operations. */
     @Nested
     @DisplayName("Propagazione eventi agli observer")
     class PropagazioneEventi {
 
+        /** Verifies that a standard addition notifies only onQueueChanged, not onTrackChanged. */
         @Test
         @DisplayName("Aggiunta standard: solo onQueueChanged, non onTrackChanged")
         void aggiunta_soloQueueChanged() {
@@ -408,6 +438,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onTrackChanged non deve essere notificato per un'aggiunta standard");
         }
 
+        /** Verifies that adding to an empty queue notifies only onTrackChanged (playback start). */
         @Test
         @DisplayName("Aggiunta a coda vuota: solo onTrackChanged (avvio riproduzione)")
         void aggiunta_codaVuota_soloTrackChanged() {
@@ -419,6 +450,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onTrackChanged deve essere notificato con la prima traccia");
         }
 
+        /** Verifies that removing a future track fires a single onQueueChanged. */
         @Test
         @DisplayName("Rimozione futura: un solo onQueueChanged")
         void rimozione_futura_unSoloQueueChanged() {
@@ -431,6 +463,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onQueueChanged deve essere notificato esattamente una volta");
         }
 
+        /** Verifies that removing the playing track fires onTrackChanged, not onQueueChanged. */
         @Test
         @DisplayName("Rimozione in corso: onTrackChanged con la nuova traccia, non onQueueChanged")
         void rimozioneInCorso_onTrackChanged_nonQueueChanged() {
@@ -446,6 +479,7 @@ public class PlaybackServiceUS18IntegrationTest {
                     "onQueueChanged non deve essere notificato quando scatta l'auto-skip");
         }
 
+        /** Verifies that stopping on an empty queue notifies onStateChanged with STOPPED. */
         @Test
         @DisplayName("Stop per coda vuota: onStateChanged con STOPPED")
         void stop_CodaVuota_notificaStatoStopped() {

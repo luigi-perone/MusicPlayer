@@ -41,6 +41,7 @@ class AutomaticTagPlaylistIntegrationTest {
     private InMemoryPlaylistService service;
     private MusicPlayerFacade facade;
 
+    /** Resets singletons and installs an in-memory playlist service for each test. */
     @BeforeEach
     void setUp() throws Exception {
         resetFacadeSingleton();
@@ -52,6 +53,7 @@ class AutomaticTagPlaylistIntegrationTest {
         facade = installPlaylistService(service);
     }
 
+    /** Clears the library, shuts down playback and resets the facade singleton. */
     @AfterEach
     void tearDown() throws Exception {
         library.clearLibrary();
@@ -133,6 +135,7 @@ class AutomaticTagPlaylistIntegrationTest {
         assertEquals(Collections.singletonList(track), playlist.getPlaylist());
     }
 
+    /** Creates an automatic playlist seeded with the given track and a FAVOURITE tag rule. */
     private Playlist automaticPlaylist(String name, Track track) {
         Playlist playlist = service.createPlaylist(name);
         service.addTracksToPlaylist(playlist, Collections.singletonList(track));
@@ -141,11 +144,13 @@ class AutomaticTagPlaylistIntegrationTest {
         return playlist;
     }
 
+    /** Builds an ALL-mode tag strategy matching the given tag. */
     private TagGenerationStrategy strategy(TrackTag tag) {
         return new TagGenerationStrategy(
                 EnumSet.of(tag), TagCombinationMode.ALL);
     }
 
+    /** Builds an ALL-mode tag rule matching the given tag. */
     private AutomaticPlaylistRule tagRule(TrackTag tag) {
         AutomaticPlaylistRule rule = new AutomaticPlaylistRule();
         rule.criterion = "TAG";
@@ -154,6 +159,7 @@ class AutomaticTagPlaylistIntegrationTest {
         return rule;
     }
 
+    /** Builds a Pop track with the given title and tags. */
     private Track track(String title, TrackTag... tags) {
         Track track = new Track(title, "Artist", 180, "Pop");
         for (TrackTag tag : tags) {
@@ -162,6 +168,7 @@ class AutomaticTagPlaylistIntegrationTest {
         return track;
     }
 
+    /** Replaces the facade's playlist service with the given one and rewires the observer. */
     private MusicPlayerFacade installPlaylistService(PlaylistService replacement)
             throws Exception {
         MusicPlayerFacade instance = MusicPlayerFacade.getInstance();
@@ -174,39 +181,46 @@ class AutomaticTagPlaylistIntegrationTest {
         return instance;
     }
 
+    /** Clears the {@link MusicPlayerFacade} singleton instance via reflection. */
     private void resetFacadeSingleton() throws Exception {
         Field field = MusicPlayerFacade.class.getDeclaredField("instance");
         field.setAccessible(true);
         field.set(null, null);
     }
 
+    /** Points the singleton library at the given temporary path via reflection. */
     private void setLibraryPath(Path path) throws Exception {
         Field field = library.getClass().getSuperclass().getDeclaredField("path");
         field.setAccessible(true);
         field.set(library, path.toString());
     }
 
+    /** In-memory {@link PlaylistService} that never persists to disk, used for isolated tests. */
     private static class InMemoryPlaylistService extends PlaylistService {
         InMemoryPlaylistService(String path) throws Exception {
             super(path);
             rules().clear();
         }
 
+        /** No-op: tests keep playlist state in memory and never touch project data. */
         @Override
         public void save() {
             // Tests keep playlist state in memory and never touch project data.
         }
 
+        /** Registers an automatic rule in memory without persisting it. */
         @Override
         public void registerAutomaticPlaylist(
                 Playlist playlist, AutomaticPlaylistRule rule) {
             rules().put(playlist.getName(), rule);
         }
 
+        /** Returns whether an automatic rule is registered for the given playlist name. */
         boolean hasRule(String playlistName) {
             return rules().containsKey(playlistName);
         }
 
+        /** Reflectively accesses the parent service's automatic-rules map. */
         @SuppressWarnings("unchecked")
         private Map<String, AutomaticPlaylistRule> rules() {
             try {

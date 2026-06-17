@@ -22,7 +22,7 @@ public class AdditionResult {
      * Constructs an AdditionResult with the specified number of added tracks
      * and the list of skipped track titles.
      *
-     * @param addedTracks   the trucks that were successfully added
+     * @param added         the tracks that were successfully added
      * @param skippedTitles the list of track titles that were skipped
      */
     public AdditionResult(List<Track> added, List<String> skippedTitles) {
@@ -32,26 +32,36 @@ public class AdditionResult {
 
     /**
      * Gets the number of tracks successfully added.
-     * * @return the number of inserted tracks
+     *
+     * @return the number of inserted tracks
      */
     public int getAdded() { return addedTracks.size(); }
 
-    /** * Gets the titles of tracks that were already in the playlist and therefore skipped.
-     * * @return an unmodifiable list of skipped track titles
+    /**
+     * Gets the titles of tracks that were already in the playlist and therefore skipped.
+     *
+     * @return an unmodifiable list of skipped track titles
      */
     public List<String> getSkippedTitles() { return skippedTitles; }
 
     /**
      * Checks if any tracks were successfully added.
-     * * @return true if at least one track was added, false otherwise
+     *
+     * @return true if at least one track was added, false otherwise
      */
     public boolean hasAdded()   { return !addedTracks.isEmpty(); }
 
     /**
      * Checks if any tracks were skipped during the addition process.
-     * * @return true if at least one track was skipped, false otherwise
+     *
+     * @return true if at least one track was skipped, false otherwise
      */
     public boolean hasSkipped() { return !skippedTitles.isEmpty(); }
 
+    /**
+     * Returns the tracks that were successfully added.
+     *
+     * @return an unmodifiable list of the added tracks
+     */
     public List<Track> getAddedTracks() { return addedTracks; }
 }

@@ -35,6 +35,7 @@ class PlaybackQueueIntegrationTest {
     private Track trackC;
     private Track trackNew;
 
+    /** Resets singletons and builds a facade with a playlist playing from track A. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -57,6 +58,7 @@ class PlaybackQueueIntegrationTest {
         facade.getPlaybackService().stopTimer();
     }
 
+    /** Shuts down playback, deletes the test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -65,6 +67,7 @@ class PlaybackQueueIntegrationTest {
         resetSingletons();
     }
 
+    /** Integration scenarios for adding tracks to the active playlist. */
     @Nested
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class WhenAddingTracks {
@@ -117,6 +120,7 @@ class PlaybackQueueIntegrationTest {
         }
     }
 
+    /** Integration scenarios for removing tracks from the active playlist. */
     @Nested
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class WhenRemovingTracks {
@@ -283,6 +287,7 @@ class PlaybackQueueIntegrationTest {
     // Helpers
     // ------------------------------------------------------------------
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -299,6 +304,7 @@ class PlaybackQueueIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -313,6 +319,7 @@ class PlaybackQueueIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

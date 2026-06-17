@@ -8,21 +8,28 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for {@link PlaybackService}, verifying that starting a new track
+ * replaces the current one and resets the playback timer.
+ */
 class PlaybackServiceTest {
 
     private PlaybackService playbackService;
 
+    /** Creates a fresh playback service before each test. */
     @BeforeEach
     void setUp() {
         playbackService = new PlaybackService();
     }
 
+    /** Shuts down the playback timer after each test. */
     @AfterEach
     void tearDown() {
         // Shutdown timer process
         playbackService.shutdownTimer();
     }
 
+    /** Verifies that playing a second track replaces the first and resets the elapsed time. */
     @Test
     void testPlaySecondTrackReplacesFirstAndResetsTime() {
 

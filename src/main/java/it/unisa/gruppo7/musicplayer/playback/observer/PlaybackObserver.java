@@ -7,7 +7,8 @@ import it.unisa.gruppo7.musicplayer.track.Track;
  * Interface defining an observer for tracking application playback events.
  * Provides update hooks for synchronization changes across timing counters, audio track mutations,
  * and operational engine states.
- * * @author Francesco Lemmo
+ *
+ * @author Francesco Lemmo
  */
 public interface PlaybackObserver {
 

@@ -40,6 +40,7 @@ class PlaylistPlaybackIntegrationTest {
     // Lifecycle
     // ------------------------------------------------------------------
 
+    /** Resets singletons, builds the facade and adds three sample tracks to the library. */
     @BeforeEach
     void setUp() throws Exception {
         new File(TEST_LIBRARY_PATH).delete();
@@ -55,6 +56,7 @@ class PlaylistPlaybackIntegrationTest {
         trackC = addToLibrary("US014 C", "Artist", 10);
     }
 
+    /** Shuts down playback, deletes the test files and resets singletons. */
     @AfterEach
     void tearDown() throws Exception {
         facade.shutdownPlayback();
@@ -252,6 +254,7 @@ class PlaylistPlaybackIntegrationTest {
     // Helpers
     // ------------------------------------------------------------------
 
+    /** Resets the Library and facade singletons and points the library at the test file. */
     private void resetSingletons() throws Exception {
         Field libraryInstance = Library.class.getDeclaredField("instance");
         libraryInstance.setAccessible(true);
@@ -268,6 +271,7 @@ class PlaylistPlaybackIntegrationTest {
         facadeInstance.set(null, null);
     }
 
+    /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
@@ -281,6 +285,7 @@ class PlaylistPlaybackIntegrationTest {
         return f;
     }
 
+    /** Adds a track to the library and returns the created {@link Track}. */
     private Track addToLibrary(String title, String author, int duration) {
         facade.addNewTrackToLibrary(title, author, duration, null, null);
         return facade.getTracksFromLibrary().stream()

@@ -15,18 +15,18 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration test for US-027 — sincronizzazione della coda di riproduzione quando
- * una traccia viene riordinata nella playlist attiva.
+ * Integration test for US-027: synchronization of the playback queue when a track
+ * is reordered in the active playlist.
  *
- * <p>Verifica i criteri di accettazione lato playback: riordinando una traccia la
- * coda si riallinea, e — soprattutto — il brano attualmente in riproduzione non
- * viene interrotto, sia che venga spostata una traccia futura sia la traccia in
- * corso. Il timer è sostituito da uno scheduler no-op per rendere il test
- * deterministico (stesso approccio del test US-018).</p>
+ * <p>Verifies the playback-side acceptance criteria: after reordering a track the
+ * queue realigns and, above all, the currently playing track is not interrupted,
+ * whether a future track or the playing track is moved. The timer is replaced by a
+ * no-op scheduler to make the test deterministic (same approach as the US-018 test).</p>
  */
 @DisplayName("US-027 — Riordino traccia e sincronizzazione della coda")
 public class PlaybackServiceReorderSyncTest {
 
+    /** Inert {@link ScheduledFuture} returned by {@link NoOpScheduler}. */
     static class DummyScheduledFuture<V> implements ScheduledFuture<V> {
         @Override public long getDelay(TimeUnit unit) { return 0; }
         @Override public int compareTo(Delayed o) { return 0; }
@@ -46,6 +46,7 @@ public class PlaybackServiceReorderSyncTest {
         }
     }
 
+    /** Observer that records the track changes and queue-change notifications it receives. */
     static class CapturingObserver implements PlaybackObserver {
         final List<Track> trackChanges = new ArrayList<>();
         int queueChangedCount = 0;
@@ -59,6 +60,7 @@ public class PlaybackServiceReorderSyncTest {
     private CapturingObserver observer;
     private Track a, b, c, d;
 
+    /** Builds a playback service with a no-op timer, a capturing observer and four tracks. */
     @BeforeEach
     void setUp() {
         service = new PlaybackService();
@@ -72,15 +74,18 @@ public class PlaybackServiceReorderSyncTest {
         d = new Track("D", "Artist", 100, "Rock", Year.of(2000));
     }
 
+    /** Clears the queue after each test. */
     @AfterEach
     void tearDown() {
         service.getQueue().clear();
     }
 
+    /** Scenarios reordering a future (not currently playing) track. */
     @Nested
     @DisplayName("Riordino di una traccia futura (non in riproduzione)")
     class FutureTrack {
 
+        /** Verifies that the queue realigns and the playing track is not interrupted. */
         @Test
         @DisplayName("La coda si riallinea e il brano in corso non viene interrotto")
         void queueReordered_currentTrackUntouched() {
@@ -100,6 +105,7 @@ public class PlaybackServiceReorderSyncTest {
                     "onQueueChanged deve essere notificato una volta");
         }
 
+        /** Verifies that the up-next queue reflects the new order. */
         @Test
         @DisplayName("La coda 'up next' riflette il nuovo ordine")
         void upNextReflectsNewOrder() {
@@ -111,10 +117,12 @@ public class PlaybackServiceReorderSyncTest {
         }
     }
 
+    /** Scenarios reordering the currently playing track (AC3). */
     @Nested
     @DisplayName("Riordino della traccia attualmente in riproduzione (AC3)")
     class CurrentTrack {
 
+        /** Verifies that the playing track continues and the cursor follows it to the new position. */
         @Test
         @DisplayName("Il brano continua e il cursore lo segue nella nuova posizione")
         void playingTrackContinues_cursorFollows() {
@@ -133,6 +141,7 @@ public class PlaybackServiceReorderSyncTest {
             assertEquals(PlaybackState.PLAYING, service.getCurrentState());
         }
 
+        /** Verifies that navigation after the reorder follows the new order. */
         @Test
         @DisplayName("Dopo lo spostamento, la navigazione successiva rispetta il nuovo ordine")
         void nextAfterReorder_followsNewOrder() {

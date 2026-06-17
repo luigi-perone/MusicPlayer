@@ -26,6 +26,7 @@ class PlaybackListPlaylistSkipTest {
     private PlaybackList queue;
     private Track a, b, c, d, e;
 
+    /** Builds the three-block queue [A B | C D | E] with the cursor on A. */
     @BeforeEach
     void setUp() {
         queue = new PlaybackList();
@@ -41,9 +42,11 @@ class PlaybackListPlaylistSkipTest {
         // loadTracks left the cursor on index 0 (track A, block 0).
     }
 
+    /** Tests skipping forward across playlist blocks. */
     @Nested
     class SkippingForward {
 
+        /** Verifies that skipping forward jumps to the first track of each following block. */
         @Test
         void jumpsToFirstTrackOfEachFollowingBlock() {
             assertTrue(queue.hasNextPlaylist());
@@ -53,6 +56,7 @@ class PlaybackListPlaylistSkipTest {
             assertSame(e, queue.getNextPlaylistTrack(), "next playlist start must be E");
         }
 
+        /** Verifies that skipping forward past the last block is blocked. */
         @Test
         void onLastBlock_isBlocked() {
             queue.getNextPlaylistTrack(); // -> C
@@ -63,9 +67,11 @@ class PlaybackListPlaylistSkipTest {
         }
     }
 
+    /** Tests skipping backward across playlist blocks. */
     @Nested
     class SkippingBackward {
 
+        /** Verifies that skipping backward always jumps to the start of the previous block. */
         @Test
         void alwaysJumpsToStartOfPreviousBlock() {
             queue.getNextPlaylistTrack(); // -> C
@@ -75,6 +81,7 @@ class PlaybackListPlaylistSkipTest {
             assertSame(a, queue.getPreviousPlaylistTrack(), "previous block start must be A");
         }
 
+        /** Verifies that skipping backward from mid-block goes to the start of the preceding block. */
         @Test
         void fromMiddleOfBlock_goesToStartOfPrecedingBlock() {
             assertTrue(queue.jumpTo(d), "cursor should be on D (middle of block 1)");
@@ -82,6 +89,7 @@ class PlaybackListPlaylistSkipTest {
                     "from mid-block-1 the previous block start is A");
         }
 
+        /** Verifies that skipping backward before the first block is blocked. */
         @Test
         void onFirstBlock_isBlocked() {
             assertFalse(queue.hasPreviousPlaylist(), "no block precedes the first playlist");
@@ -89,9 +97,11 @@ class PlaybackListPlaylistSkipTest {
         }
     }
 
+    /** Tests that block tracking stays consistent after queue mutations. */
     @Nested
     class BlockTrackingStaysConsistent {
 
+        /** Verifies that block navigation still works after removing a track. */
         @Test
         void afterRemovingATrack_navigationStillJumpsBetweenBlocks() {
             assertTrue(queue.removeTrack(b)); // remove B from block 0 -> [A | C D | E]

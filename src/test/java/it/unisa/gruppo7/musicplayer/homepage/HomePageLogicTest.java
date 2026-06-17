@@ -21,6 +21,12 @@ import java.util.concurrent.ExecutorService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tests for the home-page "most played" logic exposed through {@link MusicPlayerFacade}.
+ * Covers listening-history checks, ranking/filtering of top tracks and playlists, and
+ * the quick-play action. Real production data files are backed up and restored around
+ * each test so the suite never corrupts the user's library.
+ */
 public class HomePageLogicTest {
 
     private MusicPlayerFacade facade;
@@ -33,6 +39,7 @@ public class HomePageLogicTest {
     private static final Path BACKUP_TRACK_FILE = Paths.get("data/track-library.json.bak");
     private static final Path BACKUP_PLAYLIST_FILE = Paths.get("data/playlist.json.bak");
 
+    /** Backs up the production data files and resets the facade to a clean state. */
     @BeforeEach
     void setUp() throws IOException {
         // 1. Physically back up your real production data if files exist
@@ -54,6 +61,7 @@ public class HomePageLogicTest {
         facade.getPlaybackService().pause();
     }
 
+    /** Flushes background IO, clears in-memory data and restores the production files. */
     @AfterEach
     void tearDown() throws IOException {
         // 1. Safety Trick: Flush the background IO Executor using Reflection
@@ -89,10 +97,11 @@ public class HomePageLogicTest {
     }
 
 
-    //  User Listening History Check
+    /** Tests covering the listening-history checks. */
     @Nested
     class HistoryCheck {
 
+        /** Verifies that with no listening history both top lists are empty. */
         @Test
         void testGetMostPlayed_WithNoListeningHistory_ReturnsEmptyLists() {
             // Arrange
@@ -109,10 +118,11 @@ public class HomePageLogicTest {
         }
     }
 
-    // Sorting and Filtering
+    /** Tests covering the ranking and filtering of the most played items. */
     @Nested
     class RankingAndFilters {
 
+        /** Verifies that top tracks are ordered by descending play count and zero-play tracks excluded. */
         @Test
         void testGetMostPlayedTracks_OrdersDescendingAndFiltersZero() {
             // Arrange
@@ -139,6 +149,7 @@ public class HomePageLogicTest {
             assertEquals(mediumTrack, topTracks.get(1), "The track with 2 plays must be second");
         }
 
+        /** Verifies that the most played playlists respect the requested limit. */
         @Test
         void testGetMostPlayedPlaylists_RespectsLimit() {
             // Arrange
@@ -160,10 +171,11 @@ public class HomePageLogicTest {
         }
     }
 
-    // UI Play action
+    /** Tests covering the quick-play action triggered from the UI. */
     @Nested
     class QuickStartActions {
 
+        /** Verifies that quick play starts playback of the selected track immediately. */
         @Test
         void testQuickPlay_StartsInstantly() {
             // Arrange
