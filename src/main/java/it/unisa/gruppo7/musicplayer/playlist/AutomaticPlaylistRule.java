@@ -13,4 +13,36 @@ public class AutomaticPlaylistRule {
 
     public AutomaticPlaylistRule() {
     }
+
+    public String getCriterion() {
+        return criterion;
+    }
+
+    public void setCriterion(String criterion) {
+        this.criterion = criterion;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public Set<TrackTag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<TrackTag> tags) {
+        this.tags = tags;
+    }
+
+    public TagCombinationMode getCombinationMode() {
+        return combinationMode;
+    }
+
+    public void setCombinationMode(TagCombinationMode combinationMode) {
+        this.combinationMode = combinationMode;
+    }
 }

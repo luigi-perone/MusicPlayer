@@ -109,20 +109,19 @@ public class PlaylistSidebarController {
                 switch (criterion) {
                     case "Genere":
                         strategy = new GenreGenerationStrategy(target);
-                        rule.criterion = "GENRE";
-                        rule.target = target;
+                        rule.setCriterion("GENRE");
+                        rule.setTarget(target);
                         break;
                     case "Anno":
                         strategy = new YearGenerationStrategy(Integer.parseInt(target));
-                        rule.criterion = "YEAR";
-                        rule.target = target;
+                        rule.setCriterion("YEAR");
+                        rule.setTarget(target);
                         break;
                     case "Tag":
                         strategy = new TagGenerationStrategy(request.selectedTags, request.combinationMode);
-                        rule.criterion = "TAG";
-                        rule.tags = request.selectedTags;
-                        rule.combinationMode =
-                        request.combinationMode;
+                        rule.setCriterion("TAG");
+                        rule.setTags(request.selectedTags);
+                        rule.setCombinationMode(request.combinationMode);
                         break;
                     default: 
                         throw new IllegalArgumentException("Criterio non supportato");
