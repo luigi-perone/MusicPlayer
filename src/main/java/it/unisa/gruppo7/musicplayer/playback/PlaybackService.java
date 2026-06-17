@@ -7,6 +7,7 @@ import it.unisa.gruppo7.musicplayer.playback.strategy.SkipStrategy;
 import it.unisa.gruppo7.musicplayer.playback.strategy.TrackSkipStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.undo.QueueMemento;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -646,5 +647,27 @@ public class PlaybackService implements TrackObserver{
         this.simulatedTimeSeconds.set(targetSeconds);
 
         notifyTimeTick(targetSeconds);
+    }
+
+    /**
+     * Captures the current state of the playback queue for later restoration.
+     *
+     * @return a snapshot of the queue.
+     */
+    public QueueMemento captureQueueState() {
+        return queue.snapshot();
+    }
+
+    /**
+     * Restores the playback queue to a previously captured state and notifies
+     * observers so the queue views refresh. The track currently playing is left
+     * untouched (only the queue structure and cursor are restored).
+     *
+     * @param memento the queue state to restore; ignored if null.
+     */
+    public void restoreQueueState(QueueMemento memento) {
+        if (memento == null) return;
+        queue.restore(memento);
+        notifyQueueChanged();
     }
 }

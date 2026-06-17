@@ -7,6 +7,7 @@ import it.unisa.gruppo7.musicplayer.command.Command;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.AddToQueueCommand;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import javafx.scene.Node;
@@ -123,7 +124,9 @@ public class PlaylistSidebarController {
                 alert.showAndWait();
                 return;
             }
-            MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist);
+            CommandInvoker.execute(new AddToQueueCommand(
+                    MusicPlayerFacade.getInstance().getPlaybackService(),
+                    () -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist)));
 
             // Update the queue UI
             if (mainController != null) {

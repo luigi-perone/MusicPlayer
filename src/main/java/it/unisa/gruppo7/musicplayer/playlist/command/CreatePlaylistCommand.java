@@ -1,6 +1,6 @@
 package it.unisa.gruppo7.musicplayer.playlist.command;
 
-import it.unisa.gruppo7.musicplayer.command.Command;
+import it.unisa.gruppo7.musicplayer.command.UndoableCommand;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 
@@ -9,10 +9,11 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
  *
  * @author Maxim Makhovskyy, Luigi Perone
  */
-public class CreatePlaylistCommand implements Command<Playlist> {
+public class CreatePlaylistCommand implements UndoableCommand<Playlist> {
 
     private final PlaylistService service;
     private final String playlistName;
+    private Playlist created;
 
     /**
      * Constructs a new CreatePlaylistCommand.
@@ -33,6 +34,14 @@ public class CreatePlaylistCommand implements Command<Playlist> {
      */
     @Override
     public Playlist execute() throws Exception {
-        return service.createPlaylist(playlistName);
+        this.created = service.createPlaylist(playlistName);
+        return created;
+    }
+
+    @Override
+    public void undo() {
+        if (created != null) {
+            service.deletePlaylist(created);
+        }
     }
 }
