@@ -1,10 +1,8 @@
-package it.unisa.gruppo7.musicplayer.undo;
+package it.unisa.gruppo7.musicplayer.playback;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import it.unisa.gruppo7.musicplayer.playback.PlaybackList;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
@@ -31,7 +29,7 @@ public final class QueueMemento {
      * @param currentIndex    the cursor position.
      * @param shuffleActive   whether shuffle was active.
      */
-    public QueueMemento(List<Track> canonicalTracks, List<Track> shuffledTracks,
+    QueueMemento(List<Track> canonicalTracks, List<Track> shuffledTracks,
                  int currentIndex, boolean shuffleActive) {
         this.canonicalTracks = new ArrayList<>(canonicalTracks);
         this.shuffledTracks  = new ArrayList<>(shuffledTracks);

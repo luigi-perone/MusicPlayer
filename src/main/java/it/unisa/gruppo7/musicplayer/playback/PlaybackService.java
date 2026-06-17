@@ -7,7 +7,6 @@ import it.unisa.gruppo7.musicplayer.playback.strategy.SkipStrategy;
 import it.unisa.gruppo7.musicplayer.playback.strategy.TrackSkipStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
-import it.unisa.gruppo7.musicplayer.undo.QueueMemento;
 
 import java.util.ArrayList;
 import java.util.List;

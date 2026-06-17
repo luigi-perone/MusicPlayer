@@ -6,7 +6,6 @@ import it.unisa.gruppo7.musicplayer.core.TrackCollection;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
-import it.unisa.gruppo7.musicplayer.undo.QueueMemento;
 
 /**
  * Represents the playback queue of the music player.

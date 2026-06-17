@@ -5,9 +5,9 @@ import java.util.Map;
 import it.unisa.gruppo7.musicplayer.command.UndoableCommand;
 import it.unisa.gruppo7.musicplayer.library.LibraryMemento;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
+import it.unisa.gruppo7.musicplayer.playback.QueueMemento;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistMemento;
-import it.unisa.gruppo7.musicplayer.undo.QueueMemento;
 
 /**
  * Command to remove a track from the music library.
