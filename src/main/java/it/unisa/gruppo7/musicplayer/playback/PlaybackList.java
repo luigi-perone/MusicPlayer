@@ -636,7 +636,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @return a snapshot of the current queue state.
      */
     public QueueMemento snapshot() {
-        return new QueueMemento(canonicalList(), this.shuffledTracks,
+        return new QueueMementoImpl(canonicalList(), this.shuffledTracks,
                 this.currentIndex, this.isShuffleActive);
     }
 
@@ -649,10 +649,41 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      */
     public void restore(QueueMemento memento) {
         if (memento == null) return;
+
+        if (!(memento instanceof QueueMementoImpl)) {
+            throw new IllegalArgumentException("Memento not valid");
+        }
+
+        QueueMementoImpl m = (QueueMementoImpl) memento;
+
         this.tracks.clear();
-        this.tracks.addAll(memento.getCanonicalTracks());
-        this.shuffledTracks  = memento.getShuffledTracks();
-        this.isShuffleActive = memento.isShuffleActive();
-        this.currentIndex    = memento.getCurrentIndex();
+        this.tracks.addAll(m.canonicalTracks);
+        this.shuffledTracks  = new ArrayList<>(m.shuffledTracks);
+        this.isShuffleActive = m.shuffleActive;
+        this.currentIndex    = m.currentIndex;
+    }
+
+
+    private static class QueueMementoImpl implements QueueMemento {
+        private final List<Track> canonicalTracks;
+        private final List<Track> shuffledTracks;
+        private final int         currentIndex;
+        private final boolean     shuffleActive;
+
+        /**
+         * Creates a snapshot.
+         *
+         * @param canonicalTracks the canonical (non-shuffled) track order.
+         * @param shuffledTracks  the shuffled track order.
+         * @param currentIndex    the cursor position.
+         * @param shuffleActive   whether shuffle was active.
+         */
+        private QueueMementoImpl(List<Track> canonicalTracks, List<Track> shuffledTracks,
+                    int currentIndex, boolean shuffleActive) {
+            this.canonicalTracks = new ArrayList<>(canonicalTracks);
+            this.shuffledTracks  = new ArrayList<>(shuffledTracks);
+            this.currentIndex    = currentIndex;
+            this.shuffleActive   = shuffleActive;
+        }
     }
 }

@@ -203,7 +203,7 @@ public class Playlist extends TrackCollection {
      */
     @JsonIgnore
     public PlaylistMemento snapshot() {
-        return new PlaylistMemento(this.tracks);
+        return new PlaylistMementoImpl(this.tracks);
     }
 
     /**
@@ -215,7 +215,26 @@ public class Playlist extends TrackCollection {
     @JsonIgnore
     public void restore(PlaylistMemento memento) {
         if (memento == null) return;
+        if (!(memento instanceof PlaylistMementoImpl)) {
+            throw new IllegalArgumentException("Memento not valid");
+        }
+        PlaylistMementoImpl m = (PlaylistMementoImpl) memento;
         this.tracks.clear();
-        this.tracks.addAll(memento.getTracks());
+        this.tracks.addAll(m.tracks);
+    }
+
+    private static class PlaylistMementoImpl implements PlaylistMemento {
+
+        private final List<Track> tracks;
+
+        /**
+         * Creates a snapshot. Instances are produced by
+         * {@link Playlist#snapshot()}.
+         *
+         * @param tracks the ordered tracks currently in the playlist.
+         */
+        private PlaylistMementoImpl(Collection<Track> tracks) {
+            this.tracks = new ArrayList<>(tracks);
+        }
     }
 }

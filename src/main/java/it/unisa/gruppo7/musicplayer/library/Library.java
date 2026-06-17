@@ -13,8 +13,10 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import java.io.File;
 import java.io.IOException;
 import java.time.Year;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -237,7 +239,7 @@ public class Library extends TrackCollection implements PersistenceService {
      * @return a snapshot of the library state.
      */
     public LibraryMemento snapshot() {
-        return new LibraryMemento(this.tracks);
+        return new LibraryMementoImpl(this.tracks);
     }
 
     /**
@@ -248,9 +250,16 @@ public class Library extends TrackCollection implements PersistenceService {
      */
     public void restore(LibraryMemento memento) {
         if (memento == null) return;
+        
+        if (!(memento instanceof LibraryMementoImpl)) {
+            throw new IllegalArgumentException("Memento not valid");
+        }
+        LibraryMementoImpl m = (LibraryMementoImpl) memento;
+
         this.tracks.clear();
         this.signatures.clear();
-        this.tracks.addAll(memento.getTracks());
+        this.tracks.addAll(m.tracks); 
+        
         for (Track t : this.tracks) {
             this.signatures.add(generateSignature(t));
         }
@@ -268,5 +277,19 @@ public class Library extends TrackCollection implements PersistenceService {
                         .map(String::valueOf)
                         .map(p -> " - " + p)
                         .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    private static class LibraryMementoImpl implements LibraryMemento {
+        private final Set<Track> tracks;
+
+        /**
+         * Creates a snapshot. Instances are produced by
+         * {@link Library#snapshot()}.
+         *
+         * @param tracks the tracks currently in the library.
+         */
+        private LibraryMementoImpl(Collection<Track> tracks) {
+            this.tracks = new HashSet<>(tracks);
+        }
     }
 }

@@ -183,7 +183,6 @@ class PlaylistUndoIntegrationTest {
         libraryPath.setAccessible(true);
         libraryPath.set(lib, TEST_LIBRARY_PATH);
         lib.clearLibrary();
-
         Field facadeInstance = MusicPlayerFacade.class.getDeclaredField("instance");
         facadeInstance.setAccessible(true);
         facadeInstance.set(null, null);
@@ -193,11 +192,12 @@ class PlaylistUndoIntegrationTest {
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
         MusicPlayerFacade f = MusicPlayerFacade.getInstance();
 
-        Field psField = MusicPlayerFacade.class.getDeclaredField("playlistService");
+        java.lang.reflect.Field psField = MusicPlayerFacade.class.getDeclaredField("playlistService");
         psField.setAccessible(true);
 
         PlaylistService old = (PlaylistService) psField.get(f);
         f.removeObserver(old);
+        
         psField.set(f, ps);
         f.addObserver(ps);
         return f;
