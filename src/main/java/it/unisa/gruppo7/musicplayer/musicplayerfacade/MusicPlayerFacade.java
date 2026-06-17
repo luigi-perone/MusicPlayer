@@ -345,6 +345,7 @@ public class MusicPlayerFacade implements PlaybackObserver {
     public Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy, AutomaticPlaylistRule rule) {
         // Apply filter to the library
         List<Track> selectedTracks = strategy.generate(this.getTracksFromLibrary());
+        selectedTracks.sort(Comparator.comparing(Track::getTitle));
 
         // If no tracks remain after the filtering, throw an exception
         if (selectedTracks.isEmpty()) {
