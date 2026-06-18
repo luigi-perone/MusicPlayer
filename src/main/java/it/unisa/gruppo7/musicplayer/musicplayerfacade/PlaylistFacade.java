@@ -9,37 +9,37 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 
 /**
- * Vista "playlist" della facade (Interface Segregation Principle).
+ * Playlist-facing view of the facade (Interface Segregation Principle).
  * <p>
- * Raccoglie le sole operazioni di gestione delle playlist (manuali e
- * automatiche), così i consumer che operano solo sulle playlist dipendono da
- * questo contratto ristretto invece che dall'intera {@link MusicPlayerFacade}.
+ * Groups only the playlist-management operations (both manual and automatic), so
+ * consumers that work exclusively with playlists can depend on this narrow
+ * contract instead of the whole {@link MusicPlayerFacade}.
  *
  * @author Gruppo 7
  */
 public interface PlaylistFacade {
 
-    /** Crea una nuova playlist. */
+    /** Creates a new playlist. */
     Playlist createPlaylist(String name);
 
-    /** Elimina una playlist. */
+    /** Deletes a playlist. */
     Optional<String> deletePlaylist(Playlist playlist);
 
-    /** Rinomina una playlist. */
+    /** Renames a playlist. */
     Optional<String> renamePlaylist(Playlist playlist, String newName);
 
-    /** Restituisce tutte le playlist. */
+    /** Returns every playlist. */
     List<Playlist> getPlaylists();
 
-    /** Recupera una playlist per nome esatto. */
+    /** Looks up a playlist by its exact name. */
     Playlist getPlaylist(String name);
 
-    /** Restituisce le playlist più riprodotte, in ordine decrescente. */
+    /** Returns the most played playlists, in descending play-count order. */
     List<Playlist> getMostPlayedPlaylists(int limit);
 
-    /** Genera e registra una playlist automatica filtrando la libreria con la strategia. */
+    /** Generates and registers an automatic playlist by filtering the library with the strategy. */
     Playlist createAutoPlaylist(String playlistName, PlaylistGenerationStrategy strategy, AutomaticPlaylistRule rule);
 
-    /** Espone il servizio playlist sottostante. */
+    /** Exposes the underlying playlist service. */
     PlaylistService getPlaylistService();
 }
