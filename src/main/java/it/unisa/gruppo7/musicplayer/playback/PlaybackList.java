@@ -636,7 +636,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @return a snapshot of the current queue state.
      */
     public QueueMemento snapshot() {
-        return new QueueMemento(canonicalList(), this.shuffledTracks,
+        return new QueueSnapshot(canonicalList(), this.shuffledTracks,
                 this.currentIndex, this.isShuffleActive);
     }
 
@@ -648,11 +648,34 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param memento the state to restore; ignored if null.
      */
     public void restore(QueueMemento memento) {
-        if (memento == null) return;
+        if (!(memento instanceof QueueSnapshot)) return;
+        QueueSnapshot s = (QueueSnapshot) memento;
         this.tracks.clear();
-        this.tracks.addAll(memento.getCanonicalTracks());
-        this.shuffledTracks  = memento.getShuffledTracks();
-        this.isShuffleActive = memento.isShuffleActive();
-        this.currentIndex    = memento.getCurrentIndex();
+        this.tracks.addAll(s.canonicalTracks);
+        this.shuffledTracks  = new ArrayList<>(s.shuffledTracks);
+        this.isShuffleActive = s.shuffleActive;
+        this.currentIndex    = s.currentIndex;
+    }
+
+    /**
+     * /**
+     * Concrete memento: nested in the originator so that only {@link PlaybackList}
+     * can create it and read its captured state. Callers see only the empty
+     * {@link QueueMemento} interface.
+     */
+
+    private static final class QueueSnapshot implements QueueMemento {
+        private final List<Track> canonicalTracks;
+        private final List<Track> shuffledTracks;
+        private final int         currentIndex;
+        private final boolean     shuffleActive;
+
+        QueueSnapshot(List<Track> canonicalTracks, List<Track> shuffledTracks,
+                      int currentIndex, boolean shuffleActive) {
+            this.canonicalTracks = new ArrayList<>(canonicalTracks);
+            this.shuffledTracks  = new ArrayList<>(shuffledTracks);
+            this.currentIndex    = currentIndex;
+            this.shuffleActive   = shuffleActive;
+        }
     }
 }

@@ -203,7 +203,7 @@ public class Playlist extends TrackCollection {
      */
     @JsonIgnore
     public PlaylistMemento snapshot() {
-        return new PlaylistMemento(this.tracks);
+        return new PlaylistSnapshot(this.tracks);
     }
 
     /**
@@ -214,8 +214,20 @@ public class Playlist extends TrackCollection {
      */
     @JsonIgnore
     public void restore(PlaylistMemento memento) {
-        if (memento == null) return;
+        if (!(memento instanceof PlaylistSnapshot)) return;
         this.tracks.clear();
-        this.tracks.addAll(memento.getTracks());
+        this.tracks.addAll(((PlaylistSnapshot) memento).tracks);
+    }
+
+    /**
+     * Concrete memento: nested in the originator so only {@link Playlist} can
+     * create it and read its captured ordered tracks.
+     */
+    private static final class PlaylistSnapshot implements PlaylistMemento {
+        private final List<Track> tracks;
+
+        PlaylistSnapshot(Collection<Track> tracks) {
+            this.tracks = new ArrayList<>(tracks);
+        }
     }
 }

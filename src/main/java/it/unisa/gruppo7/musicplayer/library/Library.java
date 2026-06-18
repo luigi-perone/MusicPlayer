@@ -13,9 +13,11 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import java.io.File;
 import java.io.IOException;
 import java.time.Year;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -253,7 +255,7 @@ public class Library extends TrackCollection implements PersistenceService {
      * @return a snapshot of the library state.
      */
     public LibraryMemento snapshot() {
-        return new LibraryMemento(this.tracks);
+        return new LibrarySnapshot(this.tracks);
     }
 
     /**
@@ -263,12 +265,25 @@ public class Library extends TrackCollection implements PersistenceService {
      * @param memento the state to restore; ignored if null.
      */
     public void restore(LibraryMemento memento) {
-        if (memento == null) return;
+        if (!(memento instanceof LibrarySnapshot)) return;
+        LibrarySnapshot s = (LibrarySnapshot) memento;
         this.tracks.clear();
         this.signatures.clear();
-        this.tracks.addAll(memento.getTracks());
+        this.tracks.addAll(s.tracks);
         for (Track t : this.tracks) {
             this.signatures.add(generateSignature(t));
+        }
+    }
+
+    /**
+     * Concrete memento (GoF): nested in the originator so only {@link Library} can
+     * create it and read its captured state.
+     */
+    private static final class LibrarySnapshot implements LibraryMemento {
+        private final Set<Track> tracks;
+
+        LibrarySnapshot(Collection<Track> tracks) {
+            this.tracks = new HashSet<>(tracks);
         }
     }
 

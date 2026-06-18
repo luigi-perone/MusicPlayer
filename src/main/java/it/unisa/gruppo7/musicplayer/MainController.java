@@ -134,8 +134,8 @@ public class MainController {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/LibraryView.fxml"));
                 libraryView = loader.load();
 
-                LibraryController libController = loader.getController();
-                libController.setMainController(this);
+                libraryController = loader.getController();
+                libraryController.setMainController(this);
             }
 
             if (contentArea != null) {
