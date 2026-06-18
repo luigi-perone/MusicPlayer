@@ -333,13 +333,22 @@ public class PlaybackService implements TrackObserver{
      * @param source The playlist the tracks come from, or null for an ad-hoc append.
      */
     public void appendSource(List<Track> tracks, Playlist source) {
-        boolean wasEmpty = queue.getTrackCount() == 0;
+        if (tracks == null || tracks.isEmpty()) {
+            notifyQueueChanged();
+            return;
+        }
+        // Position of the first appended track within the active list, captured before
+        // the append so playback can start there by index. Locating it by value
+        // (indexOf) would send the cursor back to an earlier duplicate, restarting the
+        // queue from the wrong place (often index 0).
+        int blockStart = queue.getActiveList().size();
         queue.appendTracks(tracks, source);
-        if (wasEmpty && !tracks.isEmpty()) {
-            queue.setCurrentIndex(0);
-            play(tracks.get(0));
+        if (isIdle()) {
+            // Nothing is actively playing: start with the first track just appended.
+            queue.setCurrentIndex(blockStart);
+            play(queue.getActiveList().get(blockStart));
         } else {
-            // Appending to a non-empty queue: the current track is unchanged, so notify
+            // Appending while playing/paused: the current track is unchanged, so notify
             // observers explicitly so the UI (skip-playlist buttons, up-next panel) refreshes.
             notifyQueueChanged();
         }
@@ -432,6 +441,17 @@ public class PlaybackService implements TrackObserver{
      */
     public PlaybackState getCurrentState() {
         return currentState;
+    }
+
+    /**
+     * Tells whether the player is idle, i.e. nothing is actively playing or paused.
+     * Used to decide whether appending to the queue should auto-start playback.
+     *
+     * @return true if the player is stopped or has just started up.
+     */
+    private boolean isIdle() {
+        return currentState == PlaybackState.STOPPED
+                || currentState == PlaybackState.START_UP;
     }
 
     /**

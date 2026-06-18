@@ -11,7 +11,6 @@ import it.unisa.gruppo7.musicplayer.dialog.PlaylistGeneratorDialogBuilder;
 import it.unisa.gruppo7.musicplayer.errorHandling.ErrorHandlingStrategy;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
 import it.unisa.gruppo7.musicplayer.playback.AddToQueueCommand;
-import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
 import it.unisa.gruppo7.musicplayer.playlist.command.CreatePlaylistCommand;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.GenerationCriterion;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
@@ -230,16 +229,11 @@ public class PlaylistSidebarController {
                     MusicPlayerFacade.getInstance().getPlaybackService(),
                     () -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist)));
 
-            // Update the queue UI
+            // Update the queue UI. Auto-start (when nothing is playing) is handled by
+            // the playback service, which begins at the first track of the appended block.
             if (mainController != null) {
                 mainController.refreshQueueView();
             }
-
-            PlaybackState playbackState = MusicPlayerFacade.getInstance().getPlaybackState();
-            if (playbackState == PlaybackState.STOPPED || playbackState == PlaybackState.START_UP) {
-                MusicPlayerFacade.getInstance().playFromQueue(playlist.getPlaylist().get(0));
-            }
-
         });
 
         contextMenu.getItems().addAll(playItem, appendItem);

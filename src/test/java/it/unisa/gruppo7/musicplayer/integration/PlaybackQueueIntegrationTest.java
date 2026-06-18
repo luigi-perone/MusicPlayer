@@ -258,6 +258,34 @@ class PlaybackQueueIntegrationTest {
         }
 
         /**
+         * Regression for the bug where enqueuing a playlist while the player was idle
+         * restarted playback from index zero of the queue. Playback must instead begin
+         * at the first track of the appended block, located by position so an earlier
+         * duplicate of that track does not send the cursor back to the start.
+         */
+        @Test
+        @Order(4)
+        void playlist_stoppedWithDuplicateFirstTrack_startsAtAppendedBlock() {
+            // Queue is A -> B -> C; stop so the player is idle with a non-empty queue.
+            facade.getPlaybackService().stop();
+
+            // The appended playlist starts with A, which already sits at queue index 0.
+            Playlist dup = playlistService.createPlaylist("DupFirst-IT");
+            playlistService.addTracksToPlaylist(dup, Arrays.asList(trackA, trackNew));
+
+            facade.appendPlaylistToQueue(dup);
+            facade.getPlaybackService().stopTimer();
+
+            // Queue is now A -> B -> C -> A -> New; playback must start at the appended A (index 3).
+            assertEquals(PlaybackState.PLAYING, facade.getPlaybackState(),
+                    "Enqueuing a playlist while idle must auto-start playback");
+            assertEquals(3, facade.getPlaybackService().getQueue().getCurrentIndex(),
+                    "Playback must start at the appended block, not an earlier duplicate at index 0");
+            assertSame(trackA, facade.getCurrentPlayingTrack(),
+                    "The first track of the appended playlist must be the current track");
+        }
+
+        /**
          * Verifies that enqueuing a track when the player is stopped
          * (empty queue) automatically starts playback on the enqueued track.
          */
