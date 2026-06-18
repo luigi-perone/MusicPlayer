@@ -132,17 +132,26 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
                 @Override
                 protected void updateItem(Track item, boolean empty) {
                     super.updateItem(item, empty);
+
                     getStyleClass().remove("playing-row");
-                    if (!empty && item != null && item.equals(playingTrack)) {
+
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                        return;
+                    }
+
+                    if (item.equals(playingTrack)) {
                         getStyleClass().add("playing-row");
                     }
                 }
             };
+
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     musicPlayer.playFromLibraryFrom(row.getItem());
                 }
-            });           
+            });
             return row;
         });
 

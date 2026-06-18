@@ -13,6 +13,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import java.io.File;
 import java.io.IOException;
 import java.time.Year;
+import java.util.Comparator;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public class Library extends TrackCollection implements PersistenceService {
 
-    private static Library instance;
+    private static volatile Library instance;
     private static final String DEFAULT_PATH = "data/track-library.json";
 
     private transient HashSet<String> signatures = new HashSet<>();
@@ -60,7 +61,7 @@ public class Library extends TrackCollection implements PersistenceService {
      *
      * @return The active singleton Library instance.
      */
-    public static Library getInstance() {
+    public static synchronized Library getInstance() {
         if (instance == null) {
             instance = new Library();
         }
@@ -108,6 +109,21 @@ public class Library extends TrackCollection implements PersistenceService {
                 .filter(t -> t.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Returns the most played tracks, ordered by descending play count.
+     * Tracks that have never been played are excluded.
+     *
+     * @param limit the maximum number of tracks to return.
+     * @return the most played tracks, at most {@code limit} entries.
+     */
+    public List<Track> getMostPlayed(int limit) {
+        return tracks.stream()
+                .filter(track -> track.getPlayCount() > 0)
+                .sorted(Comparator.comparingInt(Track::getPlayCount).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     /**
