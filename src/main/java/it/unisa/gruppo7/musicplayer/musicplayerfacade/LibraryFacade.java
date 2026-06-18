@@ -10,40 +10,40 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 
 /**
- * Vista "libreria" della facade (Interface Segregation Principle).
+ * Library-facing view of the facade (Interface Segregation Principle).
  * <p>
- * Raccoglie le sole operazioni di gestione della libreria dei brani: i consumer
- * che lavorano esclusivamente sulla libreria possono dipendere da questo
- * contratto ristretto invece che dall'intera {@link MusicPlayerFacade}.
+ * Groups only the track-library management operations, so consumers that work
+ * exclusively with the library can depend on this narrow contract instead of the
+ * whole {@link MusicPlayerFacade}.
  *
  * @author Gruppo 7
  */
 public interface LibraryFacade {
 
-    /** Crea e aggiunge un brano alla libreria. */
+    /** Creates a track and adds it to the library. */
     boolean addNewTrackToLibrary(String title, String author, int duration, String genre, Year publicationYear);
 
-    /** Rimuove un brano dalla libreria. */
+    /** Removes a track from the library. */
     boolean removeTrackFromLibrary(Track track);
 
-    /** Modifica i metadati di un brano della libreria. */
+    /** Updates the metadata of a track in the library. */
     boolean modifyTrack(Track track, String newTitle, String newAuthor, int newDuration, String newGenre, Year newPublicationYear);
 
-    /** Aggiorna i tag predefiniti di un brano. */
+    /** Updates the predefined tags assigned to a track. */
     void updateTrackTags(Track track, Set<TrackTag> tags);
 
-    /** Recupera un brano dalla libreria tramite UUID. */
+    /** Looks up a track in the library by its UUID. */
     Track getTrackFromLibrary(UUID id);
 
-    /** Restituisce tutti i brani della libreria. */
+    /** Returns every track currently in the library. */
     Collection<Track> getTracksFromLibrary();
 
-    /** Restituisce i brani più riprodotti, in ordine decrescente. */
+    /** Returns the most played tracks, in descending play-count order. */
     List<Track> getMostPlayedTracks(int limit);
 
-    /** Restituisce una rappresentazione testuale della libreria. */
+    /** Returns a textual representation of the library. */
     String printLibrary();
 
-    /** Svuota la libreria. */
+    /** Removes all tracks from the library. */
     void clearLibrary();
 }

@@ -1,24 +1,24 @@
 package it.unisa.gruppo7.musicplayer.core;
 
 /**
- * Utility per la formattazione di durate temporali.
+ * Utility for formatting time durations.
  * <p>
- * Estrae dalla facade la formattazione "MM:SS", che è una responsabilità di
- * presentazione e non di coordinamento dei sottosistemi.
+ * Extracts the "MM:SS" formatting out of the facade: rendering a duration for
+ * display is a presentation concern, not part of coordinating the subsystems.
  *
  * @author Gruppo 7
  */
 public final class TimeFormatUtil {
 
     private TimeFormatUtil() {
-        // classe di utilità: non istanziabile
+        // Utility class: not meant to be instantiated.
     }
 
     /**
-     * Formatta una durata in secondi nel formato "MM:SS".
+     * Formats a duration given in seconds as "MM:SS".
      *
-     * @param totalSeconds la durata totale in secondi.
-     * @return la durata formattata come "MM:SS" con zero-padding.
+     * @param totalSeconds the total duration in seconds.
+     * @return the duration formatted as zero-padded "MM:SS".
      */
     public static String formatDuration(int totalSeconds) {
         int minutes = totalSeconds / 60;

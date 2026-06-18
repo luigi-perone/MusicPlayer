@@ -9,82 +9,81 @@ import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
- * Vista "riproduzione" della facade (Interface Segregation Principle).
+ * Playback-facing view of the facade (Interface Segregation Principle).
  * <p>
- * Raccoglie i comandi di controllo della riproduzione e della coda, così i
- * consumer di playback dipendono da questo contratto ristretto invece che
- * dall'intera {@link MusicPlayerFacade}.
+ * Groups the playback- and queue-control commands, so playback consumers can
+ * depend on this narrow contract instead of the whole {@link MusicPlayerFacade}.
  *
  * @author Gruppo 7
  */
 public interface PlaybackFacade {
 
-    /** Avvia la riproduzione del brano indicato. */
+    /** Starts playing the given track. */
     void playTrack(Track track);
 
-    /** Mette in pausa la riproduzione. */
+    /** Pauses the current playback. */
     void pauseTrack();
 
-    /** Riprende la riproduzione. */
+    /** Resumes a paused playback. */
     void resumeTrack();
 
-    /** Avvia la riproduzione dell'intera libreria. */
+    /** Starts playing the whole library. */
     void playFromLibrary();
 
-    /** Avvia la riproduzione di una playlist. */
+    /** Starts playing the given playlist. */
     void playFromPlaylist(Playlist playlist);
 
-    /** Avvia la riproduzione della libreria a partire da un brano. */
+    /** Starts playing the library from the given track onwards. */
     void playFromLibraryFrom(Track track);
 
-    /** Avvia la riproduzione di una playlist a partire da un brano. */
+    /** Starts playing the given playlist from the given track onwards. */
     void playFromPlaylistFrom(Playlist playlist, Track track);
 
-    /** Riproduce un brano già presente in coda. */
+    /** Jumps to and plays a track already present in the queue. */
     void playFromQueue(Track track);
 
-    /** Accoda tutti i brani di una playlist. */
+    /** Appends all tracks of a playlist to the end of the queue. */
     void appendPlaylistToQueue(Playlist playlist);
 
-    /** Accoda un singolo brano. */
+    /** Appends a single track to the end of the queue. */
     void appendTrackToQueue(Track track);
 
-    /** Restituisce i brani successivi in coda. */
+    /** Returns the tracks queued after the current one. */
     List<Track> getUpNextQueueFrom();
 
-    /** Salta al blocco playlist successivo in coda. */
+    /** Skips forward to the first track of the next playlist block in the queue. */
     void skipToNextPlaylist();
 
-    /** Salta al blocco playlist precedente in coda. */
+    /** Skips back to the first track of the previous playlist block in the queue. */
     void skipToPreviousPlaylist();
 
-    /** @return true se esiste un blocco playlist successivo. */
+    /** @return true if a following playlist block exists in the queue. */
     boolean hasNextPlaylist();
 
-    /** @return true se esiste un blocco playlist precedente. */
+    /** @return true if a preceding playlist block exists in the queue. */
     boolean hasPreviousPlaylist();
 
-    /** Attiva/disattiva lo shuffle relativamente al brano corrente. */
+    /** Toggles shuffle, keeping the given track as the current one. */
     void shuffleQueue(boolean shuffleState, Track track);
 
-    /** @return true se lo shuffle è attivo. */
+    /** @return true if shuffle is currently active. */
     boolean isShuffleActive();
 
-    /** @return la modalità di ripetizione corrente. */
+    /** @return the current repeat mode. */
     RepeatMode getCurrentRepeatMode();
 
-    /** Cicla la modalità di ripetizione. */
+    /** Cycles to the next repeat mode. */
     void changeRepeatMode();
 
-    /** @return lo stato di riproduzione corrente. */
+    /** @return the current playback state. */
     PlaybackState getPlaybackState();
 
-    /** @return il brano attualmente in riproduzione, o null. */
+    /** @return the track currently playing, or null if none. */
     Track getCurrentPlayingTrack();
 
-    /** Salta a un punto specifico del brano corrente. */
+    /** Seeks to a specific position within the current track. */
     void seekTo(int seconds);
 
-    /** Espone il servizio di playback sottostante. */
+    /** Exposes the underlying playback service. */
     PlaybackService getPlaybackService();
 }

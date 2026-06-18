@@ -1,21 +1,21 @@
 package it.unisa.gruppo7.musicplayer.playlist.strategy;
 
 /**
- * Criterio di generazione di una playlist automatica.
+ * Criterion used to generate an automatic playlist.
  * <p>
- * Ogni valore porta l'etichetta UI (in italiano) mostrata nel dialog di
- * generazione: in questo modo la mappatura etichetta&rarr;criterio vive in un
- * unico punto ({@link #fromLabel(String)}) invece di essere ripetuta nei
- * controller. Sostituisce il precedente criterio "stringly-typed".
+ * Each value carries the user-facing UI label (in Italian) shown in the
+ * generation dialog, so the label&rarr;criterion mapping lives in a single place
+ * ({@link #fromLabel(String)}) instead of being repeated across controllers.
+ * Replaces the previous "stringly-typed" criterion.
  *
  * @author Gruppo 7
  */
 public enum GenerationCriterion {
-    /** Generazione per genere musicale. */
+    /** Generate by music genre. */
     GENRE("Genere"),
-    /** Generazione per anno di pubblicazione. */
+    /** Generate by publication year. */
     YEAR("Anno"),
-    /** Generazione per tag. */
+    /** Generate by tag. */
     TAG("Tag");
 
     private final String label;
@@ -25,18 +25,18 @@ public enum GenerationCriterion {
     }
 
     /**
-     * @return l'etichetta UI (in italiano) associata al criterio.
+     * @return the user-facing UI label (in Italian) associated with this criterion.
      */
     public String getLabel() {
         return label;
     }
 
     /**
-     * Risolve il criterio a partire dall'etichetta UI mostrata nel dialog.
+     * Resolves the criterion from the UI label shown in the dialog.
      *
-     * @param label l'etichetta (es. "Genere", "Anno", "Tag")
-     * @return il criterio corrispondente
-     * @throws IllegalArgumentException se l'etichetta non è riconosciuta
+     * @param label the label (e.g. "Genere", "Anno", "Tag")
+     * @return the matching criterion
+     * @throws IllegalArgumentException if the label is not recognized
      */
     public static GenerationCriterion fromLabel(String label) {
         for (GenerationCriterion criterion : values()) {
