@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Structural Facade that centralizes and coordinates core music player sub-systems
  * including audio playback, library index curation, and custom playlist profiles.
- * <p>
  * The facade is created once at the application composition root and injected into the
  * consumers (via a JavaFX controller factory for the controllers), following the
  * Dependency Inversion Principle instead of relying on a global Singleton.

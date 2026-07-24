@@ -7,14 +7,12 @@ import javafx.util.Callback;
 
 /**
  * JavaFX controller factory performing constructor-based dependency injection.
- * <p>
  * When a controller declares a public constructor accepting a {@link MusicPlayerFacade},
  * the single shared facade instance is injected into it; otherwise the controller's
  * no-argument constructor is used. This lets the application wire one facade instance
  * into the whole FXML controller graph without any static/global access point,
  * replacing the former Singleton with proper dependency injection.
  *
- * @author Gruppo 7
  */
 public class ControllerFactory implements Callback<Class<?>, Object> {
 
