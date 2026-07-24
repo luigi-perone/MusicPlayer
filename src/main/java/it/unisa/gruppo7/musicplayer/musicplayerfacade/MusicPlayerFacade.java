@@ -63,17 +63,20 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
     /**
      * Private constructor initializing subsystems and registering internal dependencies.
      */
-    private MusicPlayerFacade() {
-        this.library = Library.getInstance();
-        this.playlistService = new PlaylistService();
-        this.playbackService = new PlaybackService();
-
+    private MusicPlayerFacade(Library library, PlaylistService playlistService, PlaybackService playbackService) {
+        this.library = library;
+        this.playlistService = playlistService;
+        this.playbackService = playbackService;
         this.ioExecutor = Executors.newSingleThreadExecutor();
 
         this.playbackService.addObserver(this);
         this.addObserver(this.playlistService);
         this.addObserver(this.playbackService);
+    }
 
+    // public constructor
+    public MusicPlayerFacade() {
+        this(Library.getInstance(), new PlaylistService(), new PlaybackService());
     }
 
     /**
