@@ -7,6 +7,7 @@ import it.unisa.gruppo7.musicplayer.library.Library;
 import it.unisa.gruppo7.musicplayer.library.LibraryMemento;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playback.QueueMemento;
 import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
 import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
@@ -219,7 +220,7 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
         }
         return success;
     }
-    
+
     /**
      * Updates the predefined visual tags assigned to a track and persists the library.
      *
@@ -563,6 +564,57 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      */
     public void changeRepeatMode() {
         playbackService.setRepeatMode(playbackService.getRepeatMode().next());
+    }
+
+    /**
+     * Registers a playback observer so it receives playback state, time and
+     * track-change events, without exposing the underlying playback service.
+     *
+     * @param observer the playback observer to register.
+     */
+    public void addPlaybackObserver(PlaybackObserver observer) {
+        playbackService.addObserver(observer);
+    }
+
+    /**
+     * Unregisters a previously registered playback observer.
+     *
+     * @param observer the playback observer to remove.
+     */
+    public void removePlaybackObserver(PlaybackObserver observer) {
+        playbackService.removeObserver(observer);
+    }
+
+    /**
+     * Advances playback to the next track in the queue.
+     */
+    public void playNext() {
+        playbackService.playNext();
+    }
+
+    /**
+     * Returns playback to the previous track in the queue.
+     */
+    public void playPrevious() {
+        playbackService.playPrevious();
+    }
+
+    /**
+     * Captures the current state of the playback queue for later restoration on undo.
+     *
+     * @return a snapshot of the queue.
+     */
+    public QueueMemento captureQueueState() {
+        return playbackService.captureQueueState();
+    }
+
+    /**
+     * Restores the playback queue to a previously captured state.
+     *
+     * @param memento the queue state to restore.
+     */
+    public void restoreQueueState(QueueMemento memento) {
+        playbackService.restoreQueueState(memento);
     }
 
     /**

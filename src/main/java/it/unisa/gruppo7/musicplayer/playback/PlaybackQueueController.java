@@ -42,7 +42,7 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
      */
     @FXML
     public void initialize() {
-        musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addPlaybackObserver(this);
         musicPlayer.addObserver(this);
 
 

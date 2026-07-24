@@ -4,7 +4,9 @@ import java.util.List;
 
 import it.unisa.gruppo7.musicplayer.playback.PlaybackService;
 import it.unisa.gruppo7.musicplayer.playback.PlaybackState;
+import it.unisa.gruppo7.musicplayer.playback.QueueMemento;
 import it.unisa.gruppo7.musicplayer.playback.RepeatMode;
+import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
 import it.unisa.gruppo7.musicplayer.track.Track;
 
@@ -83,6 +85,24 @@ public interface PlaybackFacade {
 
     /** Seeks to a specific position within the current track. */
     void seekTo(int seconds);
+
+    /** Registers a playback observer without exposing the underlying service. */
+    void addPlaybackObserver(PlaybackObserver observer);
+
+    /** Unregisters a previously registered playback observer. */
+    void removePlaybackObserver(PlaybackObserver observer);
+
+    /** Advances playback to the next track in the queue. */
+    void playNext();
+
+    /** Returns playback to the previous track in the queue. */
+    void playPrevious();
+
+    /** Captures the current playback-queue state for later restoration on undo. */
+    QueueMemento captureQueueState();
+
+    /** Restores the playback queue to a previously captured state. */
+    void restoreQueueState(QueueMemento memento);
 
     /** Exposes the underlying playback service. */
     PlaybackService getPlaybackService();

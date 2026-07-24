@@ -66,7 +66,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
      */
     @FXML
     public void initialize() {
-        musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addPlaybackObserver(this);
         musicPlayer.addObserver(this);
 
         updateShuffleButtonState();
@@ -141,7 +141,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
      */
     @FXML
     void onNextTrack(ActionEvent event) {
-        musicPlayer.getPlaybackService().playNext();
+        musicPlayer.playNext();
     }
 
     /**
@@ -152,7 +152,7 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
      */
     @FXML
     void onPreviousTrack(ActionEvent event) {
-        musicPlayer.getPlaybackService().playPrevious();
+        musicPlayer.playPrevious();
     }
 
     /**

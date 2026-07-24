@@ -145,7 +145,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
      */
     public void setMusicPlayer(MusicPlayerFacade facade) {
         this.facade = facade;
-        facade.getPlaybackService().addObserver(this);
+        facade.addPlaybackObserver(this);
         facade.addObserver(this);
 
         this.playingTrack = facade.getCurrentPlayingTrack();

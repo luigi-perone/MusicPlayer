@@ -160,7 +160,7 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
             return row;
         });
 
-        musicPlayer.getPlaybackService().addObserver(this);
+        musicPlayer.addPlaybackObserver(this);
         musicPlayer.addObserver(this);
     }
 
