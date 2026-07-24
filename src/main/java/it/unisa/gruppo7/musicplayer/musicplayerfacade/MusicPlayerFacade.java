@@ -495,7 +495,7 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      * @return the list of tracks queued to play next
      */
     public List<Track> getUpNextQueueFrom() {
-        return playbackService.getQueue().getUpNextQueue();
+        return playbackService.getUpNextQueue();
     }
 
     /**
@@ -518,14 +518,14 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      * @return true if there is a following playlist block to skip to.
      */
     public boolean hasNextPlaylist() {
-        return playbackService.getQueue().hasNextPlaylist();
+        return playbackService.hasNextPlaylist();
     }
 
     /**
      * @return true if there is a preceding playlist block to skip to.
      */
     public boolean hasPreviousPlaylist() {
-        return playbackService.getQueue().hasPreviousPlaylist();
+        return playbackService.hasPreviousPlaylist();
     }
 
     // --- Playback mode methods ---
@@ -537,7 +537,7 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      * @param track        The currently active track to base the shuffle operations around.
      */
     public void shuffleQueue(boolean shuffleState, Track track) {
-        playbackService.getQueue().setShuffle(shuffleState, track);
+        playbackService.setShuffle(shuffleState, track);
     }
 
     /**
@@ -546,7 +546,7 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      * @return true if shuffle is active, false otherwise.
      */
     public boolean isShuffleActive() {
-        return playbackService.getQueue().isShuffleActive();
+        return playbackService.isShuffleActive();
     }
 
     /**

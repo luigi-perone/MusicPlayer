@@ -417,6 +417,46 @@ public class PlaybackService implements TrackObserver{
     }
 
     /**
+     * Returns the tracks queued after the current one.
+     *
+     * @return the up-next tracks in the queue.
+     */
+    public List<Track> getUpNextQueue() {
+        return this.queue.getUpNextQueue();
+    }
+
+    /**
+     * @return true if the queue has a following playlist block to skip to.
+     */
+    public boolean hasNextPlaylist() {
+        return this.queue.hasNextPlaylist();
+    }
+
+    /**
+     * @return true if the queue has a preceding playlist block to skip to.
+     */
+    public boolean hasPreviousPlaylist() {
+        return this.queue.hasPreviousPlaylist();
+    }
+
+    /**
+     * Toggles shuffle on the queue, keeping the given track as the current one.
+     *
+     * @param shuffleState true to enable shuffle, false to disable it.
+     * @param currentTrack the track to keep as current while reordering.
+     */
+    public void setShuffle(boolean shuffleState, Track currentTrack) {
+        this.queue.setShuffle(shuffleState, currentTrack);
+    }
+
+    /**
+     * @return true if shuffle is currently active on the queue.
+     */
+    public boolean isShuffleActive() {
+        return this.queue.isShuffleActive();
+    }
+
+    /**
      * Gets the track that is currently loaded into the playback engine.
      *
      * @return The active Track wrapper, or null if inactive.
