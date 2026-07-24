@@ -406,7 +406,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
      */
     public void onPlayPlaylistClick() {
         try{
-            MusicPlayerFacade.getInstance().playFromPlaylist(currentPlaylist);
+            facade.playFromPlaylist(currentPlaylist);
         } catch (IllegalArgumentException ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Errore");

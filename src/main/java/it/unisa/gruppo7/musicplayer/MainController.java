@@ -46,13 +46,25 @@ public class MainController {
     private Node libraryView;
     private Node homePageView;
 
+    /** The shared application facade, dependency-injected by the controller factory. */
+    private final MusicPlayerFacade musicPlayer;
+
+    /**
+     * Creates the main controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public MainController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
+
     /**
      * Initializes the controller. Sets up the default center view component
      * and binds action handlers to the playlist sidebar.
      */
     @FXML
     public void initialize() {
-        PlaylistService playlistService = MusicPlayerFacade.getInstance().getPlaylistService();
+        PlaylistService playlistService = musicPlayer.getPlaylistService();
 
         if (contentArea != null) {
             homePageView = contentArea.getCenter();
@@ -101,13 +113,14 @@ public class MainController {
     private void showPlaylistDetail(Playlist playlist) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/playlist/PlaylistDetail.fxml"));
+            loader.setControllerFactory(new ControllerFactory(musicPlayer));
             Parent playlistDetailView = loader.load();
 
             PlaylistDetailController controller = loader.getController();
             if (controller != null) {
                 currentDetailController = controller;
                 controller.setPlaylist(playlist);
-                controller.setMusicPlayer(MusicPlayerFacade.getInstance());
+                controller.setMusicPlayer(musicPlayer);
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
                 controller.setOnRenameAction(() -> playlistSidebarController.refreshList());
                 controller.setOnPlaylistRestored(() -> playlistSidebarController.refreshList());
@@ -132,6 +145,7 @@ public class MainController {
         try {
             if (libraryView == null) {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unisa/gruppo7/musicplayer/LibraryView.fxml"));
+                loader.setControllerFactory(new ControllerFactory(musicPlayer));
                 libraryView = loader.load();
 
                 libraryController = loader.getController();
@@ -220,7 +234,7 @@ public class MainController {
     private void performUndo() {
         if (UndoToast.isShowing()) {
             UndoToast.triggerUndo();
-        } else if (MusicPlayerFacade.getInstance().undoLastAction()) {
+        } else if (musicPlayer.undoLastAction()) {
             refreshAllViews();
         }
     }
@@ -239,7 +253,7 @@ public class MainController {
         }
         if (currentDetailController != null) {
             Playlist shown = currentDetailController.getCurrentPlaylist();
-            if (shown != null && !MusicPlayerFacade.getInstance().getPlaylists().contains(shown)) {
+            if (shown != null && !musicPlayer.getPlaylists().contains(shown)) {
                 // The playlist being shown was just undone away: go back to the library.
                 currentDetailController = null;
                 showLibrary();

@@ -29,7 +29,7 @@ public class PlaylistReorderFacadeIntegrationTest {
     /** Clears the library and playlists and seeds a four-track playlist before each test. */
     @BeforeEach
     void setUp() {
-        facade = MusicPlayerFacade.getInstance();
+        facade = new MusicPlayerFacade();
         playlistService = facade.getPlaylistService();
 
         playlistService.getPlaylists().clear();

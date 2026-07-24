@@ -28,14 +28,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * Structural Facade that centralizes and coordinates core music player sub-systems
  * including audio playback, library index curation, and custom playlist profiles.
- * Implements the Singleton pattern to guarantee a single unified controller context.
+ * <p>
+ * The facade is created once at the application composition root and injected into the
+ * consumers (via a JavaFX controller factory for the controllers), following the
+ * Dependency Inversion Principle instead of relying on a global Singleton.
  *
  * @author Francesco Lemmo
  */
 public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, PlaybackFacade, PlaybackObserver {
-
-    /** Single instance of the MusicPlayerFacade. */
-    private static volatile MusicPlayerFacade instance;
 
     /** The core library database managing all tracks. */
     private final Library library;
@@ -61,9 +61,16 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
     private final ExecutorService ioExecutor;
 
     /**
-     * Private constructor initializing subsystems and registering internal dependencies.
+     * Primary constructor: injects the subsystems the facade coordinates and registers
+     * the internal observer wiring. Exposing the collaborators as constructor parameters
+     * (Dependency Injection) allows the composition root — and tests — to supply the
+     * required instances explicitly instead of the facade creating them itself.
+     *
+     * @param library         the track library to manage.
+     * @param playlistService the service handling user playlists.
+     * @param playbackService the service handling audio playback.
      */
-    private MusicPlayerFacade(Library library, PlaylistService playlistService, PlaybackService playbackService) {
+    public MusicPlayerFacade(Library library, PlaylistService playlistService, PlaybackService playbackService) {
         this.library = library;
         this.playlistService = playlistService;
         this.playbackService = playbackService;
@@ -74,22 +81,12 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
         this.addObserver(this.playbackService);
     }
 
-    // public constructor
+    /**
+     * Convenience constructor wiring the default subsystem implementations. Used by the
+     * application composition root; the library is still shared through its own manager.
+     */
     public MusicPlayerFacade() {
         this(Library.getInstance(), new PlaylistService(), new PlaybackService());
-    }
-
-    /**
-     * Retrieves the global thread-safe singleton state interface context.
-     * Synchronized to guarantee a single instance even under concurrent access.
-     *
-     * @return The active MusicPlayerFacade context runtime.
-     */
-    public static synchronized MusicPlayerFacade getInstance() {
-        if (instance == null) {
-            instance = new MusicPlayerFacade();
-        }
-        return instance;
     }
 
     /**

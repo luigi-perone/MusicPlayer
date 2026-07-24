@@ -28,6 +28,18 @@ public class TrackFormController {
 
     private Track trackToModify;
 
+    /** The shared application facade, dependency-injected by the controller factory. */
+    private final MusicPlayerFacade musicplayer;
+
+    /**
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicplayer the shared application facade.
+     */
+    public TrackFormController(MusicPlayerFacade musicplayer) {
+        this.musicplayer = musicplayer;
+    }
+
     /**
      * Sets the track to be modified and populates the form fields with its current data.
      *
@@ -69,8 +81,6 @@ public class TrackFormController {
     private void onSave() {
         errorLabel.setVisible(false);
         Stage stage = (Stage) titleField.getScene().getWindow();
-
-        MusicPlayerFacade musicplayer = MusicPlayerFacade.getInstance();
 
         try {
             String title = titleField.getText();

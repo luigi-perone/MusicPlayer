@@ -49,15 +49,23 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     private MainController mainController;
 
     private Track currentTrack;
-    private MusicPlayerFacade musicPlayer;
+    private final MusicPlayerFacade musicPlayer;
 
     /**
-     * Initializes the controller. Resolves the main system facade
-     * and registers this controller instance as a playback observer.
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public PlaybackController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
+
+    /**
+     * Initializes the controller and registers this controller instance
+     * as a playback observer.
      */
     @FXML
     public void initialize() {
-        musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
         musicPlayer.addObserver(this);
 

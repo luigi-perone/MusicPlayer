@@ -33,7 +33,16 @@ public class HomePageController {
 
     private MainController mainController;
 
-    private MusicPlayerFacade musicPlayer = MusicPlayerFacade.getInstance();
+    private final MusicPlayerFacade musicPlayer;
+
+    /**
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public HomePageController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
 
     /**
      * Initializes the view by loading the top playlists and top tracks.

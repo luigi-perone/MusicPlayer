@@ -43,7 +43,7 @@ public class TrackRemovalFromPlaylistIntegrationTest {
      */
     @BeforeEach
     public void setUp() {
-        facade          = MusicPlayerFacade.getInstance();
+        facade          = new MusicPlayerFacade();
         playlistService = facade.getPlaylistService();
 
         playlistService.getPlaylists().clear();

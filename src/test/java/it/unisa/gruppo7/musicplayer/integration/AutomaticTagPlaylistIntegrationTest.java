@@ -42,10 +42,9 @@ class AutomaticTagPlaylistIntegrationTest {
     private InMemoryPlaylistService service;
     private MusicPlayerFacade facade;
 
-    /** Resets singletons and installs an in-memory playlist service for each test. */
+    /** Resets the library and installs an in-memory playlist service for each test. */
     @BeforeEach
     void setUp() throws Exception {
-        resetFacadeSingleton();
         library = Library.getInstance();
         library.clearLibrary();
         setLibraryPath(tempDir.resolve("track-library.json"));
@@ -54,16 +53,15 @@ class AutomaticTagPlaylistIntegrationTest {
         facade = installPlaylistService(service);
     }
 
-    /** Clears the library, shuts down playback and resets the facade singleton. */
+    /** Clears the library and shuts down playback. */
     @AfterEach
     void tearDown() throws Exception {
         library.clearLibrary();
         if (facade != null) {
             facade.shutdownPlayback();
         }
-        resetFacadeSingleton();
     }
-    /** 
+    /**
      * Verifies that valid generation creates a playlist containing only matching tracks. */
     @Test
     void validGenerationCreatesPlaylistWithMatchingTracks() {
@@ -80,7 +78,7 @@ class AutomaticTagPlaylistIntegrationTest {
         assertEquals(Collections.singletonList(matching), playlist.getPlaylist());
         assertTrue(service.hasRule("Preferite"));
     }
-    /** 
+    /**
      * Verifies that playlist creation is blocked when no tracks match the selected tags. */
     @Test
     void generationWithoutMatchesIsBlockedWithExpectedMessage() {
@@ -96,7 +94,7 @@ class AutomaticTagPlaylistIntegrationTest {
         assertEquals("Nessuna traccia trovata", exception.getMessage());
         assertFalse(service.hasRule("Preferite"));
     }
-    /** 
+    /**
      * Verifies that refresh removes a track after it loses a required tag. */
     @Test
     void refreshRemovesTrackThatLostRequiredTag() {
@@ -108,7 +106,7 @@ class AutomaticTagPlaylistIntegrationTest {
 
         assertTrue(playlist.getTracks().isEmpty());
     }
-    /** 
+    /**
      * Verifies that refresh adds a track after it acquires a required tag. */
     @Test
     void refreshAddsTrackThatAcquiredRequiredTag() {
@@ -122,7 +120,7 @@ class AutomaticTagPlaylistIntegrationTest {
 
         assertEquals(Collections.singletonList(track), playlist.getPlaylist());
     }
-    /** 
+    /**
      * Verifies that automatic refresh does not modify manual playlists. */
     @Test
     void refreshDoesNotModifyManualPlaylist() {
@@ -172,7 +170,7 @@ class AutomaticTagPlaylistIntegrationTest {
     /** Replaces the facade's playlist service with the given one and rewires the observer. */
     private MusicPlayerFacade installPlaylistService(PlaylistService replacement)
             throws Exception {
-        MusicPlayerFacade instance = MusicPlayerFacade.getInstance();
+        MusicPlayerFacade instance = new MusicPlayerFacade();
         Field field = MusicPlayerFacade.class.getDeclaredField("playlistService");
         field.setAccessible(true);
         PlaylistService previous = (PlaylistService) field.get(instance);
@@ -180,13 +178,6 @@ class AutomaticTagPlaylistIntegrationTest {
         field.set(instance, replacement);
         instance.addObserver(replacement);
         return instance;
-    }
-
-    /** Clears the {@link MusicPlayerFacade} singleton instance via reflection. */
-    private void resetFacadeSingleton() throws Exception {
-        Field field = MusicPlayerFacade.class.getDeclaredField("instance");
-        field.setAccessible(true);
-        field.set(null, null);
     }
 
     /** Points the singleton library at the given temporary path via reflection. */

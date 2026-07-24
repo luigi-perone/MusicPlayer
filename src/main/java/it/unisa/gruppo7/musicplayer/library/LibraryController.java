@@ -51,13 +51,20 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
     @FXML private TableColumn<Track, String> tagColumn;
     @FXML private Button                      manageTagsBtn;
 
-    private MusicPlayerFacade     musicPlayer;
+    private final MusicPlayerFacade musicPlayer;
     private ObservableList<Track> observableTracks;
     private Track playingTrack = null;
 
     private MainController mainController;
 
-
+    /**
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public LibraryController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
 
     /**
      * Initializes the controller class. Configures table cell value factories,
@@ -71,7 +78,7 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
         durationColumn.setCellValueFactory(cellData -> {
             Track track = cellData.getValue();
             String formattedTime =
-                    MusicPlayerFacade.getInstance().formatDuration(track.getDuration());
+                    musicPlayer.formatDuration(track.getDuration());
             return new SimpleStringProperty(formattedTime);
         });
         genreColumn.setCellValueFactory(new PropertyValueFactory<>("genre"));
@@ -80,8 +87,6 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
 
         trackTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         trackTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        musicPlayer = MusicPlayerFacade.getInstance();
 
         observableTracks =
                 FXCollections.observableArrayList(musicPlayer.getTracksFromLibrary());
@@ -282,6 +287,7 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
                             "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
+            fxmlLoader.setControllerFactory(new it.unisa.gruppo7.musicplayer.ControllerFactory(musicPlayer));
             javafx.scene.Parent root = fxmlLoader.load();
 
             javafx.stage.Stage stage = new javafx.stage.Stage();
@@ -313,6 +319,7 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(
                     getClass().getResource(
                             "/it/unisa/gruppo7/musicplayer/TrackFormView.fxml"));
+            fxmlLoader.setControllerFactory(new it.unisa.gruppo7.musicplayer.ControllerFactory(musicPlayer));
             javafx.scene.Parent root = fxmlLoader.load();
 
             TrackFormController controller = fxmlLoader.getController();

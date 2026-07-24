@@ -42,6 +42,18 @@ public class PlaylistSidebarController {
     /// reference to the mainController, in order to use its methods (UI refresh)
     private MainController mainController;
 
+    /** The shared application facade, dependency-injected by the controller factory. */
+    private final MusicPlayerFacade musicPlayer;
+
+    /**
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public PlaylistSidebarController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
+
     /**
      * Flag used to avoid the premature close of the edit module. It is set true when the user
      * clicks a UI button so that the TextField's focus-lost listener ignores the focus change.
@@ -124,7 +136,7 @@ public class PlaylistSidebarController {
                 PlaylistGenerationStrategy strategy = PlaylistGenerationStrategyFactory.from(rule);
 
                 // Execution from facade
-                MusicPlayerFacade.getInstance().createAutoPlaylist(defaultPlaylistName, strategy, rule);
+                musicPlayer.createAutoPlaylist(defaultPlaylistName, strategy, rule);
 
                 DialogUtils.showInfo("Completato", "La '" + defaultPlaylistName + "' è stata creata con successo!");
                 refreshList();
@@ -204,7 +216,7 @@ public class PlaylistSidebarController {
         MenuItem playItem = new MenuItem("Riproduci");
         playItem.setOnAction(e -> {
             try {
-                MusicPlayerFacade.getInstance().playFromPlaylist(playlist);
+                musicPlayer.playFromPlaylist(playlist);
             } catch (IllegalArgumentException ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Errore");
@@ -226,8 +238,8 @@ public class PlaylistSidebarController {
                 return;
             }
             CommandInvoker.execute(new AddToQueueCommand(
-                    MusicPlayerFacade.getInstance().getPlaybackService(),
-                    () -> MusicPlayerFacade.getInstance().appendPlaylistToQueue(playlist)));
+                    musicPlayer.getPlaybackService(),
+                    () -> musicPlayer.appendPlaylistToQueue(playlist)));
 
             // Update the queue UI. Auto-start (when nothing is playing) is handled by
             // the playback service, which begins at the first track of the appended block.

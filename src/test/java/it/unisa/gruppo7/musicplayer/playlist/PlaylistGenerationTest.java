@@ -52,7 +52,7 @@ public class PlaylistGenerationTest {
             Files.copy(REAL_PLAYLIST_FILE, BACKUP_PLAYLIST_FILE, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        facade = MusicPlayerFacade.getInstance();
+        facade = new MusicPlayerFacade();
         facade.clearLibrary();
 
         List<Playlist> existingPlaylists = new ArrayList<>(facade.getPlaylists());

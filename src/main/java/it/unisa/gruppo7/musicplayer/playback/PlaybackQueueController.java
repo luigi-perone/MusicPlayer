@@ -22,18 +22,26 @@ public class PlaybackQueueController implements PlaybackObserver, TrackObserver 
 
     @FXML private ListView<Track> queueListView;
 
-    private MusicPlayerFacade musicPlayer;
+    private final MusicPlayerFacade musicPlayer;
     private Track currentTrack;
 
     /**
+     * Creates the controller with the facade injected by the controller factory.
+     *
+     * @param musicPlayer the shared application facade.
+     */
+    public PlaybackQueueController(MusicPlayerFacade musicPlayer) {
+        this.musicPlayer = musicPlayer;
+    }
+
+    /**
      * Initializes the controller class. This method is automatically called
-     * after the FXML file has been loaded. It sets up the facade instance,
-     * registers the necessary observers, configures the custom cell rendering
-     * for the ListView, and binds mouse events for track selection.
+     * after the FXML file has been loaded. It registers the necessary observers,
+     * configures the custom cell rendering for the ListView, and binds mouse
+     * events for track selection.
      */
     @FXML
     public void initialize() {
-        musicPlayer = MusicPlayerFacade.getInstance();
         musicPlayer.getPlaybackService().addObserver(this);
         musicPlayer.addObserver(this);
 

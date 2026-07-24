@@ -16,7 +16,13 @@ import java.io.IOException;
  */
 public class App extends Application {
 
-    private static Scene scene;
+    private Scene scene;
+
+    /**
+     * The single application facade instance, created here (the composition root) and
+     * injected into the controller graph. Replaces the former global Singleton.
+     */
+    private MusicPlayerFacade facade;
 
     /**
      * Starts the JavaFX application by initializing the main scene and displaying the primary stage.
@@ -26,6 +32,7 @@ public class App extends Application {
      */
     @Override
     public void start(Stage stage) throws IOException {
+        facade = new MusicPlayerFacade();
         scene = new Scene(loadFXML("mainView"), 1300, 700);
         stage.setScene(scene);
         stage.show();
@@ -41,7 +48,9 @@ public class App extends Application {
     public void stop() throws Exception {
 
         // Shutdown the timer process
-        MusicPlayerFacade.getInstance().shutdownPlayback();
+        if (facade != null) {
+            facade.shutdownPlayback();
+        }
 
         super.stop();
     }
@@ -52,19 +61,22 @@ public class App extends Application {
      * @param fxml The name of the FXML file (without the extension) to load.
      * @throws IOException If the FXML file cannot be loaded.
      */
-    static void setRoot(String fxml) throws IOException {
+    void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
 
     /**
-     * Loads an FXML layout file and returns its root hierarchy parent node.
+     * Loads an FXML layout file and returns its root hierarchy parent node, wiring the
+     * controller factory so the shared facade is dependency-injected into every
+     * controller of the loaded view.
      *
      * @param fxml The name of the FXML file (without the extension) to load.
      * @return The root Parent node of the loaded FXML view.
      * @throws IOException If the FXML file cannot be found or loaded.
      */
-    private static Parent loadFXML(String fxml) throws IOException {
+    private Parent loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        fxmlLoader.setControllerFactory(new ControllerFactory(facade));
         return fxmlLoader.load();
     }
 

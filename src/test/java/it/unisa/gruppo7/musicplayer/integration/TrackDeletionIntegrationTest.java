@@ -33,7 +33,7 @@ public class TrackDeletionIntegrationTest {
      */
     @BeforeEach
     public void setUp() {
-        facade = MusicPlayerFacade.getInstance();
+        facade = new MusicPlayerFacade();
 
         facade.getPlaylistService().getPlaylists().clear();
         facade.getTracksFromLibrary().clear();

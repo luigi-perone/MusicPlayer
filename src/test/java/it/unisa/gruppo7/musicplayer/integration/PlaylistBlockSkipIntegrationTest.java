@@ -265,14 +265,11 @@ class PlaylistBlockSkipIntegrationTest {
         libraryPath.set(lib, TEST_LIBRARY_PATH);
         lib.clearLibrary();
 
-        Field facadeInstance = MusicPlayerFacade.class.getDeclaredField("instance");
-        facadeInstance.setAccessible(true);
-        facadeInstance.set(null, null);
     }
 
     /** Builds the facade singleton wired to the given playlist service as observer. */
     private MusicPlayerFacade buildFacade(PlaylistService ps) throws Exception {
-        MusicPlayerFacade f = MusicPlayerFacade.getInstance();
+        MusicPlayerFacade f = new MusicPlayerFacade();
 
         Field psField = MusicPlayerFacade.class.getDeclaredField("playlistService");
         psField.setAccessible(true);

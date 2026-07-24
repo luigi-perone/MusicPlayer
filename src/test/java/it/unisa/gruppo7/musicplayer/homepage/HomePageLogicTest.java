@@ -51,7 +51,7 @@ public class HomePageLogicTest {
         }
 
         // 2. Initialize facade and clear the in-memory data for a clean test environment
-        facade = MusicPlayerFacade.getInstance();
+        facade = new MusicPlayerFacade();
         facade.clearLibrary();
 
         List<Playlist> existingPlaylists = new ArrayList<>(facade.getPlaylists());
