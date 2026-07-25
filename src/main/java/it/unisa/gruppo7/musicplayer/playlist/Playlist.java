@@ -207,6 +207,16 @@ public class Playlist extends TrackCollection {
     }
 
     /**
+     * Discards the track IDs read from storage, once they have been resolved into live
+     * {@link Track} objects. From that moment {@link #getTrackIds()} always reflects the
+     * real content of the playlist.
+     */
+    @JsonIgnore
+    public void clearLoadedTrackIds() {
+        this.loadedTrackIds.clear();
+    }
+
+    /**
      * Restores the playlist to a previously captured state, replacing its tracks
      * (and their order) with the snapshot's.
      *

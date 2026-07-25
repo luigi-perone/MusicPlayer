@@ -262,7 +262,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
 
             CommandInvoker.execute(addCommand).ifPresent(result -> {
                 if (result.hasAdded()) {
-                    adapter.getItems().addAll(selectedTracks);
+                    adapter.refresh();
                     // US-018: keep queue in sync if this playlist is the active source
                     for (Track t : selectedTracks) {
                         facade.onTrackAddedToPlaylist(currentPlaylist, t);
@@ -297,7 +297,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
             CommandInvoker.execute(removeCommand);
 
             if (adapter != null) {
-                adapter.getItems().remove(selectedTrack);
+                adapter.refresh();
                 playlistTrackTable.getSelectionModel().clearSelection();
                 facade.onTrackRemovedFromPlaylist(currentPlaylist, selectedTrack);
             }
@@ -345,7 +345,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
 
         CommandInvoker.execute(new ReorderTrackCommand(facade.getPlaylistService(), currentPlaylist, from, to));
 
-        adapter.moveTrack(from, to);
+        adapter.refresh();
         facade.onTrackReorderedInPlaylist(currentPlaylist, from, to);
 
         playlistTrackTable.getSelectionModel().select(to);
@@ -425,7 +425,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     @Override
     public void onTrackDeleted(Track track) {
         Platform.runLater(() -> {
-            adapter.getItems().remove(track);
+            adapter.refresh();
             playlistTrackTable.refresh();
             refreshLabels();
         });
@@ -444,9 +444,7 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
                 return;
             }
 
-            adapter.getItems().setAll(
-                    currentPlaylist.getPlaylist()
-            );
+            adapter.refresh();
 
             playlistTrackTable.refresh();
             refreshLabels();
@@ -489,12 +487,11 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
      */
     public void reload() {
         if (adapter == null || currentPlaylist == null) return;
-        adapter.getItems().setAll(currentPlaylist.getTracks());
+        adapter.refresh();
         playlistTrackTable.getSelectionModel().clearSelection();
         playlistTrackTable.refresh();
         refreshLabels();
     }
-
     /**
      * @return the playlist currently shown by this controller, or null.
      */

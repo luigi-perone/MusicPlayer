@@ -307,6 +307,7 @@ public class PlaylistService implements PersistenceService, TrackObserver {
                         if (t != null) p.addTrack(t);
                     }
                 }
+                p.clearLoadedTrackIds();
                 playlists.add(p);
             }
 
