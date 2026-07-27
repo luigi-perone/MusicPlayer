@@ -272,11 +272,70 @@ public class PlaylistService implements PersistenceService, TrackObserver {
 
     /**
      * Saves the current list of playlists to the designated JSON file.
+     * The snapshot is taken on the calling thread, so this method is safe to call
+     * from the thread that mutates the playlists (typically the JavaFX thread).
      */
     @Override
     public void save() {
+        writeSnapshot(snapshotForSave());
+    }
+
+    /**
+     * Builds a detached copy of the current playlists, ready to be serialized.
+     *
+     * Must be invoked on the thread that owns the playlists (the JavaFX thread):
+     * handing the live {@code playlists} list - and the live track list of each
+     * playlist - to a background writer lets the UI mutate them mid-serialization,
+     * which surfaces as a {@link java.util.ConcurrentModificationException} thrown
+     * inside the I/O task and a truncated JSON file. Same idiom as
+     * {@code Library.save()}: copy under the mutating thread, serialize the copy
+     * elsewhere.
+     *
+     * @return detached copies of the playlists, safe to serialize on any thread
+     */
+    public List<Playlist> snapshotForSave() {
+        List<Playlist> snapshot = new ArrayList<>(playlists.size());
+
+        for (Playlist p : playlists) {
+            snapshot.add(detachedCopy(p));
+        }
+
+        return snapshot;
+    }
+
+    /**
+     * Creates a copy of the given playlist that shares no mutable structure with it,
+     * so that serializing the copy cannot race with edits to the original.
+     * Only the serialized state (name, track ids, play count) is reproduced.
+     *
+     * @param source the playlist to copy
+     * @return a detached copy of the playlist
+     */
+    private Playlist detachedCopy(Playlist source) {
+        List<Track> liveTracks = new ArrayList<>(source.getTracks());
+
+        // Ids are only needed as a fallback: when the playlist holds live tracks,
+        // getTrackIds() derives them from the tracks themselves.
+        List<UUID> ids = liveTracks.isEmpty()
+                ? new ArrayList<>(source.getTrackIds())
+                : new ArrayList<>();
+
+        Playlist copy = new Playlist(source.getName(), ids, source.getPlayCount());
+        liveTracks.forEach(copy::addTrack);
+
+        return copy;
+    }
+
+    /**
+     * Writes the given snapshot to the JSON file. Synchronized so that a background
+     * save and a synchronous one (both end up here) can never interleave their writes
+     * on the same file and leave it half-written.
+     *
+     * @param snapshot the playlists to serialize, typically from {@link #snapshotForSave()}
+     */
+    public synchronized void writeSnapshot(List<Playlist> snapshot) {
         try {
-            mapper.writeValue(new File(path), playlists);
+            mapper.writeValue(new File(path), snapshot);
         } catch (IOException e) {
             System.err.println("Error saving playlists: " + path);
             e.printStackTrace();
