@@ -149,8 +149,6 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         return trackList.get(currentIndex);
     }
 
-    // -- playlist-block navigation (US-029) --
-
     /**
      * Computes the canonical-list index of the first track of the <b>next</b>
      * playlist block, relative to the block the cursor is currently in.
@@ -176,6 +174,22 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
     /**
+     * Walks backward from {@code fromIdx} to find the canonical-list index
+     * where the block containing {@code fromIdx} begins.
+     *
+     * @param fromIdx a valid index into {@code blockIds}
+     * @return the index of the first track belonging to the same block as fromIdx
+     */
+    private int blockStart(int fromIdx) {
+        int blockId = blockIds.get(fromIdx);
+        int start = fromIdx;
+        while (start > 0 && blockIds.get(start - 1) == blockId) {
+            start--;
+        }
+        return start;
+    }
+
+    /**
      * Computes the canonical-list index of the first track of the <b>previous</b>
      * playlist block (always the start of the preceding block, regardless of the
      * cursor's position within the current block).
@@ -190,21 +204,10 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         if (idx < 0) idx = 0;
         if (idx >= blockIds.size()) idx = blockIds.size() - 1;
 
-        int currentBlock = blockIds.get(idx);
-        // Walk back to the start of the current block.
-        int start = idx;
-        while (start > 0 && blockIds.get(start - 1) == currentBlock) {
-            start--;
-        }
+        int start = blockStart(idx);
         if (start == 0) return -1; // already in the first block
 
-        // Walk back to the start of the previous block.
-        int prevBlock = blockIds.get(start - 1);
-        int prevStart = start - 1;
-        while (prevStart > 0 && blockIds.get(prevStart - 1) == prevBlock) {
-            prevStart--;
-        }
-        return prevStart;
+        return blockStart(start - 1);
     }
 
     /**
