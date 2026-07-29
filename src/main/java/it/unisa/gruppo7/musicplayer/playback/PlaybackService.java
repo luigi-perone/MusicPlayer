@@ -180,7 +180,7 @@ public class PlaybackService implements TrackObserver{
      */
     public void playNext() {
         Track next = repeatMode.getStrategy()
-                .nextOnAdvance(this.queue, this.currentTrack, this.trackSkipStrategy);
+                .nextOnAdvance(this.queue, this.currentTrack);
 
         if (next != null) {
             this.play(next);

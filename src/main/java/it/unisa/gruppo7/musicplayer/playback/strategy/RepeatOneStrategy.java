@@ -16,7 +16,7 @@ public class RepeatOneStrategy implements RepeatStrategy {
      * <p>Returns the current track unchanged, leaving the cursor untouched.</p>
      */
     @Override
-    public Track nextOnAdvance(PlaybackList queue, Track currentTrack, SkipStrategy skipStrategy) {
+    public Track nextOnAdvance(PlaybackList queue, Track currentTrack) {
         return currentTrack;
     }
 }

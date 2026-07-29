@@ -17,8 +17,8 @@ public class RepeatAllStrategy implements RepeatStrategy {
      * first track of the active list. Returns {@code null} only when the queue is empty.</p>
      */
     @Override
-    public Track nextOnAdvance(PlaybackList queue, Track currentTrack, SkipStrategy skipStrategy) {
-        Track next = skipStrategy.skipForward(queue);
+    public Track nextOnAdvance(PlaybackList queue, Track currentTrack) {
+        Track next = queue.getNextTrack();
         if (next != null) {
             return next;
         }

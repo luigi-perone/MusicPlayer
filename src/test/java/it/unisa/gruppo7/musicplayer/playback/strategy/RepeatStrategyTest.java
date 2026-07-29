@@ -47,7 +47,7 @@ class RepeatStrategyTest {
         @Test
         void advanceFromMiddleReturnsNextTrack() {
             queue.setCurrentIndex(0);
-            assertSame(trk2, strategy.nextOnAdvance(queue, trk1, skip));
+            assertSame(trk2, strategy.nextOnAdvance(queue, trk1));
             assertEquals(1, queue.getCurrentIndex());
         }
 
@@ -55,7 +55,7 @@ class RepeatStrategyTest {
         @Test
         void advanceFromLastReturnsNull() {
             queue.setCurrentIndex(2);
-            assertNull(strategy.nextOnAdvance(queue, trk3, skip),
+            assertNull(strategy.nextOnAdvance(queue, trk3),
                     "Off the end with no repeat must return null so the caller stops");
         }
     }
@@ -70,7 +70,7 @@ class RepeatStrategyTest {
         @Test
         void advanceFromMiddleReturnsNextTrack() {
             queue.setCurrentIndex(1);
-            assertSame(trk3, strategy.nextOnAdvance(queue, trk2, skip));
+            assertSame(trk3, strategy.nextOnAdvance(queue, trk2));
             assertEquals(2, queue.getCurrentIndex());
         }
 
@@ -78,7 +78,7 @@ class RepeatStrategyTest {
         @Test
         void advanceFromLastWrapsToFirstTrack() {
             queue.setCurrentIndex(2);
-            assertSame(trk1, strategy.nextOnAdvance(queue, trk3, skip),
+            assertSame(trk1, strategy.nextOnAdvance(queue, trk3),
                     "Reaching the end must wrap to the first track");
             assertEquals(0, queue.getCurrentIndex(),
                     "Wrapping must reset the cursor to the first track");
@@ -96,7 +96,7 @@ class RepeatStrategyTest {
         void advanceReturnsSameTrackWithoutMovingCursor() {
             queue.setCurrentIndex(1);
             int before = queue.getCurrentIndex();
-            assertSame(trk2, strategy.nextOnAdvance(queue, trk2, skip));
+            assertSame(trk2, strategy.nextOnAdvance(queue, trk2));
             assertEquals(before, queue.getCurrentIndex(),
                     "Repeat-one must not move the queue cursor");
         }

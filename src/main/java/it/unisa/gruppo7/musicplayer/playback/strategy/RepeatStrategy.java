@@ -5,15 +5,13 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 
 /**
  * Strategy describing the repeat mode, i.e. the END-OF-QUEUE / advance behaviour
- * of the playback engine.
+ * of the playback engine: what happens when the queue advances or a track ends
+ * (stop, wrap back to the start, or replay the same track).
  *
- * <p>This is a different axis from {@link SkipStrategy}: {@code SkipStrategy} decides
- * the GRANULARITY of a forward/backward step (single track vs. playlist block), while
- * {@code RepeatStrategy} decides WHAT HAPPENS when the queue advances or a track ends
- * (stop, wrap back to the start, or replay the same track).</p>
- *
- * <p>Implementations reuse the supplied {@link SkipStrategy} to move the cursor, so
- * the navigation logic is never duplicated here.</p>
+ * <p>Advancing is always TRACK-granular: it is triggered by a track reaching its end,
+ * so implementations step the cursor one track at a time. Block-level navigation is a
+ * separate, explicit user action handled by {@link SkipStrategy}, which deliberately
+ * bypasses the repeat modes.</p>
  */
 public interface RepeatStrategy {
 
@@ -22,8 +20,7 @@ public interface RepeatStrategy {
      *
      * @param queue        the playback queue (owns the cursor).
      * @param currentTrack the track that was playing, or null.
-     * @param skipStrategy the navigation strategy used to step the cursor forward.
      * @return the track to play next, or null to stop playback.
      */
-    Track nextOnAdvance(PlaybackList queue, Track currentTrack, SkipStrategy skipStrategy);
+    Track nextOnAdvance(PlaybackList queue, Track currentTrack);
 }

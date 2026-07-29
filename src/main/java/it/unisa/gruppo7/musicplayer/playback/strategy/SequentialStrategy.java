@@ -17,7 +17,7 @@ public class SequentialStrategy implements RepeatStrategy {
      * last track, so the caller stops playback.</p>
      */
     @Override
-    public Track nextOnAdvance(PlaybackList queue, Track currentTrack, SkipStrategy skipStrategy) {
-        return skipStrategy.skipForward(queue);
+    public Track nextOnAdvance(PlaybackList queue, Track currentTrack) {
+        return queue.getNextTrack();
     }
 }
