@@ -314,7 +314,13 @@ public class PlaylistService implements PersistenceService, TrackObserver {
         } catch (Exception e) {
             System.err.println("Error loading playlists: " + path);
             e.printStackTrace();
-            throw new RuntimeException("Failed to load playlists from " + path, e);
+            playlists.clear();
+            File corrupt = new File(path + "." + System.currentTimeMillis() + ".corrupt");
+            if (file.renameTo(corrupt)) {
+                System.err.println("Corrupted playlist file moved to: " + corrupt.getPath());
+            } else {
+                System.err.println("Could not set aside the corrupted playlist file: " + path);
+            }
         }
     }
 

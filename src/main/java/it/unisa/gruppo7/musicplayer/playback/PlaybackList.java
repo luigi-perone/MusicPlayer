@@ -633,19 +633,23 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     }
 
     /**
-     * Captures the full state of the queue (canonical order, shuffled order, cursor
-     * and shuffle flag) into an immutable memento, for later restoration on undo.
+     * Captures the full state of the queue (canonical order, shuffled order, cursor,
+     * shuffle flag and playlist-block bookkeeping) into an immutable memento, for
+     * later restoration on undo.
      *
      * @return a snapshot of the current queue state.
      */
     public QueueMemento snapshot() {
         return new QueueSnapshot(canonicalList(), this.shuffledTracks,
-                this.currentIndex, this.isShuffleActive);
+                this.currentIndex, this.isShuffleActive,
+                this.blockIds, this.blockSources, this.nextBlockId);
     }
 
     /**
      * Restores the queue to a previously captured state, replacing the canonical and
-     * shuffled lists, the cursor and the shuffle flag with the snapshot's values.
+     * shuffled lists, the cursor, the shuffle flag and the playlist-block bookkeeping
+     * with the snapshot's values. Restoring the block data as well is what keeps
+     * {@link #blockIds} aligned 1:1 with the canonical list after an undo.
      * Only the queue structure is restored; the audio currently playing is not changed.
      *
      * @param memento the state to restore; ignored if null.
@@ -658,6 +662,11 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
         this.shuffledTracks  = new ArrayList<>(s.shuffledTracks);
         this.isShuffleActive = s.shuffleActive;
         this.currentIndex    = s.currentIndex;
+        this.blockIds.clear();
+        this.blockIds.addAll(s.blockIds);
+        this.blockSources.clear();
+        this.blockSources.putAll(s.blockSources);
+        this.nextBlockId     = s.nextBlockId;
     }
 
     /**
@@ -668,17 +677,25 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      */
 
     private static final class QueueSnapshot implements QueueMemento {
-        private final List<Track> canonicalTracks;
-        private final List<Track> shuffledTracks;
-        private final int         currentIndex;
-        private final boolean     shuffleActive;
+        private final List<Track>          canonicalTracks;
+        private final List<Track>          shuffledTracks;
+        private final int                  currentIndex;
+        private final boolean              shuffleActive;
+        private final List<Integer>        blockIds;
+        private final Map<Integer, Playlist> blockSources;
+        private final int                  nextBlockId;
 
         QueueSnapshot(List<Track> canonicalTracks, List<Track> shuffledTracks,
-                      int currentIndex, boolean shuffleActive) {
+                      int currentIndex, boolean shuffleActive,
+                      List<Integer> blockIds, Map<Integer, Playlist> blockSources,
+                      int nextBlockId) {
             this.canonicalTracks = new ArrayList<>(canonicalTracks);
             this.shuffledTracks  = new ArrayList<>(shuffledTracks);
             this.currentIndex    = currentIndex;
             this.shuffleActive   = shuffleActive;
+            this.blockIds        = new ArrayList<>(blockIds);
+            this.blockSources    = new HashMap<>(blockSources);
+            this.nextBlockId     = nextBlockId;
         }
     }
 }

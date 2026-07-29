@@ -4,6 +4,8 @@ import it.unisa.gruppo7.musicplayer.MainController;
 import it.unisa.gruppo7.musicplayer.core.TrackObserver;
 import it.unisa.gruppo7.musicplayer.command.CommandInvoker;
 import it.unisa.gruppo7.musicplayer.dialog.AddToPlaylistDialogBuilder;
+import it.unisa.gruppo7.musicplayer.dialog.DialogBuilder;
+import it.unisa.gruppo7.musicplayer.dialog.DialogDirector;
 import it.unisa.gruppo7.musicplayer.dialog.DialogUtils;
 import it.unisa.gruppo7.musicplayer.dialog.DialogTag;
 import it.unisa.gruppo7.musicplayer.musicplayerfacade.MusicPlayerFacade;
@@ -223,19 +225,14 @@ public class LibraryController implements PlaybackObserver, TrackObserver {
                 .map(Playlist::getName)
                 .collect(Collectors.toList());
 
-        AddToPlaylistDialogBuilder builder = new AddToPlaylistDialogBuilder(playlistNames, selected);
-        builder.buildHeader();
-        builder.buildButtons();
-        builder.buildContent();
-        builder.buildResultConverter();
-
-        Dialog<String> dialog = builder.getResult();
+        DialogDirector director = new DialogDirector();
+        DialogBuilder<String> builder = new AddToPlaylistDialogBuilder(playlistNames, selected);
+        Dialog<String> dialog = director.construct(builder);
         dialog.showAndWait().ifPresent(targetPlaylistName -> {
             Playlist targetPlaylist = musicPlayer.getPlaylist(targetPlaylistName);
             if (targetPlaylist != null) {
                 try {
-                    AdditionResult result = musicPlayer.getPlaylistService()
-                            .addTracksToPlaylist(targetPlaylist, selected);
+                    AdditionResult result = musicPlayer.addTracksToPlaylist(targetPlaylist, selected);
                     musicPlayer.savePlaylists();
                     showResultFeedback(result, targetPlaylistName);
                 } catch (IllegalArgumentException e) {

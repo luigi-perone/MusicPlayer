@@ -185,6 +185,41 @@ public class Playlist extends TrackCollection {
     }
 
     /**
+     * Returns the track held at the specified position.
+     *
+     * @param index the position to read.
+     * @return the track at that position.
+     */
+    @JsonIgnore
+    public Track getTrack(int index) {
+        return ((List<Track>) this.tracks).get(index);
+    }
+
+    /**
+     * Replaces the track at the specified position with the given one.
+     *
+     * @param index the position to overwrite.
+     * @param track the new track.
+     * @return the track previously held at that position.
+     */
+    @JsonIgnore
+    public Track setTrack(int index, Track track) {
+        return ((List<Track>) this.tracks).set(index, track);
+    }
+
+    /**
+     * Removes the track at the specified position, shifting any subsequent tracks
+     * to the left.
+     *
+     * @param index the position of the track to remove.
+     * @return the track that was removed.
+     */
+    @JsonIgnore
+    public Track removeTrackAt(int index) {
+        return ((List<Track>) this.tracks).remove(index);
+    }
+
+    /**
      * Returns the position of the given track in the playlist, or -1 if absent.
      *
      * @param track the track to locate.

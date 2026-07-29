@@ -11,8 +11,9 @@ import javafx.collections.ObservableList;
  * Object Adapter between the playlist model and the JavaFX table.
  * 
  * The adapter holds no copy of the tracks: every read and every write is delegated to the
- * playlist, so model and table cannot drift apart. When the adaptee is modified by someone
- * else call {@link #refresh()} to re-publish its content.
+ * playlist through its public interface. When the adaptee is
+ * modified by someone else (a command, the service, an undo) call {@link #refresh()} to
+ * re-publish its content.
  * 
  * @author Maxim Makhovskyy
  */
@@ -83,7 +84,7 @@ public class PlaylistTableAdapter extends ModifiableObservableListBase<Track>{
      * @return the track held by the playlist at that position.
      */
     public Track get(int index){
-        return playlist.getPlaylist().get(index);
+        return playlist.getTrack(index);
     }
 
     /**
@@ -137,7 +138,7 @@ public class PlaylistTableAdapter extends ModifiableObservableListBase<Track>{
      */
     @Override
     protected Track doSet(int index, Track element){
-        Track previous = playlist.getPlaylist().set(index, element);
+        Track previous = playlist.setTrack(index, element);
         snapshot();
         return previous;
     }
@@ -150,7 +151,7 @@ public class PlaylistTableAdapter extends ModifiableObservableListBase<Track>{
      */
     @Override
     protected Track doRemove(int index){
-        Track removed = playlist.getPlaylist().remove(index);
+        Track removed = playlist.removeTrackAt(index);
         snapshot();
         return removed;
     }

@@ -49,7 +49,7 @@ public class RemoveTrackFromLibraryCommand implements UndoableCommand<Boolean> {
             throw new Exception("No track selected.");
         }
         this.libraryMemento    = facade.captureLibraryState();
-        this.playlistSnapshots = facade.getPlaylistService().capturePlaylistsContaining(track);
+        this.playlistSnapshots = facade.capturePlaylistsContaining(track);
         this.queueMemento      = facade.captureQueueState();
         return facade.removeTrackFromLibrary(track);
     }
@@ -61,7 +61,7 @@ public class RemoveTrackFromLibraryCommand implements UndoableCommand<Boolean> {
     @Override
     public void undo(){
         facade.restoreLibraryState(libraryMemento);
-        facade.getPlaylistService().restorePlaylists(playlistSnapshots);
+        facade.restorePlaylists(playlistSnapshots);
         facade.restoreQueueState(queueMemento);
     }
 }

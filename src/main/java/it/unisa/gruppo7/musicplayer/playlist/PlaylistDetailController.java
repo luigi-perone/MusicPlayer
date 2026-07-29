@@ -425,6 +425,9 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     @Override
     public void onTrackDeleted(Track track) {
         Platform.runLater(() -> {
+            if (currentPlaylist == null || adapter == null) {
+                return;
+            }
             adapter.refresh();
             playlistTrackTable.refresh();
             refreshLabels();

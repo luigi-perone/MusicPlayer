@@ -13,10 +13,12 @@ import it.unisa.gruppo7.musicplayer.playback.observer.PlaybackObserver;
 import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.PlaylistGenerationStrategy;
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagGenerationStrategy;
+import it.unisa.gruppo7.musicplayer.playlist.utils.AdditionResult;
 import it.unisa.gruppo7.musicplayer.track.Track;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
 import it.unisa.gruppo7.musicplayer.playlist.AutomaticPlaylistRule;
 import it.unisa.gruppo7.musicplayer.playlist.Playlist;
+import it.unisa.gruppo7.musicplayer.playlist.PlaylistMemento;
 
 import java.time.Year;
 import java.util.*;
@@ -312,6 +314,20 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
      */
     public Playlist getPlaylist(String name) {
         return playlistService.getPlaylist(name);
+    }
+
+    /**
+     * Adds a batch of tracks to the given playlist. Tracks already present are skipped
+     * and reported back, so the caller can tell the user what was actually added.
+     *
+     * @param playlist The destination playlist.
+     * @param tracks   The tracks to add.
+     * @return An AdditionResult describing what was added and what was skipped.
+     * @throws IllegalArgumentException if the playlist is not managed by the service,
+     *         or the track list is null/empty.
+     */
+    public AdditionResult addTracksToPlaylist(Playlist playlist, List<Track> tracks) {
+        return playlistService.addTracksToPlaylist(playlist, tracks);
     }
 
     /**
@@ -788,6 +804,29 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
         library.restore(memento);
         library.save();
     }
+
+    /**
+     * Captures the state of every playlist containing the given track, for later
+     * restoration on undo. Completes the set of memento operations exposed by the
+     * facade, alongside {@link #captureLibraryState()} and {@link #captureQueueState()},
+     * so that a cascading removal can be reverted through a single collaborator.
+     *
+     * @param track the track whose containing playlists must be snapshotted.
+     * @return a snapshot per affected playlist, empty if the track is null.
+     */
+    public Map<Playlist, PlaylistMemento> capturePlaylistsContaining(Track track) {
+        return playlistService.capturePlaylistsContaining(track);
+    }
+
+    /**
+     * Restores the given playlists to their previously captured states.
+     *
+     * @param snapshots the playlist states to restore; ignored if null or empty.
+     */
+    public void restorePlaylists(Map<Playlist, PlaylistMemento> snapshots) {
+        playlistService.restorePlaylists(snapshots);
+    }
+
 
     /**
      * Reverts the most recent undoable action within the undo time window, if any.
