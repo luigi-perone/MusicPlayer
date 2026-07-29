@@ -52,15 +52,66 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
     private Runnable             onRenameAction;
     private Runnable             onPlaylistRestored;
     private PlaylistTableAdapter adapter;
-    private MusicPlayerFacade    facade;
+    private final MusicPlayerFacade facade;
     private Playlist             currentPlaylist;
     private Track playingTrack = null;
 
+    /** Creates the controller with the facade injected by the controller factory.
+     * 
+     * @param facade the shared application facade.
+     */
+    public PlaylistDetailController(MusicPlayerFacade facade) {
+        this.facade = facade;
+    }
+
     /**
-     * Initializes the controller class. Called automatically after the FXML file has been loaded.
+     * Initializes the controller once the FXML fields have been injected: configures the
+     * table component, wires the event behaviours and registers this controller as a
+     * playback and track observer. Called automatically by the FXMLLoader, after the
+     * constructor and after the {@code @FXML} fields are available.
      */
     @FXML
-    public void initialize() {}
+    public void initialize() {
+        facade.addPlaybackObserver(this);
+        facade.addObserver(this);
+
+        this.playingTrack = facade.getCurrentPlayingTrack();
+
+        PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
+                playlistTrackTable, titleColumn, authorColumn,
+                durationColumn, tagColumn, indexColumn, facade
+        );
+
+        configurator.configure(
+                () -> {
+                    if (facade.getActivePlaylist() != null && facade.getActivePlaylist().equals(this.currentPlaylist)) {
+                        return facade.getCurrentPlayingTrack();
+                    }
+                    return null;
+                },
+                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, track)),
+                this::reorderTrack
+        );
+
+        RenameHandler renameHandler = new RenameHandler(
+                playlistNameLabel, playlistNameField,
+                () -> {
+                    if (currentPlaylist == null) return;
+                    String newName = playlistNameField.getText().trim();
+                    CommandInvoker.execute(new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName));
+                    playlistNameLabel.setText(newName);
+                    if (onRenameAction != null) onRenameAction.run();
+                }
+        );
+
+        playlistTrackTable.getSelectionModel().selectedItemProperty()
+                .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
+        manageTagsBtn.disableProperty().bind(
+                playlistTrackTable.getSelectionModel().selectedItemProperty().isNull()
+        );
+        refreshLabels();
+        playlistTrackTable.refresh();
+    }
 
     /**
      * Called when the currently playing track changes. Updates the internal reference
@@ -135,55 +186,6 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
             refreshLabels();
             if (facade != null) facade.savePlaylists();
         });
-    }
-
-    /**
-     * Injects the core music player facade, configures the table component,
-     * initializes event behaviors, and registers this controller as a playback observer.
-     *
-     * @param facade The system backend facade.
-     */
-    public void setMusicPlayer(MusicPlayerFacade facade) {
-        this.facade = facade;
-        facade.addPlaybackObserver(this);
-        facade.addObserver(this);
-
-        this.playingTrack = facade.getCurrentPlayingTrack();
-
-        PlaylistTableConfigurator configurator = new PlaylistTableConfigurator(
-                playlistTrackTable, titleColumn, authorColumn,
-                durationColumn, tagColumn, indexColumn, facade
-        );
-
-        configurator.configure(
-                () -> {
-                    if (facade.getActivePlaylist() != null && facade.getActivePlaylist().equals(this.currentPlaylist)) {
-                        return facade.getCurrentPlayingTrack();
-                    }
-                    return null;
-                },
-                (i, track) -> CommandInvoker.execute(new PlayTrackCommand(facade, currentPlaylist, track)),
-                this::reorderTrack
-        );
-
-        RenameHandler renameHandler = new RenameHandler(
-                playlistNameLabel, playlistNameField,
-                () -> {
-                    if (currentPlaylist == null) return;
-                    String newName = playlistNameField.getText().trim();
-                    CommandInvoker.execute(new RenamePlaylistCommand(facade.getPlaylistService(), currentPlaylist, newName));
-                    playlistNameLabel.setText(newName);
-                    if (onRenameAction != null) onRenameAction.run();
-                }
-        );
-
-        playlistTrackTable.getSelectionModel().selectedItemProperty()
-                .addListener((obs, old, now) -> { if (now != null) facade.setSelectedTrack(now); });
-        manageTagsBtn.disableProperty().bind(
-                playlistTrackTable.getSelectionModel().selectedItemProperty().isNull()
-        );        
-        refreshLabels();
-        playlistTrackTable.refresh();
     }
 
     /**
@@ -500,5 +502,21 @@ public class PlaylistDetailController implements PlaybackObserver, TrackObserver
      */
     public Playlist getCurrentPlaylist() {
         return currentPlaylist;
+    }
+
+    /**
+     * Detaches this controller from the facade's notification channels, undoing the
+     * registration performed in {@link #initialize()}.
+     *
+     * <p>The detail view is rebuilt on every playlist opening, so the controller being
+     * replaced must stop observing: otherwise it would keep reacting to library and
+     * playback events while operating on a {@code TableView} no longer attached to the
+     * scene. Called by {@code MainController} right before this instance is discarded.</p>
+     *
+     * <p>Idempotent: {@code removeObserver} on a non-registered observer is a no-op.</p>
+     */
+    public void dispose() {
+        facade.removePlaybackObserver(this);
+        facade.removeObserver(this);
     }
 }

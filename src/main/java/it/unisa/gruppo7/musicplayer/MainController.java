@@ -105,9 +105,11 @@ public class MainController {
 
             PlaylistDetailController controller = loader.getController();
             if (controller != null) {
+                if (currentDetailController != null) {
+                    currentDetailController.dispose();
+                }
                 currentDetailController = controller;
                 controller.setPlaylist(playlist);
-                controller.setMusicPlayer(musicPlayer);
                 controller.setOnBackAction(() -> contentArea.setCenter(libraryView));
                 controller.setOnRenameAction(() -> playlistSidebarController.refreshList());
                 controller.setOnPlaylistRestored(() -> playlistSidebarController.refreshList());
