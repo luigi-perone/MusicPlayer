@@ -9,10 +9,16 @@ import it.unisa.gruppo7.musicplayer.playlist.PlaylistService;
 import it.unisa.gruppo7.musicplayer.playlist.command.AddTracksCommand;
 import it.unisa.gruppo7.musicplayer.playlist.command.RemoveTrackCommand;
 import it.unisa.gruppo7.musicplayer.track.Track;
+import it.unisa.gruppo7.musicplayer.undo.UndoManager;
 import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -91,10 +97,58 @@ class PlaylistUndoIntegrationTest {
             command.undo();
 
             assertEquals(1, playlist.indexOf(trackB), "B must return to its original index (1)");
+            assertEquals(Arrays.asList(trackA, trackB, trackC), playlist.getTracks(),
+                    "the surrounding tracks must keep their original order after the undo");
             assertEquals(Arrays.asList(trackA, trackB, trackC), queueTracks(),
                     "the queue must be restored to its original order");
             assertTrue(reloadPlaylist().getTracks().contains(trackB),
                     "B must be present again in the persisted playlist file");
+        }
+
+        /**
+         * Verifies that undoing the removal of the head track puts it back at index zero
+         * rather than appending it elsewhere.
+         */
+        @Test
+        @DisplayName("restores the first track at index zero")
+        void undoRemove_firstTrack_restoresAtIndexZero() throws Exception {
+            RemoveTrackCommand command = new RemoveTrackCommand(playlistService, service, playlist, trackA);
+
+            command.execute(); // model: remove A (was index 0)
+            facade.onTrackRemovedFromPlaylist(playlist, trackA);
+
+            assertEquals(0, playlist.indexOf(trackB), "B must slide up to index 0 while A is out");
+
+            command.undo();
+
+            assertEquals(0, playlist.indexOf(trackA), "A must return to the head of the playlist");
+            assertEquals(Arrays.asList(trackA, trackB, trackC), playlist.getTracks(),
+                    "the playlist must be back to its original order");
+            assertTrue(reloadPlaylist().getTracks().contains(trackA),
+                    "A must be present again in the persisted playlist file");
+        }
+
+        /**
+         * Verifies that undoing the removal of the tail track puts it back at the last
+         * index, the boundary case of the i
+         */
+        @Test
+        @DisplayName("restores the last track at the tail index")
+        void undoRemove_lastTrack_restoresAtLastIndex() throws Exception {
+            RemoveTrackCommand command = new RemoveTrackCommand(playlistService, service, playlist, trackC);
+
+            command.execute(); // model: remove C (was index 2, the tail)
+            facade.onTrackRemovedFromPlaylist(playlist, trackC);
+
+            assertEquals(2, playlist.getTrackCount(), "the playlist must be down to two tracks");
+
+            command.undo();
+
+            assertEquals(2, playlist.indexOf(trackC), "C must return to the tail index");
+            assertEquals(Arrays.asList(trackA, trackB, trackC), playlist.getTracks(),
+                    "the playlist must be back to its original order");
+            assertTrue(reloadPlaylist().getTracks().contains(trackC),
+                    "C must be present again in the persisted playlist file");
         }
     }
 
@@ -160,6 +214,58 @@ class PlaylistUndoIntegrationTest {
             assertTrue(CommandInvoker.getUndoManager().undoLast(), "undoLast must revert the last action");
             assertEquals(1, playlist.indexOf(trackB), "B must be restored at its original index");
         }
+
+        /**
+         * Verifies that a real removal recorded through an invoker is still reversible
+         * while its time-to-live has not elapsed.
+         */
+        @Test
+        @DisplayName("within the TTL the recorded removal is still reversible")
+        void withinTtl_removalIsStillReversible() throws Exception {
+            MutableClock clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+            CommandInvoker invoker =
+                    new CommandInvoker(new UndoManager(Duration.ofSeconds(10), clock), e -> { });
+
+            invoker.invoke(new RemoveTrackCommand(playlistService, service, playlist, trackB));
+            facade.onTrackRemovedFromPlaylist(playlist, trackB);
+            assertFalse(playlist.getTracks().contains(trackB), "precondition: B must have been removed");
+
+            clock.advance(Duration.ofSeconds(9));
+
+            assertTrue(invoker.getUndoHistory().isUndoAvailable(),
+                    "before the TTL elapses the action must still be undoable");
+            assertTrue(invoker.getUndoHistory().undoLast(), "the undo must report success");
+            assertEquals(1, playlist.indexOf(trackB), "B must be restored at its original index");
+        }
+
+        /**
+         * Verifies that once the time-to-live has elapsed with no user intervention the
+         * removal becomes definitive: nothing is left on the stack and the track stays
+         * out of both the model and the persisted file.
+         */
+        @Test
+        @DisplayName("past the TTL the removal becomes definitive")
+        void pastTtl_removalBecomesDefinitive() throws Exception {
+            MutableClock clock = new MutableClock(Instant.parse("2026-01-01T00:00:00Z"));
+            CommandInvoker invoker =
+                    new CommandInvoker(new UndoManager(Duration.ofSeconds(10), clock), e -> { });
+
+            invoker.invoke(new RemoveTrackCommand(playlistService, service, playlist, trackB));
+            facade.onTrackRemovedFromPlaylist(playlist, trackB);
+            assertTrue(invoker.getUndoHistory().isUndoAvailable(),
+                    "precondition: the executed command must be on the stack");
+
+            clock.advance(Duration.ofSeconds(11));
+
+            assertFalse(invoker.getUndoHistory().isUndoAvailable(),
+                    "once the TTL has elapsed no undo must be offered any more");
+            assertFalse(invoker.getUndoHistory().undoLast(),
+                    "undoLast must report failure on an expired action");
+            assertFalse(playlist.getTracks().contains(trackB),
+                    "the expired removal must stand in the playlist model");
+            assertFalse(reloadPlaylist().getTracks().contains(trackB),
+                    "the expired removal must stand in the persisted playlist file");
+        }
     }
     
     /** Returns the current queue tracks as a new list for assertions. */
@@ -207,5 +313,22 @@ class PlaylistUndoIntegrationTest {
                 .filter(t -> t.getTitle().equals(title))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Track not found: " + title));
+    }
+
+    /** Clock whose current instant can be advanced manually, to drive the TTL scenarios. */
+    private static final class MutableClock extends Clock {
+        private Instant instant;
+
+        MutableClock(Instant start) {
+            this.instant = start;
+        }
+
+        void advance(Duration amount) {
+            this.instant = this.instant.plus(amount);
+        }
+
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return instant; }
     }
 }

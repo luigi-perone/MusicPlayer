@@ -309,7 +309,43 @@ class PlaybackQueueIntegrationTest {
 
             freshFacade.shutdownPlayback();
         }
+
+        /**
+         * Verifies that enqueuing a whole playlist when the player is stopped
+         * (empty queue) automatically starts playback from the first track of the
+         * appended block, preserving the playlist order for the following ones.
+         */
+        @Test
+        @Order(5)
+        void playlist_emptyQueue_autoStartsFromFirstTrack() throws Exception {
+            facade.shutdownPlayback();
+            resetSingletons();
+
+            PlaylistService freshPs = new PlaylistService(TEST_PLAYLIST_PATH);
+            MusicPlayerFacade freshFacade = buildFacade(freshPs);
+
+            Playlist block = freshPs.createPlaylist("EmptyQueueBlock-IT");
+            freshPs.addTracksToPlaylist(block, Arrays.asList(trackB, trackC));
+
+            // No loadSource -> queue is empty, player in START_UP
+            freshFacade.appendPlaylistToQueue(block);
+            freshFacade.getPlaybackService().stopTimer();
+
+            assertEquals(PlaybackState.PLAYING, freshFacade.getPlaybackState(),
+                    "Enqueuing a playlist into an empty queue must start playback automatically");
+            assertSame(trackB, freshFacade.getCurrentPlayingTrack(),
+                    "Playback must start from the first track of the enqueued playlist");
+
+            List<Track> queue = (List<Track>) freshFacade.getPlaybackService().getQueue().getTracks();
+            assertEquals(2, queue.size(),
+                    "Queue must contain exactly the two enqueued tracks");
+            assertSame(trackC, queue.get(1),
+                    "The playlist order must be preserved in the queue");
+
+            freshFacade.shutdownPlayback();
+        }
     }
+
 
     // ------------------------------------------------------------------
     // Helpers

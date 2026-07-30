@@ -525,6 +525,38 @@ class PlaylistServiceTest {
             assertEquals(1, reloaded.getPlaylists().size());
             assertEquals("Test", reloaded.getPlaylists().get(0).getName());
         }
+
+        /**
+         * Assures that a name rejected as empty leaves no trace on disk, so the stored
+         * file matches the in-memory collection after a failed validation.
+         */
+        @Test
+        void emptyNameRejectionIsNotPersisted() {
+            persistenceService.createPlaylist("Valid");
+            try { persistenceService.createPlaylist(""); } catch (IllegalArgumentException ignored) {}
+
+            PlaylistService reloaded = new PlaylistService(tempFile.toString());
+            reloaded.load();
+
+            assertEquals(1, reloaded.getPlaylists().size());
+            assertEquals("Valid", reloaded.getPlaylists().get(0).getName());
+        }
+
+        /**
+         * Assures that a name rejected as duplicate does not append a second record
+         * to the stored file.
+         */
+        @Test
+        void duplicateNameRejectionIsNotPersisted() {
+            persistenceService.createPlaylist("My Playlist");
+            try { persistenceService.createPlaylist("My Playlist"); } catch (IllegalArgumentException ignored) {}
+
+            PlaylistService reloaded = new PlaylistService(tempFile.toString());
+            reloaded.load();
+
+            assertEquals(1, reloaded.getPlaylists().size());
+            assertEquals("My Playlist", reloaded.getPlaylists().get(0).getName());
+        }
     }
 
     /**
