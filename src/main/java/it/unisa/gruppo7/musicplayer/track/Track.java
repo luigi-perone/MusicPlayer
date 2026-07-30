@@ -27,6 +27,8 @@ public class Track {
     private Set<TrackTag> tags = new HashSet<>();
     private int playCount;
 
+    private static final int EARLIEST_PUBLICATION_YEAR = 1877;
+
     /**
      * Complete Track constructor used for initialization and JSON deserialization.
      *
@@ -144,7 +146,7 @@ public class Track {
             throw new IllegalArgumentException("Track duration must be positive and non-zero");
         }
         if (publicationYear != null) {
-            if (((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0))) {
+            if (((publicationYear.compareTo(Year.of(EARLIEST_PUBLICATION_YEAR)) < 0) || (publicationYear.compareTo(Year.now()) > 0))) {
                 throw new IllegalArgumentException("Track Publication Year must be a valid year and prior to the current one");
             }
         }
@@ -274,11 +276,11 @@ public class Track {
      * Sets the publication year of the track after validating its constraints.
      *
      * @param publicationYear The release Year object.
-     * @throws IllegalArgumentException If the year is before 1877 or in the future.
+     * @throws IllegalArgumentException If the year is before EARLIEST_PUBLICATION_YEAR = 1877 or in the future.
      */
     public void setPublicationYear(Year publicationYear) {
         if (publicationYear != null) {
-            if ((publicationYear.compareTo(Year.of(1877)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
+            if ((publicationYear.compareTo(Year.of(EARLIEST_PUBLICATION_YEAR)) < 0) || (publicationYear.compareTo(Year.now()) > 0)) {
                 throw new IllegalArgumentException("Track Publication Year must be prior to the current one");
             }
         }

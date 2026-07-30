@@ -241,7 +241,7 @@
     -fx-max-height: 40px;
     -fx-background-radius: 20;
     -fx-cursor: hand;
-    -fx-padding: 0 0 0 2; /* Allineamento ottico del triangolo play */
+    -fx-padding: 0; /* L'icona vettoriale e' gia' centrata */
 }
 
 .play-btn-graphic:hover {
@@ -587,4 +587,111 @@
 .tag-combination-radio:selected {
     -fx-text-fill: #e0592b;
     -fx-font-weight: bold;
+}
+
+/* --- Icone vettoriali --- */
+
+/*
+ * Ogni icona e' una Region la cui forma arriva da -fx-shape: la Region scala il
+ * path alla propria dimensione, quindi la misura si regola con min/pref/max
+ * width-height e il colore con -fx-background-color (non con -fx-text-fill,
+ * che vale solo sul testo). I path provengono da Material Icons, Apache 2.0.
+ */
+.icon {
+    -fx-min-width: 14; -fx-pref-width: 14; -fx-max-width: 14;
+    -fx-min-height: 14; -fx-pref-height: 14; -fx-max-height: 14;
+}
+
+.icon-shuffle { -fx-shape: "M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"; }
+.icon-fast-rewind { -fx-shape: "M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"; }
+.icon-skip-previous { -fx-shape: "M6 6h2v12H6zm3.5 6l8.5 6V6z"; }
+.icon-play { -fx-shape: "M8 5v14l11-7z"; }
+.icon-pause { -fx-shape: "M6 19h4V5H6v14zm8-14v14h4V5h-4z"; }
+.icon-skip-next { -fx-shape: "M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"; }
+.icon-fast-forward { -fx-shape: "M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"; }
+.icon-repeat { -fx-shape: "M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"; }
+.icon-repeat-one { -fx-shape: "M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1.5l-2.5 1.5v1.5h2v3H13z"; }
+.icon-queue { -fx-shape: "M15,6H3v2h12V6z M15,10H3v2h12V10z M3,16h8v-2H3V16z M17,6v8.18C16.69,14.07,16.35,14,16,14c-1.66,0-3,1.34-3,3s1.34,3,3,3 s3-1.34,3-3V8h3V6H17z"; }
+.icon-home { -fx-shape: "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"; }
+.icon-library { -fx-shape: "M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5c0 1.38-1.12 2.5-2.5 2.5S10 13.88 10 12.5s1.12-2.5 2.5-2.5c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"; }
+.icon-auto { -fx-shape: "M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"; }
+.icon-delete { -fx-shape: "M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"; }
+
+/* Colori di stato: rispecchiano le regole -fx-text-fill dei rispettivi pulsanti.
+ * Il colore non sta in .icon perche' una regola a classe singola sul nodo stesso
+ * prevale sulle regole discendenti, lasciando le icone grigie anche da attive. */
+.control-btn .icon,
+.icon-btn .icon {
+    -fx-background-color: #6e6e73;
+}
+
+.control-btn:hover .icon {
+    -fx-background-color: #1c1c1e;
+}
+
+.control-btn.active .icon,
+.player-button-active .icon {
+    -fx-background-color: #e0592b;
+}
+
+.player-button-active:hover .icon {
+    -fx-background-color: #c9461c;
+}
+
+/*
+ * Le icone che il controller scambia a runtime prendono il colore da classi
+ * applicate al nodo stesso, non da regole discendenti sul pulsante: quando le
+ * classi della Region cambiano, il colore ereditato dall'antenato non viene
+ * riapplicato e l'icona resterebbe grigia.
+ */
+.icon.icon-play,
+.icon.icon-pause {
+    -fx-background-color: white;
+}
+
+.icon.icon-active {
+    -fx-background-color: #e0592b;
+}
+
+/*
+ * Deroghe di dimensione, espresse con due classi sullo stesso nodo: le classi
+ * di forma sono quelle che il controller scambia a runtime, quindi la misura
+ * segue l'icona mostrata senza dipendere dal pulsante che la contiene.
+ */
+.icon.icon-play {
+    /* Forma 11x14: riquadro proporzionato, altrimenti il triangolo si allarga.
+     * translate-x compensa opticamente la massa visiva spostata a sinistra,
+     * come faceva il vecchio padding del pulsante. */
+    -fx-min-width: 12; -fx-pref-width: 12; -fx-max-width: 12;
+    -fx-min-height: 16; -fx-pref-height: 16; -fx-max-height: 16;
+    -fx-translate-x: 2;
+}
+
+.icon.icon-pause {
+    /* Forma 12x14: simmetrica, non serve compensazione ottica. */
+    -fx-min-width: 14; -fx-pref-width: 14; -fx-max-width: 14;
+    -fx-min-height: 16; -fx-pref-height: 16; -fx-max-height: 16;
+}
+
+.icon.icon-auto {
+    -fx-min-width: 16; -fx-pref-width: 16; -fx-max-width: 16;
+    -fx-min-height: 16; -fx-pref-height: 16; -fx-max-height: 16;
+}
+
+.icon-btn:hover .icon {
+    -fx-background-color: #1c1c1e;
+}
+
+/* Icona affiancata al testo nelle voci di navigazione della sidebar */
+.nav-icon {
+    -fx-background-color: #6e6e73;
+    -fx-min-width: 16; -fx-pref-width: 16; -fx-max-width: 16;
+    -fx-min-height: 16; -fx-pref-height: 16; -fx-max-height: 16;
+}
+
+/* Icona affiancata al testo nei pulsanti azione colorati */
+.action-icon {
+    -fx-background-color: white;
+    -fx-min-width: 15; -fx-pref-width: 15; -fx-max-width: 15;
+    -fx-min-height: 15; -fx-pref-height: 15; -fx-max-height: 15;
 }

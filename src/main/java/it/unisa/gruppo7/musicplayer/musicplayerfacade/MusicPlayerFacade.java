@@ -341,14 +341,24 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
 
     /**
      * Serializes current user playlist tracking parameters to disk storage.
+     * The snapshot is taken here, on the calling (JavaFX) thread; only the
+     * serialization of that detached copy runs on the I/O executor. Submitting the
+     * live playlists instead would let the UI mutate them while Jackson iterates.
      */
     public void savePlaylists() {
         if (ioExecutor == null || ioExecutor.isShutdown()) {
             return;
         }
+        final List<Playlist> snapshot = playlistService.snapshotForSave();
         try {
             ioExecutor.submit(() -> {
-                playlistService.save();
+                try {
+                    playlistService.writeSnapshot(snapshot);
+                } catch (RuntimeException e) {
+                    // The task's Future is never inspected: log instead of failing silently.
+                    System.err.println("Error saving playlists");
+                    e.printStackTrace();
+                }
             });
         } catch (RejectedExecutionException ignored) {
             // Executor is shutting down (e.g. application/test teardown): skip the save.
@@ -399,9 +409,9 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
     }
 
     /**
-     * Loads a specific target track model pointer directly into processing hardware stream buffers.
+     * Loads a specific target track model pointer directly into processing stream buffers.
      *
-     * @param track The music file container to parse and play.
+     * @param track The music track to play.
      */
     public void playTrack(Track track) {
         playbackService.play(track);
@@ -673,7 +683,7 @@ public class MusicPlayerFacade implements LibraryFacade, PlaylistFacade, Playbac
     }
 
     /**
-     * Safely triggers hardware timer sequence destruction tasks on application exit boundaries.
+     * Safely triggers timer sequence destruction tasks on application exit boundaries.
      */
     public void shutdownPlayback() {
         if (playbackService != null) {

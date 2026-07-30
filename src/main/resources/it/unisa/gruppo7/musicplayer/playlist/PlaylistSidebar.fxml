@@ -10,15 +10,20 @@
 
 <VBox prefWidth="234.0" spacing="2.0" styleClass="sidebar" stylesheets="@Playlist.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="it.unisa.gruppo7.musicplayer.playlist.PlaylistSidebarController">
     <VBox spacing="5.0" style="-fx-padding: 0 0 15 0;">
-        <Button alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#onHomeClick" style="-fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" text="🏠  Home" />
-        <Button alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#onLibraryClick" style="-fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" text="🎵  Libreria" />
+        <Button alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#onHomeClick" style="-fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" text="Home" graphicTextGap="10.0">
+            <graphic><Region styleClass="icon, nav-icon, icon-home" /></graphic>
+        </Button>
+        <Button alignment="BASELINE_LEFT" maxWidth="Infinity" onAction="#onLibraryClick" style="-fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" text="Libreria" graphicTextGap="10.0">
+            <graphic><Region styleClass="icon, nav-icon, icon-library" /></graphic>
+        </Button>
     </VBox>
 
     <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="section-head">
         <Label styleClass="section-title" text="Playlists" />
         <Region HBox.hgrow="ALWAYS" />
 
-        <Button text="✨" styleClass="icon-btn" onAction="#onPlaylistGeneratorToggle">
+        <Button styleClass="icon-btn" onAction="#onPlaylistGeneratorToggle">
+            <graphic><Region styleClass="icon, icon-auto" /></graphic>
             <tooltip>
                 <Tooltip text="Generatore di Playlist"/>
             </tooltip>

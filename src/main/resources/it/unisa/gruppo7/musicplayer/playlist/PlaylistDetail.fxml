@@ -7,6 +7,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -34,7 +35,9 @@
 
                 <Button mnemonicParsing="false" onAction="#onRemoveTrackClick" style="-fx-background-color: #6e6e73; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="- Rimuovi" />
                 <Button fx:id="manageTagsBtn" mnemonicParsing="false" onAction="#onManageTagsClick" style="-fx-background-color: #d722d1ff; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="Gestisci Tag" />
-                <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="🗑 Elimina" />
+                <Button fx:id="deletePlaylistBtn" mnemonicParsing="false" onAction="#onDeletePlaylistClick" style="-fx-background-color: #d92d20; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand;" text="Elimina" graphicTextGap="7.0">
+                    <graphic><Region styleClass="icon, action-icon, icon-delete" /></graphic>
+                </Button>
             </HBox>
         </VBox>
     </top>

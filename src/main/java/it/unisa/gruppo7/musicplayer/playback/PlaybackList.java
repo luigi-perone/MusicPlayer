@@ -14,6 +14,16 @@ import it.unisa.gruppo7.musicplayer.track.Track;
  * This class is the single owner of the playback cursor ({@code currentIndex}).
  * All index arithmetic lives here so that callers (the service, controllers) never
  * have to set the cursor by hand and risk de-syncing it from the playing track.
+ *
+ * Thread safety. The queue is touched by two threads: the JavaFX thread
+ * (enqueue, remove, reorder, shuffle) and the playback timer thread, which calls
+ * {@code playNext()} at the end of a track. The four structures kept aligned here
+ * (canonical list, shuffled list, block ids, cursor) would drift apart if mutated
+ * concurrently, causing IndexOutOfBoundsException on the indexed reads or
+ * playback of the wrong track. Every public entry point is therefore synchronized
+ * on the instance: the queue is small and each operation lasts microseconds, so a
+ * coarse lock is adequate. Observers are notified by {@code PlaybackService},
+ * outside this lock, so no callback runs while the lock is held.
  */
 public class PlaybackList extends TrackCollection implements TrackObserver {
     private static final String DEFAULT_PATH = null;
@@ -70,8 +80,18 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return The shuffled list if shuffle is active, otherwise the canonical track list.
      */
-    public List<Track> getActiveList() {
-        return isShuffleActive() ? this.shuffledTracks : canonicalList();
+    public synchronized List<Track> getActiveList() {
+        return new ArrayList<>(activeList());
+    }
+
+    /**
+     * Returns the live active list, for internal use only: callers must already
+     * hold the lock and must not publish the returned reference outside of it.
+     *
+     * @return the shuffled list if shuffle is active, otherwise the canonical list.
+     */
+    private List<Track> activeList() {
+        return isShuffleActive ? this.shuffledTracks : canonicalList();
     }
 
     /**
@@ -79,7 +99,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param index the new cursor index
      */
-    public void setCurrentIndex(int index) {
+    public synchronized void setCurrentIndex(int index) {
         this.currentIndex = index;
     }
 
@@ -88,7 +108,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the current index
      */
-    public int getCurrentIndex() {
+    public synchronized int getCurrentIndex() {
         return currentIndex;
     }
 
@@ -98,8 +118,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the current track, or {@code null} if the cursor is out of range
      */
-    public Track getCurrentTrack() {
-        List<Track> trackList = getActiveList();
+    public synchronized Track getCurrentTrack() {
+        List<Track> trackList = activeList();
         if (currentIndex < 0 || currentIndex >= trackList.size()) {
             return null;
         }
@@ -114,8 +134,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param track the track to point the cursor at.
      * @return true if the track was found and the cursor moved, false otherwise.
      */
-    public boolean jumpTo(Track track) {
-        int idx = getActiveList().indexOf(track);
+    public synchronized boolean jumpTo(Track track) {
+        int idx = activeList().indexOf(track);
         if (idx >= 0) {
             this.currentIndex = idx;
             return true;
@@ -128,8 +148,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the next track, or {@code null} if already at the end
      */
-    public Track getNextTrack() {
-        List<Track> trackList = getActiveList();
+    public synchronized Track getNextTrack() {
+        List<Track> trackList = activeList();
         if (trackList == null || trackList.isEmpty()) return null;
         if (currentIndex < 0 || currentIndex >= trackList.size() - 1) return null;
         this.setCurrentIndex(currentIndex + 1);
@@ -141,8 +161,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the previous track, or {@code null} if already at the start
      */
-    public Track getPreviousTrack() {
-        List<Track> trackList = getActiveList();
+    public synchronized Track getPreviousTrack() {
+        List<Track> trackList = activeList();
         if (trackList == null || trackList.isEmpty()) return null;
         if (currentIndex <= 0) return null;
         this.setCurrentIndex(currentIndex - 1);
@@ -215,7 +235,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the first track of the next block, or null if there is none.
      */
-    public Track getNextPlaylistTrack() {
+    public synchronized Track getNextPlaylistTrack() {
         int target = nextPlaylistStartIndex();
         if (target < 0) return null;
         this.currentIndex = target;
@@ -227,7 +247,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the first track of the previous block, or null if the cursor is in the first block.
      */
-    public Track getPreviousPlaylistTrack() {
+    public synchronized Track getPreviousPlaylistTrack() {
         int target = previousPlaylistStartIndex();
         if (target < 0) return null;
         this.currentIndex = target;
@@ -237,14 +257,14 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     /**
      * @return true if a following playlist block exists to skip to.
      */
-    public boolean hasNextPlaylist() {
+    public synchronized boolean hasNextPlaylist() {
         return nextPlaylistStartIndex() >= 0;
     }
 
     /**
      * @return true if a preceding playlist block exists to skip to.
      */
-    public boolean hasPreviousPlaylist() {
+    public synchronized boolean hasPreviousPlaylist() {
         return previousPlaylistStartIndex() >= 0;
     }
 
@@ -253,7 +273,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param tracks The new list of tracks to load.
      */
-    public void loadTracks(List<Track> tracks) {
+    public synchronized void loadTracks(List<Track> tracks) {
         loadTracks(tracks, null);
     }
 
@@ -264,7 +284,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param tracks The new list of tracks to load.
      * @param source The playlist the tracks come from, or null for an ad-hoc load.
      */
-    public void loadTracks(List<Track> tracks, Playlist source) {
+    public synchronized void loadTracks(List<Track> tracks, Playlist source) {
         this.clear();
         this.tracks.addAll(tracks);
 
@@ -290,7 +310,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param tracks The list of tracks to append.
      */
-    public void appendTracks(List<Track> tracks) {
+    public synchronized void appendTracks(List<Track> tracks) {
         appendTracks(tracks, null);
     }
 
@@ -301,7 +321,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param tracks The list of tracks to append.
      * @param source The playlist the tracks come from, or null for an ad-hoc append.
      */
-    public void appendTracks(List<Track> tracks, Playlist source) {
+    public synchronized void appendTracks(List<Track> tracks, Playlist source) {
         this.tracks.addAll(tracks);
 
         if (tracks != null && !tracks.isEmpty()) {
@@ -340,7 +360,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param from the current index of the track in the canonical list.
      * @param to   the target index in the canonical list.
      */
-    public void moveTrack(int from, int to) {
+    public synchronized void moveTrack(int from, int to) {
         List<Track> canonical = canonicalList();
         int size = canonical.size();
 
@@ -385,7 +405,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param from   the block-relative source index.
      * @param to     the block-relative target index.
      */
-    public void reorderWithinPlaylistBlocks(Playlist source, int from, int to) {
+    public synchronized void reorderWithinPlaylistBlocks(Playlist source, int from, int to) {
         if (source == null || from == to) {
             return;
         }
@@ -419,7 +439,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
     /**
      * Removes all tracks from the playback list.
      */
-    public void clear() {
+    public synchronized void clear() {
         this.tracks.clear();
         this.shuffledTracks.clear();
         this.blockIds.clear();
@@ -433,8 +453,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return The first track, or null if the list is empty.
      */
-    public Track getFirstTrack() {
-        List<Track> trackList = getActiveList();
+    public synchronized Track getFirstTrack() {
+        List<Track> trackList = activeList();
 
         if (trackList == null || trackList.isEmpty()) {
             return null;
@@ -449,8 +469,8 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return the upcoming tracks, or an empty list if none
      */
-    public List<Track> getUpNextQueue() {
-        List<Track> trackList = getActiveList();
+    public synchronized List<Track> getUpNextQueue() {
+        List<Track> trackList = activeList();
 
         if (trackList == null || trackList.isEmpty()) {
             return new ArrayList<>();
@@ -470,7 +490,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return true if shuffle is active, false otherwise.
      */
-    public boolean isShuffleActive() {
+    public synchronized boolean isShuffleActive() {
         return isShuffleActive;
     }
 
@@ -480,7 +500,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param shuffleState The new shuffle state.
      * @param currentTrack The current track playing.
      */
-    public void setShuffle(boolean shuffleState, Track currentTrack) {
+    public synchronized void setShuffle(boolean shuffleState, Track currentTrack) {
         this.isShuffleActive = shuffleState;
         if (shuffleState) {
             shuffleTracks(currentTrack);
@@ -518,7 +538,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param track The track to insert.
      */
-    public void insertTrackAtRandom(Track track) {
+    public synchronized void insertTrackAtRandom(Track track) {
         if (shuffledTracks.isEmpty()) {
             shuffledTracks.add(track);
             return;
@@ -535,7 +555,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param track The track to add.
      */
-    void addToCanonicalList(Track track) {
+    synchronized void addToCanonicalList(Track track) {
         this.tracks.add(track);
         // A single appended track is its own one-track block.
         this.blockIds.add(nextBlockId++);
@@ -561,12 +581,12 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @return true if at least one occurrence was removed from the queue.
      */
     @Override
-    public boolean removeTrack(Track track) {
+    public synchronized boolean removeTrack(Track track) {
         if (track == null) {
             return false;
         }
 
-        List<Track> active = getActiveList();
+        List<Track> active = activeList();
 
         boolean currentRemoved = currentIndex >= 0
                 && currentIndex < active.size()
@@ -617,7 +637,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      * @param track The track that was deleted.
      */
     @Override
-    public void onTrackDeleted(Track track) {
+    public synchronized void onTrackDeleted(Track track) {
         this.removeTrack(track);
     }
 
@@ -639,7 +659,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @return a snapshot of the current queue state.
      */
-    public QueueMemento snapshot() {
+    public synchronized QueueMemento snapshot() {
         return new QueueSnapshot(canonicalList(), this.shuffledTracks,
                 this.currentIndex, this.isShuffleActive,
                 this.blockIds, this.blockSources, this.nextBlockId);
@@ -654,7 +674,7 @@ public class PlaybackList extends TrackCollection implements TrackObserver {
      *
      * @param memento the state to restore; ignored if null.
      */
-    public void restore(QueueMemento memento) {
+    public synchronized void restore(QueueMemento memento) {
         if (!(memento instanceof QueueSnapshot)) return;
         QueueSnapshot s = (QueueSnapshot) memento;
         this.tracks.clear();
