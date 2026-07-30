@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the repeat-mode {@link RepeatStrategy} implementations, exercised
- * against a real {@link PlaybackList} and a real {@link TrackSkipStrategy} (no mocks),
+ * against a real {@link PlaybackList},
  * consistent with the rest of the playback test suite.
  */
 class RepeatStrategyTest {
@@ -23,7 +23,6 @@ class RepeatStrategyTest {
     private Track trk1;
     private Track trk2;
     private Track trk3;
-    private final SkipStrategy skip = new TrackSkipStrategy();
 
     /** Builds a three-track queue with the cursor at the first track before each test. */
     @BeforeEach
