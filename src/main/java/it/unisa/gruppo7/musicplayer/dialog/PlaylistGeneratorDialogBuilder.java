@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import it.unisa.gruppo7.musicplayer.playlist.strategy.TagCombinationMode;
 import it.unisa.gruppo7.musicplayer.track.TrackTag;
@@ -176,11 +177,10 @@ Runnable updateTagControls = () -> {
     playlistNameLabel.setVisible(tagSelected);
     playlistNameLabel.setManaged(tagSelected);
     playlistNameField.setVisible(tagSelected);
-    playlistNameField.setManaged(tagSelected);  
+    playlistNameField.setManaged(tagSelected);
 
     if (tagSelected) {
-        playlistNameField.clear();
-        playlistNameField.setText("Playlist da tag");
+        updateDefaultTagPlaylistName();
     } else {
         updateDefaultPlaylistName();
     }
@@ -209,7 +209,12 @@ Runnable updateTagControls = () -> {
                 updateDefaultPlaylistName();
             }
         });
-        tagCheckBoxes.values().forEach(checkBox ->checkBox.selectedProperty().addListener((obs, oldValue, newValue) -> updateCombinationControls.run()));
+        // The suggested name must follow the tag selection: a fixed name would make every
+        // tag-based generation collide on the same playlist.
+        tagCheckBoxes.values().forEach(checkBox ->checkBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            updateCombinationControls.run();
+            updateDefaultTagPlaylistName();
+        }));
 
         updateTagControls.run();
         updateCombinationControls.run();
@@ -266,6 +271,25 @@ Runnable updateTagControls = () -> {
             + target.substring(1).toLowerCase();
 
     playlistNameField.setText("Playlist " + formattedTarget);
+    }
+
+    /**
+     * Updates the playlist name field with a default name listing the tags currently
+     * selected, so that two different tag selections never propose the same name.
+     * Tags are listed in enum declaration order, making the name independent of the
+     * order in which the user ticked the checkboxes.
+     */
+    private void updateDefaultTagPlaylistName() {
+        if (!"Tag".equals(criterionBox.getValue())) {
+            return;
+        }
+
+        String tags = tagCheckBoxes.entrySet().stream()
+                .filter(entry -> entry.getValue().isSelected())
+                .map(entry -> entry.getKey().getDisplayName())
+                .collect(Collectors.joining(", "));
+
+        playlistNameField.setText(tags.isEmpty() ? "Playlist da tag" : "Playlist " + tags);
     }
 
 }

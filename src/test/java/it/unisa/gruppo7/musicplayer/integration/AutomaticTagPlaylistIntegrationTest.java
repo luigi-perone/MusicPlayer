@@ -95,6 +95,55 @@ class AutomaticTagPlaylistIntegrationTest {
         assertFalse(service.hasRule("Preferite"));
     }
     /**
+     * Verifies that generating a second tag playlist under a different name does not
+     * pour the new tracks into the playlist generated first. */
+    @Test
+    void secondTagGenerationDoesNotFeedTheFirstPlaylist() {
+        Track favourite = track("Favourite", TrackTag.FAVOURITE);
+        Track best = track("Best", TrackTag.BEST);
+        library.addTrack(favourite);
+        library.addTrack(best);
+
+        Playlist favourites = facade.createAutoPlaylist(
+                "Playlist Preferita",
+                strategy(TrackTag.FAVOURITE),
+                tagRule(TrackTag.FAVOURITE));
+        Playlist bests = facade.createAutoPlaylist(
+                "Playlist best",
+                strategy(TrackTag.BEST),
+                tagRule(TrackTag.BEST));
+
+        assertEquals(Collections.singletonList(favourite), favourites.getPlaylist());
+        assertEquals(Collections.singletonList(best), bests.getPlaylist());
+    }
+
+    /**
+     * Verifies that reusing the name of an existing playlist is rejected instead of
+     * silently merging the newly generated tracks into it. */
+    @Test
+    void generationWithAnAlreadyUsedNameIsRejected() {
+        Track favourite = track("Favourite", TrackTag.FAVOURITE);
+        Track best = track("Best", TrackTag.BEST);
+        library.addTrack(favourite);
+        library.addTrack(best);
+
+        Playlist existing = facade.createAutoPlaylist(
+                "Playlist da tag",
+                strategy(TrackTag.FAVOURITE),
+                tagRule(TrackTag.FAVOURITE));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> facade.createAutoPlaylist(
+                        "Playlist da tag",
+                        strategy(TrackTag.BEST),
+                        tagRule(TrackTag.BEST)));
+
+        assertEquals("Esiste già una playlist con questo nome", exception.getMessage());
+        assertEquals(Collections.singletonList(favourite), existing.getPlaylist());
+    }
+
+    /**
      * Verifies that refresh removes a track after it loses a required tag. */
     @Test
     void refreshRemovesTrackThatLostRequiredTag() {
