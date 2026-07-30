@@ -31,7 +31,7 @@
                              style="-fx-background-color: #5856d6; -fx-text-fill: white;
                -fx-font-weight: bold; -fx-background-radius: 6;
                -fx-padding: 6 12;"
-                             text="＋ Aggiungi a Playlist">
+                             text="+ Aggiungi a Playlist">
                          <tooltip><Tooltip text="Aggiungi le tracce selezionate a una playlist" /></tooltip>
                      </Button>
                      <Button fx:id="manageTagsBtn"

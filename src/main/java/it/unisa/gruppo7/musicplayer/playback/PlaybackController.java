@@ -8,6 +8,7 @@ import it.unisa.gruppo7.musicplayer.track.Track;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -229,7 +230,6 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
      */
     private void updateShuffleButtonState() {
         boolean isActive = musicPlayer.isShuffleActive();
-        shuffleButton.setText("⇄");
 
         shuffleButton.getStyleClass().remove(SHUFFLE_ACTIVE_CLASS);
         shuffleButton.getStyleClass().remove("active");
@@ -253,15 +253,15 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
 
         String tooltipText;
         if (repeatMode == RepeatMode.REPEAT_PLAYLIST) {
-            repeatButton.setText("↻");
+            setIcon(repeatButton, "icon-repeat", true);
             repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
             tooltipText = "Ripeti: playlist";
         } else if (repeatMode == RepeatMode.REPEAT_ONE) {
-            repeatButton.setText("↻1");
+            setIcon(repeatButton, "icon-repeat-one", true);
             repeatButton.getStyleClass().add(LOOP_ACTIVE_CLASS);
             tooltipText = "Ripeti: un brano";
         } else {
-            repeatButton.setText("↺");
+            setIcon(repeatButton, "icon-repeat");
             tooltipText = "Ripeti: off";
         }
 
@@ -358,8 +358,41 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     }
 
     /**
+     * Swaps the icon shown by a button, keeping the shared {@code icon} style class and
+     * replacing the shape-specific one.
+     *
+     * @param button    The button whose graphic must change.
+     * @param iconClass The style class carrying the wanted {@code -fx-shape}.
+     */
+    private void setIcon(Button button, String iconClass) {
+        setIcon(button, iconClass, false);
+    }
+
+    /**
+     * Swaps the icon shown by a button, keeping the shared {@code icon} style class and
+     * replacing the shape-specific one.
+     *
+     * @param button    The button whose graphic must change.
+     * @param iconClass The style class carrying the wanted {@code -fx-shape}.
+     * @param active    Whether the icon must take the accent colour of an active control.
+     *                  The class is applied to the graphic itself because a colour coming
+     *                  from a rule on the button is not reapplied when these classes change.
+     */
+    private void setIcon(Button button, String iconClass, boolean active) {
+        Node icon = button.getGraphic();
+        if (icon == null) {
+            return;
+        }
+        if (active) {
+            icon.getStyleClass().setAll("icon", iconClass, "icon-active");
+        } else {
+            icon.getStyleClass().setAll("icon", iconClass);
+        }
+    }
+
+    /**
      * Toggles the displayed graphical symbol representation of the execution action button
-     * and adjusts optical centering paddings based on engine state machine updates.
+     * based on engine state machine updates.
      *
      * @param newState The incoming system operational playback state.
      */
@@ -367,11 +400,9 @@ public class PlaybackController implements PlaybackObserver, TrackObserver {
     public void onStateChanged(PlaybackState newState) {
         Platform.runLater(() -> {
             if (newState == PlaybackState.PLAYING) {
-                playPauseButton.setText("⏸");
-                playPauseButton.setStyle("-fx-padding: 0 0 0 0;");
+                setIcon(playPauseButton, "icon-pause");
             } else if (newState == PlaybackState.PAUSED || newState == PlaybackState.STOPPED) {
-                playPauseButton.setText("▶");
-                playPauseButton.setStyle("-fx-padding: 0 0 0 2;");
+                setIcon(playPauseButton, "icon-play");
             }
         });
     }
